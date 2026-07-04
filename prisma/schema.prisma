@@ -1,0 +1,730 @@
+// TVV Travel OS — Sprint 12 Database Migration.
+// Every model here is a 1:1 mapping of an existing TypeScript type already
+// used throughout src/modules/* — no field was added, renamed, or removed
+// relative to the in-memory shape it replaces (see docs/23_DATABASE_MIGRATION.md
+// for the full per-module mapping). String is used for every "kind"/"status"
+// union (HOTEL, DRAFT, etc.) rather than a Prisma enum, and Json for every
+// nested object/array-of-objects — both deliberately: the application's own
+// validation layer (unchanged this sprint) remains the single source of
+// truth for which string values are valid, exactly as it was against the
+// in-memory Map-based stores.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Inventory ──────────────────────────────────────────────────────────
+
+model InventoryItem {
+  id            String   @id @default(uuid())
+  kind          String
+  destinationId String?
+  title         String
+  status        String
+  details       Json
+  createdAt     DateTime
+  updatedAt     DateTime
+
+  @@index([kind])
+  @@index([destinationId])
+  @@map("inventory_items")
+}
+
+// ── Supplier ───────────────────────────────────────────────────────────
+
+model SupplierRecord {
+  id           String   @id @default(uuid())
+  code         String   @unique
+  name         String
+  capabilities String[]
+  status       String
+  registeredAt DateTime
+
+  @@map("supplier_records")
+}
+
+// ── Destination ────────────────────────────────────────────────────────
+
+model Country {
+  id        String   @id @default(uuid())
+  name      String
+  isoCode   String
+  createdAt DateTime
+  updatedAt DateTime
+
+  @@map("countries")
+}
+
+model State {
+  id        String   @id @default(uuid())
+  countryId String
+  name      String
+  createdAt DateTime
+  updatedAt DateTime
+
+  @@index([countryId])
+  @@map("states")
+}
+
+model Region {
+  id        String   @id @default(uuid())
+  name      String
+  countryId String?
+  createdAt DateTime
+  updatedAt DateTime
+
+  @@index([countryId])
+  @@map("regions")
+}
+
+model City {
+  id        String   @id @default(uuid())
+  countryId String
+  stateId   String?
+  name      String
+  createdAt DateTime
+  updatedAt DateTime
+
+  @@index([countryId])
+  @@index([stateId])
+  @@map("cities")
+}
+
+model Airport {
+  id        String   @id @default(uuid())
+  cityId    String
+  iataCode  String
+  name      String
+  createdAt DateTime
+  updatedAt DateTime
+
+  @@index([cityId])
+  @@map("airports")
+}
+
+model DestinationCategory {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+
+  @@map("destination_categories")
+}
+
+model Destination {
+  id                  String   @id @default(uuid())
+  name                String
+  slug                String   @unique
+  countryId           String
+  stateId             String?
+  cityId              String?
+  regionId            String?
+  parentDestinationId String?
+  categoryIds         String[]
+  description         String?
+  isFeatured          Boolean  @default(false)
+  latitude            Float?
+  longitude           Float?
+  seo                 Json
+  gallery             Json
+  faqs                Json
+  guideReferenceIds   String[]
+  status              String
+  createdAt           DateTime
+  updatedAt           DateTime
+
+  @@index([countryId])
+  @@index([parentDestinationId])
+  @@index([status])
+  @@map("destinations")
+}
+
+// ── Package ────────────────────────────────────────────────────────────
+
+model Package {
+  id                String   @id @default(uuid())
+  title             String
+  code              String   @unique
+  slug              String   @unique
+  destinationId     String
+  sourceType        String
+  durationDays      Int
+  durationNights    Int
+  isTemplate        Boolean  @default(false)
+  sourceTemplateId  String?
+  aiGeneratedFromId String?
+  status            String
+  currentVersionId  String?
+  seo               Json
+  faqs              Json
+  createdAt         DateTime
+  updatedAt         DateTime
+
+  @@index([destinationId])
+  @@index([status])
+  @@map("packages")
+}
+
+model PackageDay {
+  id            String   @id @default(uuid())
+  packageId     String
+  dayNumber     Int
+  title         String
+  description   String?
+  destinationId String?
+  createdAt     DateTime
+  updatedAt     DateTime
+
+  @@index([packageId])
+  @@map("package_days")
+}
+
+model PackageItem {
+  id                     String   @id @default(uuid())
+  packageDayId           String
+  kind                   String
+  resolutionMode         String
+  inventoryItemId        String?
+  destinationReferenceId String?
+  slotCriteria           Json?
+  title                  String
+  description            String?
+  timeOfDay              String?
+  notes                  String?
+  images                 String[]
+  pricingMode            String
+  addonPrice             Float?
+  position               Int
+  createdAt              DateTime
+  updatedAt              DateTime
+
+  @@index([packageDayId])
+  @@index([inventoryItemId])
+  @@map("package_items")
+}
+
+model PackagePricing {
+  id               String   @id @default(uuid())
+  packageId        String   @unique
+  basePrice        Float
+  currency         String
+  markup           Json?
+  discount         Json?
+  tax              Json?
+  occupancyPricing Json
+  childPricing     Json
+  infantPricing    Json?
+  groupPricing     Json
+  seasonalPricing  Json
+  createdAt        DateTime
+  updatedAt        DateTime
+
+  @@map("package_pricing")
+}
+
+model PackageRule {
+  id                String   @id @default(uuid())
+  packageId         String   @unique
+  cancellationTiers Json
+  paymentTerms      Json?
+  refundPolicy      String?
+  bookingWindow     Json?
+  minPax            Int
+  maxPax            Int?
+  createdAt         DateTime
+  updatedAt         DateTime
+
+  @@map("package_rules")
+}
+
+model PackageAvailability {
+  id                String   @id @default(uuid())
+  packageId         String
+  validFrom         DateTime
+  validTo           DateTime
+  blackoutDates     String[]
+  maxBookingsPerDay Int?
+  createdAt         DateTime
+  updatedAt         DateTime
+
+  @@index([packageId])
+  @@map("package_availability")
+}
+
+model PackageVersion {
+  id            String   @id @default(uuid())
+  packageId     String
+  versionNumber Int
+  snapshot      Json
+  publishedAt   DateTime
+  changeNote    String?
+
+  @@index([packageId])
+  @@map("package_versions")
+}
+
+// ── Quote ──────────────────────────────────────────────────────────────
+
+model Quote {
+  id                 String    @id @default(uuid())
+  quoteNumber        String    @unique
+  title              String
+  status             String
+  destinationId      String
+  packageId          String?
+  travelerDetails    Json
+  currency           String
+  adjustments        Json
+  currentVersionId   String?
+  validFrom          DateTime
+  validTo            DateTime
+  internalNotes      String?
+  customerNotes      String?
+  approvedAt         DateTime?
+  rejectedAt         DateTime?
+  rejectionReason    String?
+  convertedAt        DateTime?
+  convertedBookingId String?
+  /// Owning customer (Sprint 13 — Customer Experience Platform). Null for
+  /// staff-created quotes with no registered account behind them (walk-in/
+  /// phone leads) — never backfilled, never inferred.
+  customerId         String?
+  createdAt          DateTime
+  updatedAt          DateTime
+
+  @@index([destinationId])
+  @@index([status])
+  @@index([customerId])
+  @@map("quotes")
+}
+
+model QuoteItem {
+  id              String   @id @default(uuid())
+  quoteId         String
+  kind            String
+  packageId       String?
+  inventoryItemId String?
+  title           String
+  description     String?
+  quantity        Int
+  unitPrice       Float
+  position        Int
+  createdAt       DateTime
+  updatedAt       DateTime
+
+  @@index([quoteId])
+  @@map("quote_items")
+}
+
+model QuoteVersion {
+  id            String   @id @default(uuid())
+  quoteId       String
+  versionNumber Int
+  snapshot      Json
+  createdAt     DateTime
+  changeNote    String?
+
+  @@index([quoteId])
+  @@map("quote_versions")
+}
+
+// ── Booking ────────────────────────────────────────────────────────────
+
+model Booking {
+  id                   String    @id @default(uuid())
+  bookingNumber        String    @unique
+  status               String
+  sourceQuoteId        String
+  sourceQuoteNumber    String
+  sourceQuoteVersionId String?
+  destinationId        String
+  packageId            String?
+  currency             String
+  totalAmount          Float
+  amountPaid           Float
+  paymentStatus        String
+  internalNotes        String?
+  confirmedAt          DateTime?
+  ticketedAt           DateTime?
+  completedAt          DateTime?
+  cancelledAt          DateTime?
+  cancellationReason   String?
+  /// Owning customer (Sprint 13) — propagated automatically from the
+  /// source Quote's customerId at creation, never set independently.
+  customerId           String?
+  createdAt            DateTime
+  updatedAt            DateTime
+
+  @@index([sourceQuoteId])
+  @@index([status])
+  @@index([customerId])
+  @@map("bookings")
+}
+
+model BookingItem {
+  id                       String   @id @default(uuid())
+  bookingId                String
+  kind                     String
+  packageId                String?
+  inventoryItemId          String?
+  title                    String
+  description              String?
+  quantity                 Int
+  unitPrice                Float
+  supplierBookingReference Json?
+  createdAt                DateTime
+  updatedAt                DateTime
+
+  @@index([bookingId])
+  @@map("booking_items")
+}
+
+model Traveller {
+  id               String    @id @default(uuid())
+  bookingId        String
+  type             String
+  isLeadTraveller  Boolean   @default(false)
+  fullName         String
+  email            String?
+  phone            String?
+  dateOfBirth      DateTime?
+  gender           String?
+  nationality      String?
+  passportNumber   String?
+  passportExpiry   DateTime?
+  visaRequired     Boolean   @default(false)
+  emergencyContact Json?
+  createdAt        DateTime
+  updatedAt        DateTime
+
+  @@index([bookingId])
+  @@map("travellers")
+}
+
+model PassengerDocument {
+  id          String    @id @default(uuid())
+  bookingId   String
+  travellerId String?
+  kind        String
+  fileUrl     String?
+  fileName    String?
+  issuedAt    DateTime?
+  expiresAt   DateTime?
+  notes       String?
+  createdAt   DateTime
+
+  @@index([bookingId])
+  @@map("passenger_documents")
+}
+
+model BookingPayment {
+  id        String    @id @default(uuid())
+  bookingId String
+  amount    Float
+  currency  String
+  method    String?
+  status    String
+  reference String?
+  paidAt    DateTime?
+  notes     String?
+  createdAt DateTime
+
+  @@index([bookingId])
+  @@map("booking_payments")
+}
+
+model BookingInvoice {
+  id            String   @id @default(uuid())
+  bookingId     String
+  invoiceNumber String   @unique
+  issuedAt      DateTime
+  billTo        Json
+  currency      String
+  lineItems     Json
+  subtotal      Float
+  total         Float
+  amountPaid    Float
+  amountDue     Float
+  createdAt     DateTime
+
+  @@index([bookingId])
+  @@map("booking_invoices")
+}
+
+model BookingVoucher {
+  id                 String   @id @default(uuid())
+  bookingId          String
+  voucherNumber      String   @unique
+  issuedAt           DateTime
+  leadTravellerName  String
+  destinationName    String
+  validity           Json?
+  items              Json
+  supplierReferences Json
+  notes              String?
+  createdAt          DateTime
+
+  @@index([bookingId])
+  @@map("booking_vouchers")
+}
+
+model BookingStatusHistory {
+  id         String   @id @default(uuid())
+  bookingId  String
+  fromStatus String?
+  toStatus   String
+  changedAt  DateTime
+  note       String?
+
+  @@index([bookingId])
+  @@map("booking_status_history")
+}
+
+model BookingTimelineEntry {
+  id         String   @id @default(uuid())
+  bookingId  String
+  event      String
+  occurredAt DateTime
+  details    String?
+
+  @@index([bookingId])
+  @@map("booking_timeline_entries")
+}
+
+model BookingNote {
+  id        String   @id @default(uuid())
+  bookingId String
+  body      String
+  createdAt DateTime
+
+  @@index([bookingId])
+  @@map("booking_notes")
+}
+
+// ── Auth ───────────────────────────────────────────────────────────────
+
+model User {
+  id                  String    @id @default(uuid())
+  email               String    @unique
+  passwordHash        String
+  fullName            String
+  isActive            Boolean   @default(true)
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+  createdAt           DateTime
+  updatedAt           DateTime
+
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String
+  isSystem    Boolean  @default(true)
+  createdAt   DateTime
+  updatedAt   DateTime
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  resource    String
+  action      String
+  key         String   @unique
+  description String
+  createdAt   DateTime
+
+  @@map("permissions")
+}
+
+model UserRole {
+  id         String   @id @default(uuid())
+  userId     String
+  roleId     String
+  assignedAt DateTime
+
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+model Session {
+  id             String    @id @default(uuid())
+  userId         String
+  deviceInfo     String?
+  ipAddress      String?
+  rememberMe     Boolean   @default(false)
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  lastActivityAt DateTime
+  createdAt      DateTime
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model RefreshToken {
+  id                String    @id @default(uuid())
+  userId            String
+  sessionId         String
+  tokenHash         String
+  expiresAt         DateTime
+  revokedAt         DateTime?
+  replacedByTokenId String?
+  createdAt         DateTime
+
+  @@index([userId])
+  @@index([sessionId])
+  @@map("refresh_tokens")
+}
+
+model LoginHistory {
+  id         String   @id @default(uuid())
+  userId     String?
+  email      String
+  eventType  String
+  ipAddress  String?
+  deviceInfo String?
+  occurredAt DateTime
+
+  @@index([userId])
+  @@map("login_history")
+}
+
+model PasswordReset {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime
+
+  @@index([userId])
+  @@map("password_resets")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  eventType    String
+  actorUserId  String?
+  targetUserId String?
+  details      Json?
+  ipAddress    String?
+  occurredAt   DateTime
+
+  @@index([eventType])
+  @@index([actorUserId])
+  @@map("audit_logs")
+}
+
+model ApiKey {
+  id         String    @id @default(uuid())
+  name       String
+  keyPrefix  String
+  keyHash    String    @unique
+  roleId     String
+  isActive   Boolean   @default(true)
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime
+
+  @@map("api_keys")
+}
+
+// ── Customer (Sprint 13 — Customer Experience Platform) ─────────────────
+// Supplements Auth's User (email/passwordHash/fullName) with the fields a
+// self-service travel profile actually needs — never adds columns to the
+// User table itself, one row per userId, created lazily on first profile
+// read/write.
+
+model CustomerProfile {
+  id                       String    @id @default(uuid())
+  userId                   String    @unique
+  phone                    String?
+  dateOfBirth              DateTime?
+  nationality              String?
+  passportNumber           String?
+  passportExpiry           DateTime?
+  passportCountry          String?
+  emergencyContactName     String?
+  emergencyContactPhone    String?
+  emergencyContactRelation String?
+  /// Free-form customer preferences (e.g. seat/meal/communication) — no
+  /// fixed shape yet, validated loosely at the service layer.
+  preferences              Json?
+  createdAt                DateTime
+  updatedAt                DateTime
+
+  @@map("customer_profiles")
+}
+
+/// Lead capture for the public `/api/enquiries` endpoint — stored for a
+/// future CRM integration (not built this sprint, see docs/31). Never the
+/// same thing as a Quote: an Enquiry is raw, unqualified interest; a Quote
+/// is a priced itinerary a sales agent has already built.
+model Enquiry {
+  id              String   @id @default(uuid())
+  type            String
+  name            String
+  email           String
+  phone           String?
+  message         String?
+  destinationSlug String?
+  packageSlug     String?
+  /// Set only when the submitter was an authenticated customer — derived
+  /// server-side from the session, never accepted from the request body.
+  customerId      String?
+  source          String?
+  status          String   @default("NEW")
+  /// Admin/agent this lead is assigned to — set via the admin Lead
+  /// Management screen, never by the public submitter.
+  assignedToUserId String?
+  createdAt       DateTime
+  updatedAt       DateTime
+
+  @@index([type])
+  @@index([status])
+  @@index([customerId])
+  @@index([assignedToUserId])
+  @@map("enquiries")
+}
+
+model EnquiryNote {
+  id         String   @id @default(uuid())
+  enquiryId  String
+  authorUserId String?
+  body       String
+  createdAt  DateTime
+
+  @@index([enquiryId])
+  @@map("enquiry_notes")
+}
+
+/// Placeholder only, per this sprint's explicit instruction — no
+/// email/SMS/WhatsApp delivery exists yet. Exists so `/api/me/dashboard`'s
+/// "unread notifications" field has a real (always-empty-for-now) source
+/// instead of a hardcoded literal.
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  isRead    Boolean   @default(false)
+  createdAt DateTime
+  readAt    DateTime?
+
+  @@index([userId])
+  @@map("notifications")
+}

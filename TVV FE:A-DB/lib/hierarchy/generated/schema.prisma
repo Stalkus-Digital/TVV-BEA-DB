@@ -1,0 +1,532 @@
+// Destination Hierarchy — Prisma Schema (PostgreSQL)
+//
+// WHY THIS LIVES IN ITS OWN PRISMA PROJECT
+// ----------------------------------------
+// The existing API at `Tvv bE/vacation-voice-source-main/apps/api` uses
+// Prisma with a MongoDB datasource (legacy `Location` model + everything
+// else). Prisma allows only one provider per generator/datasource pair,
+// so we cannot bolt Postgres onto that project — we'd have to migrate
+// the entire store at once, which is exactly what the team decided NOT to do.
+//
+// This directory is a second, isolated Prisma project:
+//
+//   Mongo (legacy)        Postgres (this)
+//   apps/api/prisma   ←   tvv 2/prisma-hierarchy
+//   ↓                     ↓
+//   @prisma/client        ./generated (next to the only code that uses it)
+//
+// Two clients, two generators, no collision.
+//
+// EVERY DOWNSTREAM DOMAIN (packages, hotels, activities, ferries, flights)
+// will eventually FK its `destinationId` into this `destinations` table.
+// That's the whole point: one canonical hierarchy of geography, with
+// every product hung off it.
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../lib/hierarchy/generated"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("HIERARCHY_DATABASE_URL")
+}
+
+// Geographical level. Strict 0-3 ordering enforced by `depth` + CHECK
+// constraint in the migration. New levels (e.g. CITY) only need an enum
+// entry and a CHECK update — no schema-shape change.
+enum DestinationLevel {
+  REGION
+  COUNTRY
+  DESTINATION
+  SUB_DESTINATION
+}
+
+// Editorial state. Drafts are invisible to the public reader; archived rows
+// remain in the DB (preserving FK referential integrity) but vanish from the tree.
+enum DestinationStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// Destination — the core hierarchical model.
+//
+// Strategy: adjacency list (`parentId`) + materialised path (`slugPath`).
+//
+//   parentId  — FK referential integrity, easy "find children" queries
+//   slugPath  — denormalised "asia-pacific/india/andaman", UNIQUE-indexed
+//               so a single URL lookup = one btree seek
+//   depth     — 0..3, denormalised so range filters don't touch the enum
+//
+// Why both? Adjacency alone needs a recursive CTE on every public read.
+// The path turns every SEO lookup into O(log n). The cost is a write-time
+// cascade when a parent is renamed — handled by a Postgres trigger.
+model Destination {
+  id BigInt @id @default(autoincrement())
+
+  parentId BigInt?       @map("parent_id")
+  parent   Destination?  @relation("DestinationTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children Destination[] @relation("DestinationTree")
+
+  name     String
+  slug     String
+  slugPath String           @unique @map("slug_path")
+  level    DestinationLevel
+  depth    Int
+
+  metaTitle       String?  @map("meta_title")
+  metaDescription String?  @map("meta_description")
+  seoContent      String?  @map("seo_content")
+  imageUrl        String?  @map("image_url")
+  heroImageUrl    String?  @map("hero_image_url")
+  gallery         String[] @default([])
+
+  sortOrder  Int               @default(0) @map("sort_order")
+  status     DestinationStatus @default(DRAFT)
+  isFeatured Boolean           @default(false) @map("is_featured")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  publishedAt DateTime? @map("published_at")
+
+  translations DestinationTranslation[]
+  categories   DestinationCategory[]
+  hotels       Hotel[]
+  guides       Guide[]
+  ferryRoutes  FerryRoute[]
+  flightRoutes FlightRoute[]
+  packageLinks PackageDestination[]
+
+  @@index([parentId])
+  @@index([level, status])
+  @@index([parentId, sortOrder, name])
+  @@map("destinations")
+}
+
+// DestinationTranslation — multilingual support, off the hot path.
+// Built once now so we never have to retrofit per-locale slugs later.
+// Loaded ONLY when the request locale ≠ default. English never touches it.
+model DestinationTranslation {
+  destinationId BigInt
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  locale        String
+
+  name            String
+  slug            String
+  metaTitle       String? @map("meta_title")
+  metaDescription String? @map("meta_description")
+  seoContent      String? @map("seo_content")
+
+  @@id([destinationId, locale])
+  @@unique([locale, slug])
+  @@map("destination_translations")
+}
+
+// ─── DestinationCategory — content slice bound to a Destination ─────────────
+//
+// A Category is a content collection of a Destination — the third URL
+// segment in /[country]/[destination]/[category]. Examples: "honeymoon-
+// packages", "scuba-diving", "luxury-hotels", "ferry-booking". The same
+// slug legitimately repeats across destinations because each pairing is a
+// distinct landing page with its own copy, SEO, and product set.
+// Uniqueness is therefore (destination_id, slug), not slug alone.
+//
+// WHY A SEPARATE TABLE INSTEAD OF SUB_DESTINATION ROWS?
+// Categories are content categories, not geography. Folding them into the
+// Destination tree would corrupt the hierarchy invariants ("honeymoon-
+// packages" is not spatially "below" Andaman), break the multilingual
+// path scheme, and inflate the materialised slug_path with non-geographic
+// segments. Keeping them separate lets product domains (packages, hotels,
+// activities) optionally FK directly to a category when relevant —
+// without polluting the geographic Destination model.
+model DestinationCategory {
+  id BigInt @id @default(autoincrement())
+
+  destinationId BigInt      @map("destination_id")
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  name String
+  slug String
+
+  description     String?
+  metaTitle       String? @map("meta_title")
+  metaDescription String? @map("meta_description")
+  seoContent      String? @map("seo_content")
+  heroImageUrl    String? @map("hero_image_url")
+
+  sortOrder  Int               @default(0) @map("sort_order")
+  status     DestinationStatus @default(DRAFT)
+  isFeatured Boolean           @default(false) @map("is_featured")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  publishedAt DateTime? @map("published_at")
+
+  packageLinks PackageCategory[]
+
+  @@unique([destinationId, slug])
+  @@index([destinationId, status, sortOrder])
+  @@map("destination_categories")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//   CONTENT DOMAINS — hung off the destination tree
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Every model below FKs into `destinations.id`. The destination is the
+// canonical place a piece of content lives in. Many-to-many cases
+// (Package ⇄ Destination, Package ⇄ Hotel, Package ⇄ Category) use
+// explicit join tables so we can carry metadata on the relationship
+// (e.g. nights, isPrimary, sortOrder) without invasive schema changes.
+//
+// NORMALISATION
+// -------------
+//  • Destinations own the URL / SEO root.
+//  • Hotels, Guides, FerryRoutes, FlightRoutes are *singular* in their
+//    destination (1:N), so they live on a single FK column.
+//  • Packages are *plural* by definition — a multi-island itinerary
+//    spans destinations and stitches multiple hotels together. Hence
+//    the explicit junction tables.
+//
+// INDEX STRATEGY
+// --------------
+//  • (destination_id, status) for "list published X under destination Y"
+//    — the hottest query on every detail page.
+//  • Slug column is globally unique per domain (hotel slug, package slug,
+//    guide slug) so deep links don't need a destination prefix. Two
+//    hotels with the same slug under different destinations are not
+//    allowed; if that comes up, prefix with the destination slug at
+//    write time (e.g. "andaman-taj-exotica").
+
+// ─── Hotel ─────────────────────────────────────────────────────────────────
+// One destination, many hotels. M2M to packages via package_hotels.
+model Hotel {
+  id BigInt @id @default(autoincrement())
+
+  destinationId BigInt      @map("destination_id")
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Restrict)
+
+  name String
+  slug String @unique
+
+  starRating       Int?     @map("star_rating")
+  shortDescription String?  @map("short_description")
+  heroImageUrl     String?  @map("hero_image_url")
+  gallery          String[] @default([])
+
+  metaTitle       String? @map("meta_title")
+  metaDescription String? @map("meta_description")
+  seoContent      String? @map("seo_content")
+
+  status     DestinationStatus @default(DRAFT)
+  isFeatured Boolean           @default(false) @map("is_featured")
+  sortOrder  Int               @default(0) @map("sort_order")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  publishedAt DateTime? @map("published_at")
+
+  packageLinks PackageHotel[]
+
+  @@index([destinationId, status, sortOrder])
+  @@map("hotels")
+}
+
+// ─── Package — multi-destination itinerary ─────────────────────────────────
+// M2M to Destination (multi-island), Hotel (stitched stays), Category
+// (landing page taxonomy). Each junction carries trip-shape metadata.
+model Package {
+  id BigInt @id @default(autoincrement())
+
+  title String
+  slug  String @unique
+
+  shortDescription String? @map("short_description")
+  durationDays     Int?    @map("duration_days")
+  durationNights   Int?    @map("duration_nights")
+  startingPrice    Int?    @map("starting_price") // currency-minor units, but we use whole INR for now
+  currency         String  @default("INR")
+
+  heroImageUrl String?  @map("hero_image_url")
+  gallery      String[] @default([])
+
+  metaTitle       String? @map("meta_title")
+  metaDescription String? @map("meta_description")
+  seoContent      String? @map("seo_content")
+
+  status     DestinationStatus @default(DRAFT)
+  isFeatured Boolean           @default(false) @map("is_featured")
+  sortOrder  Int               @default(0) @map("sort_order")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  publishedAt DateTime? @map("published_at")
+
+  destinations PackageDestination[]
+  hotels       PackageHotel[]
+  categories   PackageCategory[]
+
+  @@index([status, isFeatured, sortOrder])
+  @@map("packages")
+}
+
+// ─── PackageDestination — M2M join carrying trip-shape metadata ────────────
+// `isPrimary` = "the marquee destination for this package", used when we
+// have to pick a single representative (canonical URL, breadcrumb anchor).
+model PackageDestination {
+  packageId     BigInt @map("package_id")
+  destinationId BigInt @map("destination_id")
+
+  isPrimary Boolean @default(false) @map("is_primary")
+  sortOrder Int     @default(0) @map("sort_order")
+  nights    Int?
+
+  package     Package     @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  @@id([packageId, destinationId])
+  @@index([destinationId])
+  @@map("package_destinations")
+}
+
+// ─── PackageHotel — M2M join, carries number of nights at this hotel ───────
+model PackageHotel {
+  packageId BigInt @map("package_id")
+  hotelId   BigInt @map("hotel_id")
+
+  nights    Int?
+  sortOrder Int  @default(0) @map("sort_order")
+
+  package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  hotel   Hotel   @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  @@id([packageId, hotelId])
+  @@index([hotelId])
+  @@map("package_hotels")
+}
+
+// ─── PackageCategory — M2M tying packages to category landing pages ────────
+// Category rows are per-destination (DestinationCategory). A package
+// "Romantic Andaman Escape" attaches to (andaman, honeymoon-packages)
+// AND to (andaman, ferry-booking) if it spans both stories. Adding a row
+// here is what makes a package appear on a category landing page —
+// no implicit tagging, no text-matching.
+model PackageCategory {
+  packageId  BigInt @map("package_id")
+  categoryId BigInt @map("category_id")
+
+  sortOrder Int @default(0) @map("sort_order")
+
+  package  Package             @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  category DestinationCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([packageId, categoryId])
+  @@index([categoryId])
+  @@map("package_categories")
+}
+
+// ─── Guide — long-form editorial bound to a destination ────────────────────
+model Guide {
+  id BigInt @id @default(autoincrement())
+
+  destinationId BigInt      @map("destination_id")
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Restrict)
+
+  title String
+  slug  String @unique
+
+  excerpt        String?
+  body           String?
+  readingMinutes Int?    @map("reading_minutes")
+  heroImageUrl   String? @map("hero_image_url")
+
+  metaTitle       String? @map("meta_title")
+  metaDescription String? @map("meta_description")
+
+  status     DestinationStatus @default(DRAFT)
+  isFeatured Boolean           @default(false) @map("is_featured")
+  sortOrder  Int               @default(0) @map("sort_order")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  publishedAt DateTime? @map("published_at")
+
+  @@index([destinationId, status, sortOrder])
+  @@map("guides")
+}
+
+// ─── FerryRoute — operator + leg pair, tied to its serving destination ────
+// "Port Blair ⇄ Havelock (MakRuzz)" attaches to Andaman as a whole; the
+// origin/destination port names are stored as text because they're not
+// destinations themselves (sub-locations live in the geo tree if we add
+// SUB_DESTINATION rows later).
+model FerryRoute {
+  id BigInt @id @default(autoincrement())
+
+  destinationId BigInt      @map("destination_id")
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Restrict)
+
+  name String
+  slug String @unique
+
+  originName      String  @map("origin_name")
+  destinationName String  @map("destination_name")
+  operatorName    String? @map("operator_name")
+
+  durationMinutes Int?   @map("duration_minutes")
+  startingPrice   Int?   @map("starting_price")
+  currency        String @default("INR")
+
+  metaTitle       String? @map("meta_title")
+  metaDescription String? @map("meta_description")
+
+  status     DestinationStatus @default(DRAFT)
+  isFeatured Boolean           @default(false) @map("is_featured")
+  sortOrder  Int               @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([destinationId, status, sortOrder])
+  @@map("ferry_routes")
+}
+
+// ─── FlightRoute — city pair connecting users to a destination ─────────────
+// "Delhi → Port Blair" attaches to Andaman. Pricing is starting-from
+// for SEO copy; live fare lookup runs through the Tripjack adapter in
+// apps/api and is not stored here.
+model FlightRoute {
+  id BigInt @id @default(autoincrement())
+
+  destinationId BigInt      @map("destination_id")
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Restrict)
+
+  name String
+  slug String @unique
+
+  originIATA String @map("origin_iata")
+  destIATA   String @map("dest_iata")
+  originCity String @map("origin_city")
+  destCity   String @map("dest_city")
+
+  approxDurationMinutes Int?   @map("approx_duration_minutes")
+  startingPrice         Int?   @map("starting_price")
+  currency              String @default("INR")
+
+  metaTitle       String? @map("meta_title")
+  metaDescription String? @map("meta_description")
+
+  status     DestinationStatus @default(DRAFT)
+  isFeatured Boolean           @default(false) @map("is_featured")
+  sortOrder  Int               @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([destinationId, status, sortOrder])
+  @@index([originIATA, destIATA])
+  @@map("flight_routes")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//   SLUG & SEO ENGINE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Two tables, one job: keep SEO authority alive when URLs change.
+//
+//  SlugHistory  — every slug rename on a sluggable entity writes a row
+//                 here. We never lose the trail of what a URL used to be.
+//
+//  Redirect    — the runtime lookup table the catch-all consults before
+//                 resolving a hierarchy path. Auto-populated by the slug
+//                 history recorder + manually populated by the admin (for
+//                 campaign URLs, vanity redirects, etc.).
+//
+// POLYMORPHIC, BY DESIGN
+// ----------------------
+// Both tables identify the affected row by (entityType, entityId), not by
+// a hard FK. The trade-off:
+//
+//   + new entity types (activities, vendor pages, itineraries) plug in
+//     without a schema migration — just extend the enum
+//   + one table to query when the admin asks "show me every slug change
+//     that ever happened to anything"
+//   − cascade-delete must be enforced at the application layer
+//
+// For slug/redirect history that's correct: even after an entity is
+// deleted, you want the old URL to keep redirecting somewhere sensible
+// (the parent destination, the homepage, etc.).
+//
+// LOCALE-AWARE
+// ------------
+// Every row carries a `locale`. Today only "en" exists; when /fr/, /de/
+// surfaces ship we already have the column. No "v2" of the table later.
+
+enum SluggableEntity {
+  DESTINATION
+  DESTINATION_CATEGORY
+  HOTEL
+  PACKAGE
+  GUIDE
+  FERRY_ROUTE
+  FLIGHT_ROUTE
+}
+
+// ─── SlugHistory — append-only audit log of slug renames ───────────────────
+// Written ATOMICALLY with the entity update inside `recordSlugChange()`.
+// We deliberately do not store the "current" slug here — that lives on
+// the entity itself. This table answers "what was it called before?",
+// not "what is it called now?".
+model SlugHistory {
+  id BigInt @id @default(autoincrement())
+
+  entityType SluggableEntity @map("entity_type")
+  entityId   BigInt          @map("entity_id")
+  locale     String          @default("en")
+
+  oldSlug     String @map("old_slug")
+  oldFullPath String @map("old_full_path")
+  newFullPath String @map("new_full_path")
+
+  changedAt     DateTime @default(now()) @map("changed_at")
+  changedByUser String?  @map("changed_by_user")
+  reason        String?
+
+  @@index([entityType, entityId])
+  @@index([oldFullPath])
+  @@map("slug_history")
+}
+
+// ─── Redirect — runtime 301/302 lookup ─────────────────────────────────────
+// `fromPath` is unique because two redirects from the same source would be
+// ambiguous. `isActive` lets ops disable a redirect without deleting the
+// row (so we can re-enable if a marketing team complains the campaign URL
+// went dead).
+model Redirect {
+  id BigInt @id @default(autoincrement())
+
+  fromPath   String  @unique @map("from_path")
+  toPath     String  @map("to_path")
+  statusCode Int     @default(301) @map("status_code")
+  locale     String? // null = applies regardless of locale
+
+  // What created this row. Useful for "show me every auto-redirect" vs
+  // "show me every manual redirect" in the admin.
+  source RedirectSource @default(MANUAL)
+  reason String?
+
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([fromPath, isActive])
+  @@map("redirects")
+}
+
+enum RedirectSource {
+  MANUAL // created by an admin via the UI
+  SLUG_HISTORY // auto-created by the slug-change recorder
+  IMPORT // bulk-imported from a legacy CSV
+}

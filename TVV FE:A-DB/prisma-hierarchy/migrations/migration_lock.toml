@@ -1,0 +1,3 @@
+# Prisma migration lock — declares the engine this migration directory targets.
+# Generated alongside the schema. Do not edit by hand.
+provider = "postgresql"

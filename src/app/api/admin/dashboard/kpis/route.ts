@@ -12,7 +12,7 @@ export async function GET() {
       activeDestinations,
       revenueAgg
     ] = await Promise.all([
-      prisma.user.count({ where: { role: "CUSTOMER" } }),
+      prisma.customerProfile.count(),
       prisma.lead.count(),
       prisma.quote.count(),
       prisma.booking.count(),

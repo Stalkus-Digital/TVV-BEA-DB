@@ -2,7 +2,8 @@ import { ok, type PaginationParams, type Result } from "@/shared/types";
 import type { BaseRepository } from "@/shared/repositories";
 import type { AppError } from "@/shared/errors";
 import type { Role, RoleName } from "../types/role";
-import { InMemoryStore } from "./in-memory-store";
+import { PrismaStore } from "@/shared/database/prisma-store";
+import { prisma } from "@/shared/database/prisma-client";
 
 export interface RoleRepository extends BaseRepository<Role, string> {
   findByName(name: RoleName): Promise<Result<Role | null, AppError>>;
@@ -17,20 +18,16 @@ export interface RoleRepository extends BaseRepository<Role, string> {
   findAll(): Promise<Result<Role[], AppError>>;
 }
 
-export class InMemoryRoleRepository implements RoleRepository {
-  private readonly store = new InMemoryStore<Role>("Role");
-
-  findById = (id: string) => this.store.findById(id);
-  findMany = (params?: PaginationParams) => this.store.findMany(params);
-  create = (data: Omit<Role, "id">) => this.store.create(data);
-  update = (id: string, data: Partial<Omit<Role, "id">>) => this.store.update(id, data);
-  delete = (id: string) => this.store.delete(id);
+export class PrismaRoleRepository extends PrismaStore<any> implements RoleRepository {
+  constructor() {
+    super(prisma.role);
+  }
 
   async findByName(name: RoleName): Promise<Result<Role | null, AppError>> {
-    return ok(this.store.all().find((r) => r.name === name) ?? null);
+    return ok((await this.delegate.findMany()).find(( r: any ) => r.name === name) ?? null);
   }
 
   async findAll(): Promise<Result<Role[], AppError>> {
-    return ok(this.store.all());
+    return ok((await this.delegate.findMany()));
   }
 }

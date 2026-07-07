@@ -2,22 +2,19 @@ import { ok, type PaginationParams, type Result } from "@/shared/types";
 import type { BaseRepository } from "@/shared/repositories";
 import type { AppError } from "@/shared/errors";
 import type { PackageRule } from "../types/package-rule";
-import { InMemoryStore } from "./in-memory-store";
+import { PrismaStore } from "@/shared/database/prisma-store";
+import { prisma } from "@/shared/database/prisma-client";
 
 export interface PackageRuleRepository extends BaseRepository<PackageRule, string> {
   findByPackage(packageId: string): Promise<Result<PackageRule | null, AppError>>;
 }
 
-export class InMemoryPackageRuleRepository implements PackageRuleRepository {
-  private readonly store = new InMemoryStore<PackageRule>("Package rule");
-
-  findById = (id: string) => this.store.findById(id);
-  findMany = (params?: PaginationParams) => this.store.findMany(params);
-  create = (data: Omit<PackageRule, "id">) => this.store.create(data);
-  update = (id: string, data: Partial<Omit<PackageRule, "id">>) => this.store.update(id, data);
-  delete = (id: string) => this.store.delete(id);
+export class PrismaPackageRuleRepository extends PrismaStore<any> implements PackageRuleRepository {
+  constructor() {
+    super(prisma.packageRule);
+  }
 
   async findByPackage(packageId: string): Promise<Result<PackageRule | null, AppError>> {
-    return ok(this.store.all().find((r) => r.packageId === packageId) ?? null);
+    return ok((await this.delegate.findMany()).find(( r: any ) => r.packageId === packageId) ?? null);
   }
 }

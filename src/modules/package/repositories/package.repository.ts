@@ -2,7 +2,8 @@ import { DEFAULT_PAGINATION, ok, toPaginatedResult, type PaginatedResult, type P
 import type { BaseRepository } from "@/shared/repositories";
 import type { AppError } from "@/shared/errors";
 import type { Package, PackageSourceType, PackageStatus } from "../types/package";
-import { InMemoryStore } from "./in-memory-store";
+import { PrismaStore } from "@/shared/database/prisma-store";
+import { prisma } from "@/shared/database/prisma-client";
 
 export interface PackageListFilter extends PaginationParams {
   destinationId?: string;
@@ -17,29 +18,25 @@ export interface PackageRepository extends BaseRepository<Package, string> {
   findByFilter(filter: PackageListFilter): Promise<Result<PaginatedResult<Package>, AppError>>;
 }
 
-export class InMemoryPackageRepository implements PackageRepository {
-  private readonly store = new InMemoryStore<Package>("Package");
-
-  findById = (id: string) => this.store.findById(id);
-  findMany = (params?: PaginationParams) => this.store.findMany(params);
-  create = (data: Omit<Package, "id">) => this.store.create(data);
-  update = (id: string, data: Partial<Omit<Package, "id">>) => this.store.update(id, data);
-  delete = (id: string) => this.store.delete(id);
+export class PrismaPackageRepository extends PrismaStore<any> implements PackageRepository {
+  constructor() {
+    super(prisma.package);
+  }
 
   async findByCode(code: string): Promise<Result<Package | null, AppError>> {
-    return ok(this.store.all().find((p) => p.code === code) ?? null);
+    return ok((await this.delegate.findMany()).find(( p: any ) => p.code === code) ?? null);
   }
 
   async findBySlug(slug: string): Promise<Result<Package | null, AppError>> {
-    return ok(this.store.all().find((p) => p.slug === slug) ?? null);
+    return ok((await this.delegate.findMany()).find(( p: any ) => p.slug === slug) ?? null);
   }
 
   async findByFilter(filter: PackageListFilter): Promise<Result<PaginatedResult<Package>, AppError>> {
-    let items = this.store.all();
-    if (filter.destinationId) items = items.filter((p) => p.destinationId === filter.destinationId);
-    if (filter.status) items = items.filter((p) => p.status === filter.status);
-    if (filter.sourceType) items = items.filter((p) => p.sourceType === filter.sourceType);
-    if (filter.isTemplate !== undefined) items = items.filter((p) => p.isTemplate === filter.isTemplate);
+    let items = (await this.delegate.findMany());
+    if (filter.destinationId) items = items.filter(( p: any ) => p.destinationId === filter.destinationId);
+    if (filter.status) items = items.filter(( p: any ) => p.status === filter.status);
+    if (filter.sourceType) items = items.filter(( p: any ) => p.sourceType === filter.sourceType);
+    if (filter.isTemplate !== undefined) items = items.filter(( p: any ) => p.isTemplate === filter.isTemplate);
 
     const page = filter.page ?? DEFAULT_PAGINATION.page;
     const pageSize = filter.pageSize ?? DEFAULT_PAGINATION.pageSize;

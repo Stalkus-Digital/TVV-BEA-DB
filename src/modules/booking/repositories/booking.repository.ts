@@ -3,7 +3,8 @@ import type { BaseRepository } from "@/shared/repositories";
 import type { AppError } from "@/shared/errors";
 import type { Booking } from "../types/booking";
 import type { BookingStatus } from "../types/booking-status";
-import { InMemoryStore } from "./in-memory-store";
+import { PrismaStore } from "@/shared/database/prisma-store";
+import { prisma } from "@/shared/database/prisma-client";
 
 export interface BookingListFilter extends PaginationParams {
   status?: BookingStatus;
@@ -18,21 +19,17 @@ export interface BookingRepository extends BaseRepository<Booking, string> {
   countAll(): Promise<Result<number, AppError>>;
 }
 
-export class InMemoryBookingRepository implements BookingRepository {
-  private readonly store = new InMemoryStore<Booking>("Booking");
-
-  findById = (id: string) => this.store.findById(id);
-  findMany = (params?: PaginationParams) => this.store.findMany(params);
-  create = (data: Omit<Booking, "id">) => this.store.create(data);
-  update = (id: string, data: Partial<Omit<Booking, "id">>) => this.store.update(id, data);
-  delete = (id: string) => this.store.delete(id);
+export class PrismaBookingRepository extends PrismaStore<any> implements BookingRepository {
+  constructor() {
+    super(prisma.booking);
+  }
 
   async findByFilter(filter: BookingListFilter): Promise<Result<PaginatedResult<Booking>, AppError>> {
-    let items = this.store.all();
-    if (filter.status) items = items.filter((b) => b.status === filter.status);
-    if (filter.destinationId) items = items.filter((b) => b.destinationId === filter.destinationId);
-    if (filter.sourceQuoteId) items = items.filter((b) => b.sourceQuoteId === filter.sourceQuoteId);
-    if (filter.customerId) items = items.filter((b) => b.customerId === filter.customerId);
+    let items = (await this.delegate.findMany());
+    if (filter.status) items = items.filter(( b: any ) => b.status === filter.status);
+    if (filter.destinationId) items = items.filter(( b: any ) => b.destinationId === filter.destinationId);
+    if (filter.sourceQuoteId) items = items.filter(( b: any ) => b.sourceQuoteId === filter.sourceQuoteId);
+    if (filter.customerId) items = items.filter(( b: any ) => b.customerId === filter.customerId);
 
     const page = filter.page ?? DEFAULT_PAGINATION.page;
     const pageSize = filter.pageSize ?? DEFAULT_PAGINATION.pageSize;
@@ -41,6 +38,6 @@ export class InMemoryBookingRepository implements BookingRepository {
   }
 
   async countAll(): Promise<Result<number, AppError>> {
-    return ok(this.store.all().length);
+    return ok((await this.delegate.count()));
   }
 }

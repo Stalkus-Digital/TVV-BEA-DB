@@ -2,7 +2,8 @@ import { ok, type PaginationParams, type Result } from "@/shared/types";
 import type { BaseRepository } from "@/shared/repositories";
 import type { AppError } from "@/shared/errors";
 import type { UserRole } from "../types/user-role";
-import { InMemoryStore } from "./in-memory-store";
+import { PrismaStore } from "@/shared/database/prisma-store";
+import { prisma } from "@/shared/database/prisma-client";
 
 export interface UserRoleRepository extends BaseRepository<UserRole, string> {
   findByUser(userId: string): Promise<Result<UserRole[], AppError>>;
@@ -10,26 +11,22 @@ export interface UserRoleRepository extends BaseRepository<UserRole, string> {
   deleteByUserAndRole(userId: string, roleId: string): Promise<Result<void, AppError>>;
 }
 
-export class InMemoryUserRoleRepository implements UserRoleRepository {
-  private readonly store = new InMemoryStore<UserRole>("User role assignment");
-
-  findById = (id: string) => this.store.findById(id);
-  findMany = (params?: PaginationParams) => this.store.findMany(params);
-  create = (data: Omit<UserRole, "id">) => this.store.create(data);
-  update = (id: string, data: Partial<Omit<UserRole, "id">>) => this.store.update(id, data);
-  delete = (id: string) => this.store.delete(id);
+export class PrismaUserRoleRepository extends PrismaStore<any> implements UserRoleRepository {
+  constructor() {
+    super(prisma.userRole);
+  }
 
   async findByUser(userId: string): Promise<Result<UserRole[], AppError>> {
-    return ok(this.store.all().filter((ur) => ur.userId === userId));
+    return ok((await this.delegate.findMany()).filter(( ur: any ) => ur.userId === userId));
   }
 
   async findByUserAndRole(userId: string, roleId: string): Promise<Result<UserRole | null, AppError>> {
-    return ok(this.store.all().find((ur) => ur.userId === userId && ur.roleId === roleId) ?? null);
+    return ok((await this.delegate.findMany()).find(( ur: any ) => ur.userId === userId && ur.roleId === roleId) ?? null);
   }
 
   async deleteByUserAndRole(userId: string, roleId: string): Promise<Result<void, AppError>> {
-    const existing = this.store.all().find((ur) => ur.userId === userId && ur.roleId === roleId);
-    if (existing) await this.store.delete(existing.id);
+    const existing = (await this.delegate.findMany()).find(( ur: any ) => ur.userId === userId && ur.roleId === roleId);
+    if (existing) await this.delegate.delete(existing.id);
     return ok(undefined);
   }
 }

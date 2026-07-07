@@ -33,9 +33,10 @@ export async function POST(req: Request) {
         amount: booking.totalAmount,
         currency: booking.currency,
         method: "RAZORPAY",
-        status: "COMPLETED",
+        status: "SUCCESS",
         reference: razorpay_payment_id,
         paidAt: new Date(),
+        createdAt: new Date(),
       }
     });
 

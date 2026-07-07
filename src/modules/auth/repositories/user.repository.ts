@@ -2,7 +2,8 @@ import { DEFAULT_PAGINATION, ok, toPaginatedResult, type PaginatedResult, type P
 import type { BaseRepository } from "@/shared/repositories";
 import type { AppError } from "@/shared/errors";
 import type { User } from "../types/user";
-import { InMemoryStore } from "./in-memory-store";
+import { PrismaStore } from "@/shared/database/prisma-store";
+import { prisma } from "@/shared/database/prisma-client";
 
 export interface UserListFilter extends PaginationParams {
   isActive?: boolean;
@@ -13,22 +14,18 @@ export interface UserRepository extends BaseRepository<User, string> {
   findByFilter(filter: UserListFilter): Promise<Result<PaginatedResult<User>, AppError>>;
 }
 
-export class InMemoryUserRepository implements UserRepository {
-  private readonly store = new InMemoryStore<User>("User");
-
-  findById = (id: string) => this.store.findById(id);
-  findMany = (params?: PaginationParams) => this.store.findMany(params);
-  create = (data: Omit<User, "id">) => this.store.create(data);
-  update = (id: string, data: Partial<Omit<User, "id">>) => this.store.update(id, data);
-  delete = (id: string) => this.store.delete(id);
+export class PrismaUserRepository extends PrismaStore<any> implements UserRepository {
+  constructor() {
+    super(prisma.user);
+  }
 
   async findByEmail(email: string): Promise<Result<User | null, AppError>> {
-    return ok(this.store.all().find((u) => u.email.toLowerCase() === email.toLowerCase()) ?? null);
+    return ok((await this.delegate.findMany()).find(( u: any ) => u.email.toLowerCase() === email.toLowerCase()) ?? null);
   }
 
   async findByFilter(filter: UserListFilter): Promise<Result<PaginatedResult<User>, AppError>> {
-    let items = this.store.all();
-    if (filter.isActive !== undefined) items = items.filter((u) => u.isActive === filter.isActive);
+    let items = (await this.delegate.findMany());
+    if (filter.isActive !== undefined) items = items.filter(( u: any ) => u.isActive === filter.isActive);
     const page = filter.page ?? DEFAULT_PAGINATION.page;
     const pageSize = filter.pageSize ?? DEFAULT_PAGINATION.pageSize;
     const start = (page - 1) * pageSize;

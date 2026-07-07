@@ -163,6 +163,7 @@ export class TripJackAdapter extends BaseSupplierAdapter {
     if (isErr(result)) return result;
     return ok({
       supplierBookingId: result.value.bookingId,
+      confirmationReference: result.value.bookingId,
       status: "CONFIRMED",
       timestamp: new Date().toISOString(),
       rawResponse: result.value,
@@ -175,6 +176,7 @@ export class TripJackAdapter extends BaseSupplierAdapter {
     return ok({
       cancellationId: result.value.cancellationId,
       status: "CANCELLED",
+      cancelled: true,
       refundAmount: result.value.refundAmount ?? 0,
       timestamp: new Date().toISOString(),
       rawResponse: result.value,

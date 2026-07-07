@@ -2,22 +2,19 @@ import { ok, type PaginationParams, type Result } from "@/shared/types";
 import type { BaseRepository } from "@/shared/repositories";
 import type { AppError } from "@/shared/errors";
 import type { BookingPayment } from "../types/booking-payment";
-import { InMemoryStore } from "./in-memory-store";
+import { PrismaStore } from "@/shared/database/prisma-store";
+import { prisma } from "@/shared/database/prisma-client";
 
 export interface PaymentRepository extends BaseRepository<BookingPayment, string> {
   findByBooking(bookingId: string): Promise<Result<BookingPayment[], AppError>>;
 }
 
-export class InMemoryPaymentRepository implements PaymentRepository {
-  private readonly store = new InMemoryStore<BookingPayment>("Booking payment");
-
-  findById = (id: string) => this.store.findById(id);
-  findMany = (params?: PaginationParams) => this.store.findMany(params);
-  create = (data: Omit<BookingPayment, "id">) => this.store.create(data);
-  update = (id: string, data: Partial<Omit<BookingPayment, "id">>) => this.store.update(id, data);
-  delete = (id: string) => this.store.delete(id);
+export class PrismaPaymentRepository extends PrismaStore<any> implements PaymentRepository {
+  constructor() {
+    super(prisma.bookingPayment);
+  }
 
   async findByBooking(bookingId: string): Promise<Result<BookingPayment[], AppError>> {
-    return ok(this.store.all().filter((p) => p.bookingId === bookingId));
+    return ok((await this.delegate.findMany()).filter(( p: any ) => p.bookingId === bookingId));
   }
 }

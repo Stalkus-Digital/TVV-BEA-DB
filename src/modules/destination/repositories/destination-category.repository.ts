@@ -16,46 +16,15 @@ export interface DestinationCategoryRepository extends BaseRepository<Destinatio
   findBySlug(slug: string): Promise<Result<DestinationCategory | null, AppError>>;
 }
 
-export class InMemoryDestinationCategoryRepository implements DestinationCategoryRepository {
-  private readonly store = new Map<string, DestinationCategory>();
+import { PrismaStore } from "@/shared/database/prisma-store";
+import { prisma } from "@/shared/database/prisma-client";
 
-  async findById(id: string): Promise<Result<DestinationCategory | null, AppError>> {
-    return ok(this.store.get(id) ?? null);
+export class PrismaDestinationCategoryRepository extends PrismaStore<any> implements DestinationCategoryRepository {
+  constructor() {
+    super(prisma.destinationCategory);
   }
 
   async findBySlug(slug: string): Promise<Result<DestinationCategory | null, AppError>> {
-    return ok(Array.from(this.store.values()).find((c) => c.slug === slug) ?? null);
-  }
-
-  async findMany(params: PaginationParams = {}): Promise<Result<PaginatedResult<DestinationCategory>, AppError>> {
-    const items = Array.from(this.store.values());
-    const page = params.page ?? DEFAULT_PAGINATION.page;
-    const pageSize = params.pageSize ?? DEFAULT_PAGINATION.pageSize;
-    const start = (page - 1) * pageSize;
-    return ok(toPaginatedResult(items.slice(start, start + pageSize), items.length, { page, pageSize }));
-  }
-
-  async create(data: Omit<DestinationCategory, "id">): Promise<Result<DestinationCategory, AppError>> {
-    const id = randomUUID();
-    const record = { ...data, id } as DestinationCategory;
-    this.store.set(id, record);
-    return ok(record);
-  }
-
-  async update(
-    id: string,
-    data: Partial<Omit<DestinationCategory, "id">>
-  ): Promise<Result<DestinationCategory, AppError>> {
-    const existing = this.store.get(id);
-    if (!existing) return err(new NotFoundError(`Destination category "${id}" not found`));
-    const updated = { ...existing, ...data } as DestinationCategory;
-    this.store.set(id, updated);
-    return ok(updated);
-  }
-
-  async delete(id: string): Promise<Result<void, AppError>> {
-    if (!this.store.has(id)) return err(new NotFoundError(`Destination category "${id}" not found`));
-    this.store.delete(id);
-    return ok(undefined);
+    return ok((await this.delegate.findMany()).find(( c: any ) => c.slug === slug) ?? null);
   }
 }

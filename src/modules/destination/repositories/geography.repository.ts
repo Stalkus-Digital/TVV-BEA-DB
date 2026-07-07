@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { PrismaStore } from "@/shared/database/prisma-store";
+import { prisma } from "@/shared/database/prisma-client";
 import {
   DEFAULT_PAGINATION,
   err,
@@ -58,15 +60,12 @@ export interface CountryRepository extends BaseRepository<Country, string> {
   findByIsoCode(isoCode: string): Promise<Result<Country | null, AppError>>;
 }
 
-export class InMemoryCountryRepository implements CountryRepository {
-  private readonly store = new InMemoryStore<Country>();
-  findById = (id: string) => this.store.findById(id);
-  findMany = (params?: PaginationParams) => this.store.findMany(params);
-  create = (data: Omit<Country, "id">) => this.store.create(data, "Country");
-  update = (id: string, data: Partial<Omit<Country, "id">>) => this.store.update(id, data, "Country");
-  delete = (id: string) => this.store.delete(id, "Country");
+export class PrismaCountryRepository extends PrismaStore<any> implements CountryRepository {
+  constructor() {
+    super(prisma.country);
+  }
   async findByIsoCode(isoCode: string): Promise<Result<Country | null, AppError>> {
-    return ok(this.store.all().find((c) => c.isoCode === isoCode) ?? null);
+    return ok((await this.delegate.findMany()).find(( c: any ) => c.isoCode === isoCode) ?? null);
   }
 }
 
@@ -74,27 +73,21 @@ export interface StateRepository extends BaseRepository<State, string> {
   findByCountry(countryId: string): Promise<Result<State[], AppError>>;
 }
 
-export class InMemoryStateRepository implements StateRepository {
-  private readonly store = new InMemoryStore<State>();
-  findById = (id: string) => this.store.findById(id);
-  findMany = (params?: PaginationParams) => this.store.findMany(params);
-  create = (data: Omit<State, "id">) => this.store.create(data, "State");
-  update = (id: string, data: Partial<Omit<State, "id">>) => this.store.update(id, data, "State");
-  delete = (id: string) => this.store.delete(id, "State");
+export class PrismaStateRepository extends PrismaStore<any> implements StateRepository {
+  constructor() {
+    super(prisma.state);
+  }
   async findByCountry(countryId: string): Promise<Result<State[], AppError>> {
-    return ok(this.store.all().filter((s) => s.countryId === countryId));
+    return ok((await this.delegate.findMany()).filter(( s: any ) => s.countryId === countryId));
   }
 }
 
 export interface RegionRepository extends BaseRepository<Region, string> {}
 
-export class InMemoryRegionRepository implements RegionRepository {
-  private readonly store = new InMemoryStore<Region>();
-  findById = (id: string) => this.store.findById(id);
-  findMany = (params?: PaginationParams) => this.store.findMany(params);
-  create = (data: Omit<Region, "id">) => this.store.create(data, "Region");
-  update = (id: string, data: Partial<Omit<Region, "id">>) => this.store.update(id, data, "Region");
-  delete = (id: string) => this.store.delete(id, "Region");
+export class PrismaRegionRepository extends PrismaStore<any> implements RegionRepository {
+  constructor() {
+    super(prisma.region);
+  }
 }
 
 export interface CityRepository extends BaseRepository<City, string> {
@@ -102,18 +95,15 @@ export interface CityRepository extends BaseRepository<City, string> {
   findByState(stateId: string): Promise<Result<City[], AppError>>;
 }
 
-export class InMemoryCityRepository implements CityRepository {
-  private readonly store = new InMemoryStore<City>();
-  findById = (id: string) => this.store.findById(id);
-  findMany = (params?: PaginationParams) => this.store.findMany(params);
-  create = (data: Omit<City, "id">) => this.store.create(data, "City");
-  update = (id: string, data: Partial<Omit<City, "id">>) => this.store.update(id, data, "City");
-  delete = (id: string) => this.store.delete(id, "City");
+export class PrismaCityRepository extends PrismaStore<any> implements CityRepository {
+  constructor() {
+    super(prisma.city);
+  }
   async findByCountry(countryId: string): Promise<Result<City[], AppError>> {
-    return ok(this.store.all().filter((c) => c.countryId === countryId));
+    return ok((await this.delegate.findMany()).filter(( c: any ) => c.countryId === countryId));
   }
   async findByState(stateId: string): Promise<Result<City[], AppError>> {
-    return ok(this.store.all().filter((c) => c.stateId === stateId));
+    return ok((await this.delegate.findMany()).filter(( c: any ) => c.stateId === stateId));
   }
 }
 
@@ -122,17 +112,14 @@ export interface AirportRepository extends BaseRepository<Airport, string> {
   findByIataCode(iataCode: string): Promise<Result<Airport | null, AppError>>;
 }
 
-export class InMemoryAirportRepository implements AirportRepository {
-  private readonly store = new InMemoryStore<Airport>();
-  findById = (id: string) => this.store.findById(id);
-  findMany = (params?: PaginationParams) => this.store.findMany(params);
-  create = (data: Omit<Airport, "id">) => this.store.create(data, "Airport");
-  update = (id: string, data: Partial<Omit<Airport, "id">>) => this.store.update(id, data, "Airport");
-  delete = (id: string) => this.store.delete(id, "Airport");
+export class PrismaAirportRepository extends PrismaStore<any> implements AirportRepository {
+  constructor() {
+    super(prisma.airport);
+  }
   async findByCity(cityId: string): Promise<Result<Airport[], AppError>> {
-    return ok(this.store.all().filter((a) => a.cityId === cityId));
+    return ok((await this.delegate.findMany()).filter(( a: any ) => a.cityId === cityId));
   }
   async findByIataCode(iataCode: string): Promise<Result<Airport | null, AppError>> {
-    return ok(this.store.all().find((a) => a.iataCode === iataCode) ?? null);
+    return ok((await this.delegate.findMany()).find(( a: any ) => a.iataCode === iataCode) ?? null);
   }
 }

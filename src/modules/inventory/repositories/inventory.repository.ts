@@ -26,46 +26,20 @@ export interface InventoryRepository extends BaseRepository<InventoryItem, strin
  * again; nothing that depends on the interface (the service, the API
  * handlers) needs to change.
  */
-export class InMemoryInventoryRepository implements InventoryRepository {
-  private readonly store = new Map<string, InventoryItem>();
+import { PrismaStore } from "@/shared/database/prisma-store";
+import { prisma } from "@/shared/database/prisma-client";
 
-  async findById(id: string): Promise<Result<InventoryItem | null, AppError>> {
-    return ok(this.store.get(id) ?? null);
-  }
-
-  async findMany(params: PaginationParams = {}): Promise<Result<PaginatedResult<InventoryItem>, AppError>> {
-    return ok(this.paginate(Array.from(this.store.values()), params));
+export class PrismaInventoryRepository extends PrismaStore<any> implements InventoryRepository {
+  constructor() {
+    super(prisma.inventoryItem);
   }
 
   async findByKind(
     kind: InventoryKind,
     params: PaginationParams = {}
   ): Promise<Result<PaginatedResult<InventoryItem>, AppError>> {
-    const items = Array.from(this.store.values()).filter((item) => item.kind === kind);
+    const items = (await this.delegate.findMany()).filter(( item: any ) => item.kind === kind);
     return ok(this.paginate(items, params));
-  }
-
-  async create(data: Omit<InventoryItem, "id">): Promise<Result<InventoryItem, AppError>> {
-    const id = randomUUID();
-    // Safe: `data` was already validated into a correctly-correlated
-    // kind/details pair by the validation layer before reaching here.
-    const item = { ...data, id } as InventoryItem;
-    this.store.set(id, item);
-    return ok(item);
-  }
-
-  async update(id: string, data: Partial<Omit<InventoryItem, "id">>): Promise<Result<InventoryItem, AppError>> {
-    const existing = this.store.get(id);
-    if (!existing) return err(new NotFoundError(`Inventory item "${id}" not found`));
-    const updated = { ...existing, ...data, updatedAt: new Date().toISOString() } as InventoryItem;
-    this.store.set(id, updated);
-    return ok(updated);
-  }
-
-  async delete(id: string): Promise<Result<void, AppError>> {
-    if (!this.store.has(id)) return err(new NotFoundError(`Inventory item "${id}" not found`));
-    this.store.delete(id);
-    return ok(undefined);
   }
 
   private paginate(items: InventoryItem[], params: PaginationParams): PaginatedResult<InventoryItem> {

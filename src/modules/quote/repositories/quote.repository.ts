@@ -2,7 +2,8 @@ import { DEFAULT_PAGINATION, ok, toPaginatedResult, type PaginatedResult, type P
 import type { BaseRepository } from "@/shared/repositories";
 import type { AppError } from "@/shared/errors";
 import type { Quote, QuoteStatus } from "../types/quote";
-import { InMemoryStore } from "./in-memory-store";
+import { PrismaStore } from "@/shared/database/prisma-store";
+import { prisma } from "@/shared/database/prisma-client";
 
 export interface QuoteListFilter extends PaginationParams {
   status?: QuoteStatus;
@@ -18,25 +19,21 @@ export interface QuoteRepository extends BaseRepository<Quote, string> {
   countAll(): Promise<Result<number, AppError>>;
 }
 
-export class InMemoryQuoteRepository implements QuoteRepository {
-  private readonly store = new InMemoryStore<Quote>("Quote");
-
-  findById = (id: string) => this.store.findById(id);
-  findMany = (params?: PaginationParams) => this.store.findMany(params);
-  create = (data: Omit<Quote, "id">) => this.store.create(data);
-  update = (id: string, data: Partial<Omit<Quote, "id">>) => this.store.update(id, data);
-  delete = (id: string) => this.store.delete(id);
+export class PrismaQuoteRepository extends PrismaStore<any> implements QuoteRepository {
+  constructor() {
+    super(prisma.quote);
+  }
 
   async findByNumber(quoteNumber: string): Promise<Result<Quote | null, AppError>> {
-    return ok(this.store.all().find((q) => q.quoteNumber === quoteNumber) ?? null);
+    return ok((await this.delegate.findMany()).find(( q: any ) => q.quoteNumber === quoteNumber) ?? null);
   }
 
   async findByFilter(filter: QuoteListFilter): Promise<Result<PaginatedResult<Quote>, AppError>> {
-    let items = this.store.all();
-    if (filter.status) items = items.filter((q) => q.status === filter.status);
-    if (filter.destinationId) items = items.filter((q) => q.destinationId === filter.destinationId);
-    if (filter.packageId) items = items.filter((q) => q.packageId === filter.packageId);
-    if (filter.customerId) items = items.filter((q) => q.customerId === filter.customerId);
+    let items = (await this.delegate.findMany());
+    if (filter.status) items = items.filter(( q: any ) => q.status === filter.status);
+    if (filter.destinationId) items = items.filter(( q: any ) => q.destinationId === filter.destinationId);
+    if (filter.packageId) items = items.filter(( q: any ) => q.packageId === filter.packageId);
+    if (filter.customerId) items = items.filter(( q: any ) => q.customerId === filter.customerId);
 
     const page = filter.page ?? DEFAULT_PAGINATION.page;
     const pageSize = filter.pageSize ?? DEFAULT_PAGINATION.pageSize;
@@ -45,6 +42,6 @@ export class InMemoryQuoteRepository implements QuoteRepository {
   }
 
   async countAll(): Promise<Result<number, AppError>> {
-    return ok(this.store.all().length);
+    return ok((await this.delegate.count()));
   }
 }

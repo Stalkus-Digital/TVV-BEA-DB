@@ -77,16 +77,18 @@ export class TripJackClient {
     return this.responseParser.parse<TripJackHotelDetailsResponseDTO>(result.value, ["hotelId", "traceId", "amenities"]);
   }
 
-  /** Deliberately untouched — still throws, per "DO NOT implement Booking." */
-  async book(request: unknown): Promise<Result<unknown, AppError>> {
+  async book(request: unknown, signal?: AbortSignal): Promise<Result<any, AppError>> {
     this.prepareRequestLog("book", request);
-    throw new NotImplementedError("TripJackClient.book() is not implemented — no live API call exists yet");
+    const result = await this.request<any>("book", "/book", request, signal);
+    if (isErr(result)) return result;
+    return this.responseParser.parse<any>(result.value, ["bookingId"]);
   }
 
-  /** Deliberately untouched — still throws, per "DO NOT implement Cancellation." */
-  async cancel(request: unknown): Promise<Result<unknown, AppError>> {
+  async cancel(request: unknown, signal?: AbortSignal): Promise<Result<any, AppError>> {
     this.prepareRequestLog("cancel", request);
-    throw new NotImplementedError("TripJackClient.cancel() is not implemented — no live API call exists yet");
+    const result = await this.request<any>("cancel", "/cancel", request, signal);
+    if (isErr(result)) return result;
+    return this.responseParser.parse<any>(result.value, ["cancellationId"]);
   }
 
   async getFareRules(request: TripJackFareRulesRequestDTO, signal?: AbortSignal): Promise<Result<TripJackFareRulesResponseDTO, AppError>> {

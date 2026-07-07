@@ -3,6 +3,8 @@ import {
   LayoutDashboard, 
   PackageSearch, 
   Users, 
+  Contact,
+  FileText,
   Megaphone, 
   Wand2, 
   Settings,
@@ -17,7 +19,19 @@ import {
   Calendar,
   Inbox,
   BookOpen,
-  Globe
+  Globe,
+  Boxes,
+  HelpCircle,
+  Image as ImageIcon,
+  Link2,
+  Layout,
+  Activity,
+  Radar,
+  HardDrive,
+  Server,
+  BarChart3,
+  Bell,
+  TrendingUp
 } from "lucide-react";
 
 const navGroups = [
@@ -26,6 +40,8 @@ const navGroups = [
     links: [
       { name: "Dashboard", href: "/", icon: LayoutDashboard },
       { name: "CRM", href: "/crm", icon: Users },
+      { name: "Customers", href: "/customers", icon: Contact },
+      { name: "Quotes", href: "/quotes", icon: FileText },
     ]
   },
   {
@@ -34,9 +50,10 @@ const navGroups = [
       { name: "Ferry Rate Charges", href: "/itinerary/ferry-rates", icon: Ship },
       { name: "Flight Management", href: "/itinerary/flights", icon: Plane },
       { name: "Holiday Packages", href: "/packages", icon: PackageSearch },
+      { name: "Inventory", href: "/inventory", icon: Boxes },
       { name: "Hotels", href: "/itinerary/hotels", icon: Hotel },
       { name: "Activities", href: "/itinerary/activities", icon: Compass },
-      { name: "Destinations", href: "/itinerary/destinations", icon: MapPin },
+      { name: "Destinations", href: "/destinations", icon: MapPin },
       { name: "Trip Jack Packages", href: "/itinerary/tripjack", icon: Layers },
       { name: "AI Package builder", href: "/ai-studio", icon: Wand2 },
     ]
@@ -50,12 +67,40 @@ const navGroups = [
     ]
   },
   {
+    title: "Operations",
+    links: [
+      { name: "Operations Center", href: "/operations", icon: Activity },
+      { name: "System Health", href: "/operations/health", icon: Settings },
+      { name: "Observability", href: "/operations/observability", icon: Radar },
+      { name: "Storage", href: "/operations/storage", icon: HardDrive },
+      { name: "Supplier Runtime", href: "/operations/supplier-runtime", icon: Server },
+      { name: "System Logs", href: "/operations/logs", icon: FileText },
+      { name: "Alerts", href: "/operations/alerts", icon: Bell },
+    ]
+  },
+  {
+    title: "Marketing",
+    links: [
+      { name: "Marketing Dashboard", href: "/marketing", icon: BarChart3 },
+      { name: "Campaigns", href: "/marketing/campaigns", icon: Megaphone },
+      { name: "Landing Pages", href: "/marketing/landing-pages", icon: Layout },
+      { name: "Forms", href: "/marketing/forms", icon: FileText },
+      { name: "SEO Dashboard", href: "/marketing/seo", icon: Globe },
+      { name: "Content Performance", href: "/marketing/content", icon: TrendingUp },
+    ]
+  },
+  {
     title: "CMS",
     links: [
+      { name: "Content Dashboard", href: "/cms", icon: LayoutDashboard },
+      { name: "Home Sections", href: "/cms/home", icon: Megaphone },
+      { name: "SEO Pages", href: "/cms/seo", icon: Globe },
+      { name: "FAQ Management", href: "/cms/faqs", icon: HelpCircle },
+      { name: "Media Browser", href: "/cms/media", icon: ImageIcon },
+      { name: "Navigation", href: "/cms/navigation", icon: Link2 },
+      { name: "Footer Content", href: "/cms/footer", icon: Layout },
       { name: "Enquiries", href: "/cms/enquiries", icon: Inbox },
       { name: "Guides (Blogs)", href: "/cms/guides", icon: BookOpen },
-      { name: "Landing pages builder", href: "/marketing/builder", icon: Megaphone },
-      { name: "Website management", href: "/cms/website", icon: Globe },
     ]
   }
 ];
@@ -96,11 +141,11 @@ export function Sidebar() {
       
       <div className="p-4 border-t border-border shrink-0">
         <Link 
-          href="/settings"
+          href="/operations"
           className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
           <Settings className="h-4 w-4" />
-          Settings
+          Operations
         </Link>
       </div>
     </div>

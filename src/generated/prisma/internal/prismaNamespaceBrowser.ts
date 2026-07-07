@@ -93,7 +93,10 @@ export const ModelName = {
   CustomerProfile: 'CustomerProfile',
   Enquiry: 'Enquiry',
   EnquiryNote: 'EnquiryNote',
-  Notification: 'Notification'
+  Notification: 'Notification',
+  Lead: 'Lead',
+  FerryRate: 'FerryRate',
+  LandingPage: 'LandingPage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -775,6 +778,47 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const LeadScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  sourceUrl: 'sourceUrl',
+  status: 'status',
+  assignedTo: 'assignedTo',
+  createdAt: 'createdAt'
+} as const
+
+export type LeadScalarFieldEnum = (typeof LeadScalarFieldEnum)[keyof typeof LeadScalarFieldEnum]
+
+
+export const FerryRateScalarFieldEnum = {
+  id: 'id',
+  route: 'route',
+  provider: 'provider',
+  class: 'class',
+  basePrice: 'basePrice',
+  markupPrice: 'markupPrice',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FerryRateScalarFieldEnum = (typeof FerryRateScalarFieldEnum)[keyof typeof FerryRateScalarFieldEnum]
+
+
+export const LandingPageScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  title: 'title',
+  heroSection: 'heroSection',
+  packages: 'packages',
+  faqSection: 'faqSection',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LandingPageScalarFieldEnum = (typeof LandingPageScalarFieldEnum)[keyof typeof LandingPageScalarFieldEnum]
 
 
 export const SortOrder = {

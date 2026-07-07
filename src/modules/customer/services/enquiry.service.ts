@@ -1,9 +1,14 @@
-import { err, isErr, type PaginatedResult, type Result } from "@/shared/types";
+import { err, isErr, ok, type PaginatedResult, type Result } from "@/shared/types";
 import { BaseService, type ServiceContext } from "@/shared/services";
 import { NotFoundError, type AppError } from "@/shared/errors";
 import { EnquiryStatus, type Enquiry, type EnquiryNote } from "../types/enquiry";
 import type { EnquiryListFilter, EnquiryRepository } from "../repositories/enquiry.repository";
-import { validateSubmitEnquiry } from "../validation/enquiry.validation";
+import {
+  validateAssignEnquiry,
+  validateEnquiryNoteBody,
+  validateSubmitEnquiry,
+  validateUpdateEnquiryStatus,
+} from "../validation/enquiry.validation";
 
 /**
  * `POST /api/enquiries` is public — an anonymous visitor or a logged-in
@@ -44,35 +49,80 @@ export class EnquiryService extends BaseService {
   }
 
   /** Admin-facing: single lead detail. */
-  async getById(id: string): Promise<Result<Enquiry | null, AppError>> {
-    return this.enquiries.findById(id);
+  async getById(id: string): Promise<Result<Enquiry, AppError>> {
+    const result = await this.enquiries.findById(id);
+    if (isErr(result)) return result;
+    if (!result.value) return err(new NotFoundError(`Enquiry "${id}" not found`));
+    return ok(result.value);
   }
 
-  async updateStatus(id: string, status: EnquiryStatus): Promise<Result<Enquiry, AppError>> {
-    this.logger.info("Enquiry status updated", { id, status });
-    return this.enquiries.update(id, { status, updatedAt: new Date().toISOString() });
+  async updateStatus(id: string, input: unknown): Promise<Result<Enquiry, AppError>> {
+    const validated = validateUpdateEnquiryStatus(input);
+    if (isErr(validated)) return validated;
+
+    const existing = await this.enquiries.findById(id);
+    if (isErr(existing)) return existing;
+    if (!existing.value) return err(new NotFoundError(`Enquiry "${id}" not found`));
+
+    this.logger.info("Enquiry status updated", { id, status: validated.value.status });
+    return this.enquiries.update(id, { status: validated.value.status, updatedAt: new Date().toISOString() });
   }
 
-  async assign(id: string, assignedToUserId: string | null): Promise<Result<Enquiry, AppError>> {
-    this.logger.info("Enquiry assigned", { id, assignedToUserId });
-    return this.enquiries.update(id, { assignedToUserId, updatedAt: new Date().toISOString() });
+  async assign(id: string, input: unknown): Promise<Result<Enquiry, AppError>> {
+    const validated = validateAssignEnquiry(input);
+    if (isErr(validated)) return validated;
+
+    const existing = await this.enquiries.findById(id);
+    if (isErr(existing)) return existing;
+    if (!existing.value) return err(new NotFoundError(`Enquiry "${id}" not found`));
+
+    this.logger.info("Enquiry assigned", { id, assignedToUserId: validated.value.assignedToUserId });
+    return this.enquiries.update(id, { assignedToUserId: validated.value.assignedToUserId, updatedAt: new Date().toISOString() });
   }
 
   async listNotes(enquiryId: string): Promise<Result<EnquiryNote[], AppError>> {
+    const existing = await this.enquiries.findById(enquiryId);
+    if (isErr(existing)) return existing;
+    if (!existing.value) return err(new NotFoundError(`Enquiry "${enquiryId}" not found`));
     return this.enquiries.listNotes(enquiryId);
   }
 
-  async addNote(enquiryId: string, body: string, authorUserId: string | null): Promise<Result<EnquiryNote, AppError>> {
+  async addNote(enquiryId: string, input: unknown, authorUserId: string | null): Promise<Result<EnquiryNote, AppError>> {
+    const validated = validateEnquiryNoteBody(input);
+    if (isErr(validated)) return validated;
+
     const existing = await this.enquiries.findById(enquiryId);
     if (isErr(existing)) return existing;
     if (!existing.value) return err(new NotFoundError(`Enquiry "${enquiryId}" not found`));
 
-    const note = await this.enquiries.addNote({
+    return this.enquiries.addNote({
       enquiryId,
       authorUserId,
-      body,
+      body: validated.value.body,
       createdAt: new Date().toISOString(),
     });
-    return note;
+  }
+
+  async updateNote(enquiryId: string, noteId: string, input: unknown): Promise<Result<EnquiryNote, AppError>> {
+    const validated = validateEnquiryNoteBody(input);
+    if (isErr(validated)) return validated;
+
+    const note = await this.enquiries.findNoteById(noteId);
+    if (isErr(note)) return note;
+    if (!note.value || note.value.enquiryId !== enquiryId) {
+      return err(new NotFoundError(`Enquiry note "${noteId}" not found`));
+    }
+
+    return this.enquiries.updateNote(noteId, validated.value.body);
+  }
+
+  async deleteNote(enquiryId: string, noteId: string): Promise<Result<void, AppError>> {
+    const note = await this.enquiries.findNoteById(noteId);
+    if (isErr(note)) return note;
+    if (!note.value || note.value.enquiryId !== enquiryId) {
+      return err(new NotFoundError(`Enquiry note "${noteId}" not found`));
+    }
+
+    return this.enquiries.deleteNote(noteId);
   }
 }

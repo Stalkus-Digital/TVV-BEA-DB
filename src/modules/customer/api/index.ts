@@ -5,3 +5,4 @@ export * from "./bookings.handlers";
 export * from "./documents.handlers";
 export * from "./dashboard.handlers";
 export * from "./enquiries.handlers";
+export * from "./admin-enquiries.handlers";

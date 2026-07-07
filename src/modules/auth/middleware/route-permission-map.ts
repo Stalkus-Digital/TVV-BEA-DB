@@ -82,6 +82,7 @@ const RESOURCE_PREFIX_MAP: { prefix: string; resource: PermissionResource }[] = 
   { prefix: "/api/geography", resource: PermissionResource.DESTINATION },
   { prefix: "/api/packages", resource: PermissionResource.PACKAGE },
   { prefix: "/api/quotes", resource: PermissionResource.QUOTE },
+  { prefix: "/api/admin/enquiries", resource: PermissionResource.QUOTE },
   { prefix: "/api/bookings", resource: PermissionResource.BOOKING },
   { prefix: "/api/users", resource: PermissionResource.USERS },
   { prefix: "/api/roles", resource: PermissionResource.ROLES },

@@ -1,9 +1,5 @@
-import { LandingPageBuilder } from "@/components/marketing/LandingPageBuilder";
+import { redirect } from "next/navigation";
 
 export default function MarketingBuilderPage() {
-  return (
-    <div className="h-[calc(100vh-6rem)] -m-6">
-      <LandingPageBuilder />
-    </div>
-  );
+  redirect("/marketing/landing-pages");
 }

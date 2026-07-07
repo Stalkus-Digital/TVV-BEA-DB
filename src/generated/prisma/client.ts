@@ -262,3 +262,18 @@ export type EnquiryNote = Prisma.EnquiryNoteModel
  * instead of a hardcoded literal.
  */
 export type Notification = Prisma.NotificationModel
+/**
+ * Model Lead
+ * 
+ */
+export type Lead = Prisma.LeadModel
+/**
+ * Model FerryRate
+ * 
+ */
+export type FerryRate = Prisma.FerryRateModel
+/**
+ * Model LandingPage
+ * 
+ */
+export type LandingPage = Prisma.LandingPageModel

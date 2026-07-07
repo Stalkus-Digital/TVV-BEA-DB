@@ -1,6 +1,6 @@
 import { err, ok, type Result } from "@/shared/types";
 import { ValidationError } from "@/shared/errors";
-import { EnquiryType } from "../types/enquiry";
+import { EnquiryStatus, EnquiryType } from "../types/enquiry";
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
@@ -53,4 +53,44 @@ export function validateSubmitEnquiry(input: unknown): Result<SubmitEnquiryInput
     packageSlug: (body.packageSlug as string | undefined) ?? null,
     source: (body.source as string | undefined) ?? null,
   });
+}
+
+const VALID_STATUSES: string[] = Object.values(EnquiryStatus);
+
+export interface UpdateEnquiryStatusInput {
+  status: EnquiryStatus;
+}
+
+export function validateUpdateEnquiryStatus(input: unknown): Result<UpdateEnquiryStatusInput, ValidationError> {
+  if (typeof input !== "object" || input === null) return err(new ValidationError("Request body must be an object"));
+  const status = typeof (input as Record<string, unknown>).status === "string" && VALID_STATUSES.includes((input as Record<string, unknown>).status as string)
+    ? ((input as Record<string, unknown>).status as EnquiryStatus)
+    : null;
+  if (!status) return err(new ValidationError(`status must be one of: ${VALID_STATUSES.join(", ")}`));
+  return ok({ status });
+}
+
+export interface AssignEnquiryInput {
+  assignedToUserId: string | null;
+}
+
+export function validateAssignEnquiry(input: unknown): Result<AssignEnquiryInput, ValidationError> {
+  if (typeof input !== "object" || input === null) return err(new ValidationError("Request body must be an object"));
+  const { assignedToUserId } = input as Record<string, unknown>;
+  if (assignedToUserId === null || assignedToUserId === undefined) return ok({ assignedToUserId: null });
+  if (typeof assignedToUserId !== "string" || assignedToUserId.trim().length === 0) {
+    return err(new ValidationError("assignedToUserId must be a non-empty string or null"));
+  }
+  return ok({ assignedToUserId });
+}
+
+export interface EnquiryNoteInput {
+  body: string;
+}
+
+export function validateEnquiryNoteBody(input: unknown): Result<EnquiryNoteInput, ValidationError> {
+  if (typeof input !== "object" || input === null) return err(new ValidationError("Request body must be an object"));
+  const { body } = input as Record<string, unknown>;
+  if (!isNonEmptyString(body)) return err(new ValidationError("body is required"));
+  return ok({ body });
 }

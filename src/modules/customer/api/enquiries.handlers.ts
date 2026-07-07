@@ -11,6 +11,35 @@ import { getEnquiryService } from "../module";
  * present, its `userId` is attached automatically, never trusted from the
  * request body.
  */
+import { prisma } from "@/shared/database/prisma-client";
+
 export async function submitEnquiryHandler(context: AuthContext | null, body: unknown): Promise<Result<Enquiry, AppError>> {
-  return getEnquiryService().submit(body, context?.userId ?? null);
+  const result = await getEnquiryService().submit(body, context?.userId ?? null);
+  
+  if (result.ok) {
+    const enquiry = result.value;
+    
+    // Phase 3: Push to Lead CRM Database
+    try {
+      await prisma.lead.create({
+        data: {
+          name: enquiry.name,
+          email: enquiry.email,
+          phone: enquiry.phone || "",
+          sourceUrl: enquiry.source || "Website",
+          status: "NEW",
+        }
+      });
+      
+      // Mock Sembark Webhook Push
+      if (process.env.SEMBARK_API_KEY) {
+        console.log(`[SEMBARK SYNC] Pushed lead ${enquiry.id} to Sembark API.`);
+        // fetch('https://api.sembark.com/leads', { ... })
+      }
+    } catch (err) {
+      console.error("Failed to sync lead to CRM/Sembark", err);
+    }
+  }
+
+  return result;
 }

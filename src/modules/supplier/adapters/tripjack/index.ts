@@ -159,13 +159,26 @@ export class TripJackAdapter extends BaseSupplierAdapter {
   }
 
   override async book(request: SupplierBookingRequest): Promise<Result<SupplierBookingConfirmation, AppError>> {
-    await this.client.book(request);
-    throw new NotImplementedError("TripJackAdapter.book() is not implemented");
+    const result = await this.client.book(request);
+    if (isErr(result)) return result;
+    return ok({
+      supplierBookingId: result.value.bookingId,
+      status: "CONFIRMED",
+      timestamp: new Date().toISOString(),
+      rawResponse: result.value,
+    });
   }
 
   override async cancel(bookingReference: string): Promise<Result<SupplierCancellationResult, AppError>> {
-    await this.client.cancel({ bookingReference });
-    throw new NotImplementedError("TripJackAdapter.cancel() is not implemented");
+    const result = await this.client.cancel({ bookingReference });
+    if (isErr(result)) return result;
+    return ok({
+      cancellationId: result.value.cancellationId,
+      status: "CANCELLED",
+      refundAmount: result.value.refundAmount ?? 0,
+      timestamp: new Date().toISOString(),
+      rawResponse: result.value,
+    });
   }
 
   // sync() intentionally not overridden — same as before this sprint.

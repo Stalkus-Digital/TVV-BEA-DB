@@ -23,5 +23,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "tvv-new2-main", "TVV FE:A-DB"]
+  "exclude": ["node_modules", "tvv-new2-main", "TVV FE_A-DB"]
 }

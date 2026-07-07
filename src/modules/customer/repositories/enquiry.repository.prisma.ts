@@ -90,4 +90,27 @@ export class PrismaEnquiryRepository implements EnquiryRepository {
     const row = await prisma.enquiryNote.create({ data });
     return ok(toNoteDomain(row));
   }
+
+  async findNoteById(noteId: string): Promise<Result<EnquiryNote | null, AppError>> {
+    const row = await prisma.enquiryNote.findUnique({ where: { id: noteId } });
+    return ok(row ? toNoteDomain(row) : null);
+  }
+
+  async updateNote(noteId: string, body: string): Promise<Result<EnquiryNote, AppError>> {
+    try {
+      const row = await prisma.enquiryNote.update({ where: { id: noteId }, data: { body } });
+      return ok(toNoteDomain(row));
+    } catch {
+      return err(new NotFoundError(`Enquiry note "${noteId}" not found`));
+    }
+  }
+
+  async deleteNote(noteId: string): Promise<Result<void, AppError>> {
+    try {
+      await prisma.enquiryNote.delete({ where: { id: noteId } });
+      return ok(undefined);
+    } catch {
+      return err(new NotFoundError(`Enquiry note "${noteId}" not found`));
+    }
+  }
 }

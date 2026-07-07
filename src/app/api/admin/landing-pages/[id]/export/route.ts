@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/shared/database/prisma-client";
 
 function generateHtml(page: any) {
   const hero = page.heroSection || {};

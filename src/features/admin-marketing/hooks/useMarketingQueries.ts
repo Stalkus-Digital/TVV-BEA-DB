@@ -10,6 +10,7 @@ import {
   fetchSeoDashboard,
   fetchWebsiteHome,
   fetchWebsiteNavigation,
+  fetchCampaigns,
 } from "../api/marketing";
 
 export function useMarketingDashboardQuery() {
@@ -54,9 +55,16 @@ export function useWebsiteHomeQuery() {
   });
 }
 
-export function useWebsiteNavigationQuery() {
+export async function useWebsiteNavigationQuery() {
   return useQuery({
     queryKey: adminQueryKeys.marketing.websiteNavigation,
     queryFn: fetchWebsiteNavigation,
+  });
+}
+
+export function useCampaignsQuery() {
+  return useQuery({
+    queryKey: ["admin", "marketing", "campaigns"],
+    queryFn: fetchCampaigns,
   });
 }

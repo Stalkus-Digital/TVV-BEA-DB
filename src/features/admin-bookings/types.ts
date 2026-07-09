@@ -3,6 +3,21 @@ import type { PaymentStatus } from "./constants";
 
 export type { BookingStatus, PaymentStatus };
 
+export interface BookingItem {
+  id: string;
+  bookingId: string;
+  kind: string;
+  packageId: string | null;
+  inventoryItemId: string | null;
+  title: string;
+  description: string | null;
+  quantity: number;
+  unitPrice: number;
+  supplierBookingReference: any | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Booking {
   id: string;
   bookingNumber: string;
@@ -25,6 +40,8 @@ export interface Booking {
   customerId: string | null;
   createdAt: string;
   updatedAt: string;
+  items?: BookingItem[];
+  travellers?: Traveller[];
 }
 
 export interface BookingListRow extends Booking {

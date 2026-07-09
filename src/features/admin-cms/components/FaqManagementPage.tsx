@@ -76,7 +76,7 @@ export function FaqManagementPage() {
   return (
     <CmsPageShell
       title="FAQ Management"
-      description="FAQs live on destinations and packages — POST/DELETE via existing entity FAQ endpoints."
+      description="Manage Frequently Asked Questions for destinations and holiday packages."
       isLoading={cms.isLoading}
       isError={cms.isError}
       errorMessage={cms.error instanceof Error ? cms.error.message : undefined}

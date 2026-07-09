@@ -17,19 +17,27 @@ export class DatabaseHealthCheck implements HealthCheck {
     try {
       await prisma.$queryRaw`SELECT 1`;
 
-      const latestMigration = await prisma.$queryRaw<{ migration_name: string; finished_at: Date | null }[]>`
-        SELECT migration_name, finished_at FROM _prisma_migrations
-        ORDER BY finished_at DESC NULLS LAST
-        LIMIT 1
-      `;
+      let latestMigrationName = null;
+      let migratedAt = null;
+      try {
+        const latestMigration = await prisma.$queryRaw<{ migration_name: string; finished_at: Date | null }[]>`
+          SELECT migration_name, finished_at FROM _prisma_migrations
+          ORDER BY finished_at DESC NULLS LAST
+          LIMIT 1
+        `;
+        latestMigrationName = latestMigration[0]?.migration_name ?? null;
+        migratedAt = latestMigration[0]?.finished_at?.toISOString() ?? null;
+      } catch (e) {
+        // _prisma_migrations might not exist if using db push or another sync method
+      }
 
       return {
         name: this.name,
         status: "healthy",
         details: {
           connected: true,
-          latestMigration: latestMigration[0]?.migration_name ?? null,
-          migratedAt: latestMigration[0]?.finished_at?.toISOString() ?? null,
+          latestMigration: latestMigrationName,
+          migratedAt: migratedAt,
         },
         checkedAt,
       };

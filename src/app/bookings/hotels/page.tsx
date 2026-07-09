@@ -1,13 +1,18 @@
-import { Receipt, Search, Filter, IndianRupee } from "lucide-react";
+"use client";
 
-const MOCK_HOTEL_BOOKINGS = [
-  { id: "HB-4001", guest: "Amit Sharma", hotel: "Symphony Palms Beach Resort", dates: "Oct 12 - Oct 15", rooms: 2, nights: 3, amount: 51000, status: "Checked In" },
-  { id: "HB-4002", guest: "Deepika Padukone", hotel: "Taj Exotica Resort & Spa", dates: "Nov 05 - Nov 07", rooms: 1, nights: 2, amount: 76000, status: "Confirmed" },
-  { id: "HB-4003", guest: "Rohit Khandelwal", hotel: "Sea Shell Port Blair", dates: "Sep 20 - Sep 22", rooms: 3, nights: 2, amount: 45000, status: "Checked Out" },
-  { id: "HB-4004", guest: "Kriti Sanon", hotel: "Summer Sands Beach Resort", dates: "Dec 10 - Dec 14", rooms: 1, nights: 4, amount: 36800, status: "Cancelled" },
-];
+import { useState } from "react";
+import { Receipt, Search, Filter, IndianRupee } from "lucide-react";
+import { useBookingsQueryState } from "@/features/admin-bookings/hooks/useBookingsQuery";
 
 export default function HotelBookingsPage() {
+  const [search, setSearch] = useState("");
+  const { data, isLoading } = useBookingsQueryState({ search });
+
+  // Client-side filter: Only bookings containing HOTEL items
+  const hotelBookings = data?.items?.filter(
+    (b) => b.items && b.items.some((i) => i.kind === "HOTEL")
+  ) ?? [];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -19,7 +24,6 @@ export default function HotelBookingsPage() {
         </div>
       </div>
 
-      {/* Bookings Table */}
       <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         <div className="p-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="relative w-full max-w-sm">
@@ -27,6 +31,8 @@ export default function HotelBookingsPage() {
             <input
               type="text"
               placeholder="Search by Booking ID or guest name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-background border border-input rounded-md pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
@@ -42,51 +48,63 @@ export default function HotelBookingsPage() {
                 <th className="px-6 py-4 font-semibold">Booking ID</th>
                 <th className="px-6 py-4 font-semibold">Guest Name</th>
                 <th className="px-6 py-4 font-semibold">Hotel Property</th>
-                <th className="px-6 py-4 font-semibold">Stay Details</th>
                 <th className="px-6 py-4 font-semibold">Amount</th>
                 <th className="px-6 py-4 font-semibold">Status</th>
                 <th className="px-6 py-4 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {MOCK_HOTEL_BOOKINGS.map((booking) => (
-                <tr key={booking.id} className="hover:bg-muted/50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
-                    {booking.id}
-                  </td>
-                  <td className="px-6 py-4 font-semibold text-foreground whitespace-nowrap">
-                    {booking.guest}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-medium text-primary flex items-center gap-1.5">
-                      <Receipt className="h-3.5 w-3.5 text-muted-foreground" />
-                      {booking.hotel}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-xs text-muted-foreground">
-                    <div className="font-semibold text-foreground">{booking.dates}</div>
-                    <div>{booking.rooms} Rooms • {booking.nights} Nights</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap font-bold text-foreground">
-                    <div className="flex items-center">
-                      <IndianRupee className="h-3.5 w-3.5" /> {booking.amount.toLocaleString()}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
-                      booking.status === 'Checked In' ? 'bg-blue-100 text-blue-700' :
-                      booking.status === 'Confirmed' ? 'bg-emerald-100 text-emerald-700' :
-                      booking.status === 'Checked Out' ? 'bg-purple-100 text-purple-700' :
-                      'bg-rose-100 text-rose-700'
-                    }`}>
-                      {booking.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right whitespace-nowrap">
-                    <button className="text-primary hover:underline font-semibold text-xs">View Voucher</button>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
+                    Loading hotel bookings...
                   </td>
                 </tr>
-              ))}
+              ) : hotelBookings.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
+                    No hotel bookings found.
+                  </td>
+                </tr>
+              ) : (
+                hotelBookings.map((booking) => {
+                  const leadTraveller = booking.travellers?.find((t) => t.isLeadTraveller);
+                  const hotelItem = booking.items?.find((i) => i.kind === "HOTEL");
+                  return (
+                    <tr key={booking.id} className="hover:bg-muted/50 transition-colors">
+                      <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
+                        {booking.bookingNumber}
+                      </td>
+                      <td className="px-6 py-4 font-semibold text-foreground whitespace-nowrap">
+                        {leadTraveller?.fullName || "—"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-primary flex items-center gap-1.5">
+                          <Receipt className="h-3.5 w-3.5 text-muted-foreground" />
+                          {hotelItem?.title || "Multiple Hotels"}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap font-bold text-foreground">
+                        <div className="flex items-center">
+                          <IndianRupee className="h-3.5 w-3.5" /> {booking.totalAmount.toLocaleString()}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
+                          booking.status === 'CONFIRMED' ? 'bg-emerald-100 text-emerald-700' :
+                          booking.status === 'CANCELLED' ? 'bg-rose-100 text-rose-700' :
+                          'bg-amber-100 text-amber-700'
+                        }`}>
+                          {booking.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap">
+                        <button className="text-primary hover:underline font-semibold text-xs">View Voucher</button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

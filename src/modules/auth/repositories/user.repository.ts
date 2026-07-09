@@ -20,15 +20,27 @@ export class PrismaUserRepository extends PrismaStore<any> implements UserReposi
   }
 
   async findByEmail(email: string): Promise<Result<User | null, AppError>> {
-    return ok((await this.delegate.findMany()).find(( u: any ) => u.email.toLowerCase() === email.toLowerCase()) ?? null);
+    const user = await this.delegate.findFirst({
+      where: { email: { equals: email, mode: 'insensitive' } }
+    });
+    return ok(user ?? null);
   }
 
   async findByFilter(filter: UserListFilter): Promise<Result<PaginatedResult<User>, AppError>> {
-    let items = (await this.delegate.findMany());
-    if (filter.isActive !== undefined) items = items.filter(( u: any ) => u.isActive === filter.isActive);
     const page = filter.page ?? DEFAULT_PAGINATION.page;
     const pageSize = filter.pageSize ?? DEFAULT_PAGINATION.pageSize;
-    const start = (page - 1) * pageSize;
-    return ok(toPaginatedResult(items.slice(start, start + pageSize), items.length, { page, pageSize }));
+    const skip = (page - 1) * pageSize;
+
+    const where: any = {};
+    if (filter.isActive !== undefined) {
+      where.isActive = filter.isActive;
+    }
+
+    const [items, total] = await Promise.all([
+      this.delegate.findMany({ where, skip, take: pageSize }),
+      this.delegate.count({ where })
+    ]);
+
+    return ok(toPaginatedResult(items, total, { page, pageSize }));
   }
 }

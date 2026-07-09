@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import { GuidesGapPage } from "@/features/admin-cms/components/CmsGapPages";
+import { GuidesPage } from "@/features/admin-cms/components/GuidesPage";
 
 export default function Page() {
   return (
     <Suspense fallback={null}>
-      <GuidesGapPage />
+      <GuidesPage />
     </Suspense>
   );
 }

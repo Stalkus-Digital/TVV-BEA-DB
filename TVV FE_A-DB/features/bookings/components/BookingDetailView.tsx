@@ -8,6 +8,7 @@ import type { BookingKind } from "../types";
 import { useBookingDetail } from "../hooks/useBookingDetail";
 import { useCancelBookingMutation } from "../hooks/useCancelBookingMutation";
 import { bookingsListPath } from "../paths";
+import { RazorpayButton } from "./RazorpayButton";
 
 interface BookingDetailViewProps {
   kind: BookingKind;
@@ -100,6 +101,17 @@ export function BookingDetailView({ kind, id }: BookingDetailViewProps) {
               />
             )}
           </dl>
+
+          {booking.status === "PENDING" && booking.totalAmount != null && booking.totalAmount > 0 && (
+            <div className="mt-8 border-t border-line/40 pt-6">
+              <h3 className="text-lg font-semibold mb-4 text-ink">Complete your booking</h3>
+              <RazorpayButton
+                bookingId={id}
+                amount={booking.totalAmount}
+                onSuccess={() => window.location.reload()}
+              />
+            </div>
+          )}
 
           {booking.cancellable && (
             <div className="mt-8">

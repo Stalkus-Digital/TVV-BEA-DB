@@ -19,8 +19,8 @@ export async function createStateHandler(body: unknown): Promise<Result<State, A
   return getGeographyService().createState(body);
 }
 
-export async function listRegionsHandler(): Promise<Result<PaginatedResult<Region>, AppError>> {
-  return getGeographyService().listRegions();
+export async function listRegionsHandler(countryId?: string): Promise<Result<Region[], AppError>> {
+  return getGeographyService().listRegions(countryId);
 }
 
 export async function createRegionHandler(body: unknown): Promise<Result<Region, AppError>> {

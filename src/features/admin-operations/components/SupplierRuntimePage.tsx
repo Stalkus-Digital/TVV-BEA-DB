@@ -3,7 +3,7 @@
 import { BACKEND_GAPS } from "../constants";
 import { useSupplierRuntimeBundleQuery } from "../hooks/useOperationsQueries";
 import { formatDate, formatDurationMs, formatPercent } from "../utils";
-import { BackendGapNotice } from "./BackendGapNotice";
+
 import { OperationsPageShell } from "./OperationsPageShell";
 import { StatusBadge } from "./StatusBadge";
 
@@ -13,7 +13,7 @@ export function SupplierRuntimePage() {
   return (
     <OperationsPageShell
       title="Supplier Runtime"
-      description="Diagnostics from GET /api/supplier-runtime/* — empty until a connector dispatches through the runtime."
+      description="Live diagnostics and telemetry for external supplier integrations."
       isLoading={runtime.isLoading}
       isError={runtime.isError}
       errorMessage={runtime.error instanceof Error ? runtime.error.message : undefined}
@@ -21,7 +21,7 @@ export function SupplierRuntimePage() {
       onRefresh={() => void runtime.refetch()}
       onRetry={() => void runtime.refetch()}
     >
-      <BackendGapNotice title="Cache metrics" message={BACKEND_GAPS.runtimeCacheMetrics} />
+
 
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm mt-4">
         <div className="flex items-center justify-between gap-4">

@@ -13,4 +13,5 @@ export const adminEndpoints = {
   inventory: "/api/inventory",
   destinations: "/api/destinations",
   systemHealth: "/api/system/health",
+  dashboardMetrics: "/api/admin/dashboard/metrics",
 } as const;

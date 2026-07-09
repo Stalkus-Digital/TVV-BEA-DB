@@ -1,7 +1,7 @@
 export type Token<T> = symbol & { readonly __type?: T };
 
 export function createToken<T>(description: string): Token<T> {
-  return Symbol(description) as Token<T>;
+  return Symbol.for(description) as Token<T>;
 }
 
 type Factory<T> = () => T;
@@ -48,4 +48,11 @@ export class Container {
 }
 
 /** App-wide default container. Modules register into this via ModuleRegistry. */
-export const container = new Container();
+const globalForContainer = globalThis as unknown as {
+  __app_container: Container | undefined;
+};
+
+export const container = globalForContainer.__app_container ?? new Container();
+if (process.env.NODE_ENV !== "production") {
+  globalForContainer.__app_container = container;
+}

@@ -39,4 +39,11 @@ export class ModuleRegistry {
 }
 
 /** App-wide default module registry. */
-export const moduleRegistry = new ModuleRegistry();
+const globalForRegistry = globalThis as unknown as {
+  __app_module_registry: ModuleRegistry | undefined;
+};
+
+export const moduleRegistry = globalForRegistry.__app_module_registry ?? new ModuleRegistry();
+if (process.env.NODE_ENV !== "production") {
+  globalForRegistry.__app_module_registry = moduleRegistry;
+}

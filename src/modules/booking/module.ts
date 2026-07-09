@@ -33,6 +33,7 @@ import { BookingNoteService } from "./services/booking-note.service";
 import { BookingStatusHistoryService } from "./services/booking-status-history.service";
 import { BookingTimelineService } from "./services/booking-timeline.service";
 import { BookingPaymentService } from "./services/booking-payment.service";
+import { FulfillmentService } from "./services/fulfillment.service";
 
 export const BOOKING_REPOSITORY_TOKEN = createToken<BookingRepository>("booking.repository.booking");
 export const BOOKING_ITEM_REPOSITORY_TOKEN = createToken<BookingItemRepository>("booking.repository.item");
@@ -55,6 +56,7 @@ export const VOUCHER_SERVICE_TOKEN = createToken<VoucherService>("booking.servic
 export const BOOKING_STATUS_HISTORY_SERVICE_TOKEN = createToken<BookingStatusHistoryService>("booking.service.statusHistory");
 export const BOOKING_TIMELINE_SERVICE_TOKEN = createToken<BookingTimelineService>("booking.service.timeline");
 export const BOOKING_NOTE_SERVICE_TOKEN = createToken<BookingNoteService>("booking.service.note");
+export const FULFILLMENT_SERVICE_TOKEN = createToken<FulfillmentService>("booking.service.fulfillment");
 
 /**
  * Booking Engine — created ONLY from an APPROVED Quote. Touches Quote
@@ -110,6 +112,7 @@ export const bookingModule: ModuleDefinition = {
     c.registerFactory(BOOKING_STATUS_HISTORY_SERVICE_TOKEN, () => new BookingStatusHistoryService({ logger: createLogger("booking.statusHistory") }, c.resolve(STATUS_HISTORY_REPOSITORY_TOKEN)));
     c.registerFactory(BOOKING_TIMELINE_SERVICE_TOKEN, () => new BookingTimelineService({ logger: createLogger("booking.timeline") }, c.resolve(TIMELINE_REPOSITORY_TOKEN)));
     c.registerFactory(BOOKING_NOTE_SERVICE_TOKEN, () => new BookingNoteService({ logger: createLogger("booking.note") }, c.resolve(NOTE_REPOSITORY_TOKEN)));
+    c.registerFactory(FULFILLMENT_SERVICE_TOKEN, () => new FulfillmentService({ logger: createLogger("booking.fulfillment") }));
 
     c.registerFactory(
       BOOKING_SERVICE_TOKEN,
@@ -171,4 +174,7 @@ export function getBookingTimelineService(): BookingTimelineService {
 }
 export function getBookingNoteService(): BookingNoteService {
   return container.resolve(BOOKING_NOTE_SERVICE_TOKEN);
+}
+export function getFulfillmentService(): FulfillmentService {
+  return container.resolve(FULFILLMENT_SERVICE_TOKEN);
 }

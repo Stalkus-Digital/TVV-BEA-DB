@@ -30,7 +30,7 @@ export async function fetchEnquiries(filters: EnquiryListFilters = {}): Promise<
 export async function fetchAllEnquiries(
   filters: Omit<EnquiryListFilters, "page" | "pageSize"> = {}
 ): Promise<Enquiry[]> {
-  const pageSize = 100;
+  const pageSize = 20;
   let page = 1;
   let totalPages = 1;
   const items: Enquiry[] = [];

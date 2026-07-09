@@ -78,3 +78,9 @@ export async function removePackageFaq(id: string, faqId: string): Promise<Packa
   if (!result) throw new Error("Failed to remove package FAQ");
   return result;
 }
+
+export async function updateCmsConfig(key: string, value: any): Promise<void> {
+  const result = await adminApiClient.put(`/api/cms/config`, { key, value });
+  if (!result) throw new Error(`Failed to update CMS config ${key}`);
+}
+

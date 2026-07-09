@@ -8,6 +8,7 @@ import { buildSeoDTO } from "../seo/seo-builder";
 import type { HeroBannerDTO, HomepageResponseDTO, QuickLinkDTO } from "../dto/website-homepage.dto";
 import type { WebsitePackageService } from "../services/website-package.service";
 import { WebsiteConfigService } from "../services/website-config.service";
+import { CmsConfigService } from "../services/cms-config.service";
 
 const FEATURED_LIMIT = 6;
 const LATEST_LIMIT = 8;
@@ -83,13 +84,23 @@ export class HomepageService extends BaseService {
       }
     );
 
+    const cmsConfigResult = await CmsConfigService.getInstance().getConfig("HOME_SECTIONS");
+    let heroBanner = STATIC_HERO_BANNER;
+    let quickLinks = STATIC_QUICK_LINKS;
+
+    if (!isErr(cmsConfigResult) && cmsConfigResult.value) {
+      const config = cmsConfigResult.value;
+      if (config.heroBanner) heroBanner = config.heroBanner;
+      if (config.quickLinks) quickLinks = config.quickLinks;
+    }
+
     return ok({
-      heroBanner: STATIC_HERO_BANNER,
+      heroBanner,
       featuredPackages,
       featuredDestinations,
       popularDestinations,
       latestPackages,
-      quickLinks: STATIC_QUICK_LINKS,
+      quickLinks,
       seo,
     });
   }

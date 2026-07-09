@@ -45,7 +45,7 @@ export async function fetchPackages(filters: PackageListFilters = {}): Promise<P
 export async function fetchAllPackages(
   filters: Pick<PackageListFilters, "status" | "destinationId" | "sourceType"> = {}
 ): Promise<Package[]> {
-  const pageSize = 100;
+  const pageSize = 20;
   let page = 1;
   let totalPages = 1;
   const items: Package[] = [];

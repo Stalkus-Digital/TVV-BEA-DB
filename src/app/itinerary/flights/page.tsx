@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Plane, Search, Calendar, Users, Briefcase, Plus, Filter, ArrowRight, Check } from "lucide-react";
+import { adminApiClient } from "@/lib/admin-api/client";
+import { AlertModal } from "@/components/layout/AlertModal";
 
 interface Flight {
   id: string;
@@ -16,23 +18,16 @@ interface Flight {
   baggage: string;
 }
 
-// Simulated TripJack API Response
-const TRIPJACK_MOCK_RESULTS: Flight[] = [
-  { id: "TJ-101", carrier: "IndiGo", flightNo: "6E-2034", origin: "DEL", destination: "IXZ", departure: "06:15", arrival: "09:30", duration: "3h 15m", fare: 7850, baggage: "15 KG" },
-  { id: "TJ-102", carrier: "Air India", flightNo: "AI-485", origin: "DEL", destination: "IXZ", departure: "10:30", arrival: "14:45", duration: "4h 15m", fare: 8500, baggage: "25 KG" },
-  { id: "TJ-103", carrier: "SpiceJet", flightNo: "SG-281", origin: "DEL", destination: "IXZ", departure: "13:10", arrival: "16:20", duration: "3h 10m", fare: 7100, baggage: "15 KG" },
-  { id: "TJ-104", carrier: "Vistara", flightNo: "UK-902", origin: "DEL", destination: "IXZ", departure: "07:45", arrival: "11:30", duration: "3h 45m", fare: 11200, baggage: "20 KG" },
-];
+// Removed TRIPJACK_MOCK_RESULTS
 
 export default function FlightsPage() {
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [alertState, setAlertState] = useState({ isOpen: false, message: "" });
   const [searchResults, setSearchResults] = useState<Flight[] | null>(null);
   
   // Tracked/Saved flights
-  const [savedFlights, setSavedFlights] = useState<Flight[]>([
-    { id: "FL-504", carrier: "Akasa Air", flightNo: "QP-1102", origin: "BLR", destination: "IXZ", departure: "08:45", arrival: "11:30", duration: "2h 45m", fare: 7200, baggage: "15 KG" },
-  ]);
+  const [savedFlights, setSavedFlights] = useState<Flight[]>([]);
 
   const [searchParams, setSearchParams] = useState({
     origin: "DEL",
@@ -42,14 +37,45 @@ export default function FlightsPage() {
     class: "Economy"
   });
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API Call to TripJack
-    setTimeout(() => {
-      setSearchResults(TRIPJACK_MOCK_RESULTS);
+    setSearchResults(null);
+    try {
+      const data = await adminApiClient.post<{ success: boolean; data?: any; error?: any }>('/api/supplier/search', {
+        capability: "FLIGHTS",
+        criteria: {
+          capability: "FLIGHTS",
+          origin: searchParams.origin,
+          destination: searchParams.destination,
+          departureDate: searchParams.date,
+          adults: searchParams.passengers,
+          cabinClass: searchParams.class === "Premium" ? "PREMIUM_ECONOMY" : searchParams.class === "Business" ? "BUSINESS" : "ECONOMY",
+        }
+      });
+      if (data && data.success && data.data?.results) {
+        // Map backend response to UI structure
+        const mapped = data.data.results.map((res: any) => ({
+          id: res.referenceId,
+          carrier: res.airlineName || res.airlineCode,
+          flightNo: `${res.airlineCode}-${res.flightNumber}`,
+          origin: res.origin,
+          destination: res.destination,
+          departure: res.departureTime ? new Date(res.departureTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--',
+          arrival: res.arrivalTime ? new Date(res.arrivalTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--',
+          duration: `${Math.floor((res.durationMinutes || 0)/60)}h ${(res.durationMinutes || 0)%60}m`,
+          fare: res.price,
+          baggage: res.baggageAllowance || "15 KG",
+        }));
+        setSearchResults(mapped);
+      } else {
+        setAlertState({ isOpen: true, message: data?.error?.message || "Failed to search flights" });
+      }
+    } catch (err) {
+      setAlertState({ isOpen: true, message: "Network error while searching flights" });
+    } finally {
       setIsLoading(false);
-    }, 1200);
+    }
   };
 
   const saveFlight = (flight: Flight) => {
@@ -82,51 +108,51 @@ export default function FlightsPage() {
       {isSearchMode ? (
         <div className="space-y-6">
           {/* Search Form */}
-          <div className="bg-white dark:bg-slate-900 border border-border rounded-xl shadow-sm p-5">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
               <Plane className="h-5 w-5 text-primary" />
               TripJack Live Flight Search
             </h2>
             <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Origin</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Origin</label>
                 <div className="relative">
                   <input 
                     required type="text" value={searchParams.origin} onChange={e => setSearchParams({...searchParams, origin: e.target.value.toUpperCase()})}
-                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/50 font-bold uppercase"
+                    className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/50 font-bold uppercase"
                   />
                   <Plane className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 </div>
               </div>
               
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Destination</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Destination</label>
                 <div className="relative">
                   <input 
                     required type="text" value={searchParams.destination} onChange={e => setSearchParams({...searchParams, destination: e.target.value.toUpperCase()})}
-                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/50 font-bold uppercase"
+                    className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/50 font-bold uppercase"
                   />
                   <Plane className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground rotate-90" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Departure Date</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Departure Date</label>
                 <div className="relative">
                   <input 
                     required type="date" value={searchParams.date} onChange={e => setSearchParams({...searchParams, date: e.target.value})}
-                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/50"
+                    className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/50"
                   />
                   <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Passengers / Class</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Passengers / Class</label>
                 <div className="relative">
                   <select 
                     value={searchParams.class} onChange={e => setSearchParams({...searchParams, class: e.target.value})}
-                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/50 appearance-none"
+                    className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/50 appearance-none"
                   >
                     <option value="Economy">1 PAX - Economy</option>
                     <option value="Premium">1 PAX - Premium</option>
@@ -155,9 +181,9 @@ export default function FlightsPage() {
                 {searchResults.map(flight => {
                   const isSaved = savedFlights.some(f => f.id === flight.id);
                   return (
-                    <div key={flight.id} className="bg-white dark:bg-slate-900 border border-border rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm hover:shadow-md transition-shadow">
+                    <div key={flight.id} className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-4 min-w-[200px]">
-                        <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
+                        <div className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0 border border-slate-200">
                           <Plane className="h-5 w-5 text-slate-500" />
                         </div>
                         <div>
@@ -173,7 +199,7 @@ export default function FlightsPage() {
                         </div>
                         <div className="flex-1 flex flex-col items-center px-4 relative">
                           <p className="text-[10px] text-muted-foreground mb-1 font-medium">{flight.duration}</p>
-                          <div className="w-full h-px bg-slate-300 dark:bg-slate-700 relative">
+                          <div className="w-full h-px bg-slate-200 relative">
                             <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-3 w-3 text-slate-400 rotate-90" />
                           </div>
                           <p className="text-[10px] text-emerald-600 mt-1 font-medium">Non-stop</p>
@@ -214,7 +240,7 @@ export default function FlightsPage() {
         /* Saved Flights View */
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><Plane className="h-6 w-6" /></div>
                 <div>
@@ -223,7 +249,7 @@ export default function FlightsPage() {
                 </div>
               </div>
             </div>
-            <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg"><Search className="h-6 w-6" /></div>
                 <div>
@@ -234,13 +260,13 @@ export default function FlightsPage() {
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-border flex items-center justify-between">
+          <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between">
               <h2 className="font-bold text-lg">Saved Flights for Itineraries</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="text-xs text-muted-foreground uppercase bg-slate-50/50 border-b border-border">
+                <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
                   <tr>
                     <th className="px-6 py-4 font-semibold">Airline</th>
                     <th className="px-6 py-4 font-semibold">Route</th>
@@ -250,21 +276,21 @@ export default function FlightsPage() {
                     <th className="px-6 py-4 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-slate-200">
                   {savedFlights.length === 0 ? (
                     <tr><td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">No flights saved yet. Use the search to add flights.</td></tr>
                   ) : (
                     savedFlights.map((flight) => (
                       <tr key={flight.id} className="hover:bg-muted/50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="font-bold text-foreground">{flight.carrier}</div>
+                          <div className="font-bold text-slate-900">{flight.carrier}</div>
                           <div className="text-muted-foreground text-[10px] uppercase">{flight.flightNo}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap font-bold text-slate-700">
                           {flight.origin} <ArrowRight className="inline h-3 w-3 text-slate-400 mx-1" /> {flight.destination}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="font-medium text-foreground">{flight.departure} ➔ {flight.arrival}</div>
+                          <div className="font-medium text-slate-900">{flight.departure} ➔ {flight.arrival}</div>
                           <div className="text-muted-foreground text-[10px]">{flight.duration}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-600">
@@ -285,6 +311,12 @@ export default function FlightsPage() {
           </div>
         </div>
       )}
+
+      <AlertModal
+        isOpen={alertState.isOpen}
+        message={alertState.message}
+        onClose={() => setAlertState({ isOpen: false, message: "" })}
+      />
     </div>
   );
 }

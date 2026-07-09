@@ -2,15 +2,15 @@
 
 import { useMemo, useState } from "react";
 import { useDebouncedValue } from "@/features/admin-enquiries/hooks/useDebouncedValue";
-import { BACKEND_GAPS } from "../constants";
 import { useLandingPagesQuery } from "../hooks/useMarketingQueries";
-import { BackendGapNotice } from "./BackendGapNotice";
 import { MarketingPageShell } from "./MarketingPageShell";
+import { LandingPageEditor } from "./LandingPageEditor";
 
 export function LandingPagesPage() {
   const pagesQuery = useLandingPagesQuery();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "home" | "package" | "destination" | "static">("all");
+  const [isEditing, setIsEditing] = useState(false);
   const debouncedSearch = useDebouncedValue(search);
 
   const filtered = useMemo(() => {
@@ -35,28 +35,38 @@ export function LandingPagesPage() {
       isEmpty={!pagesQuery.isLoading && !pagesQuery.isError && filtered.length === 0}
       emptyMessage="No landing pages match your filters"
     >
-      <BackendGapNotice title="No landing-page CMS" message={BACKEND_GAPS.landingPageCms} />
-
-      <div className="flex flex-wrap gap-3 mb-4 mt-4">
-        <input
-          type="search"
-          placeholder="Search title or slug…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 min-w-[200px] bg-background border border-input rounded-md px-3 py-2 text-sm"
-        />
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
-          className="bg-background border border-input rounded-md px-3 py-2 text-sm"
+      <div className="flex flex-wrap gap-3 mb-4 mt-4 justify-between">
+        <div className="flex gap-3">
+          <input
+            type="search"
+            placeholder="Search title or slug…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 min-w-[200px] bg-background border border-input rounded-md px-3 py-2 text-sm"
+          />
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
+            className="bg-background border border-input rounded-md px-3 py-2 text-sm"
+          >
+            <option value="all">All types</option>
+            <option value="home">Home</option>
+            <option value="package">Package</option>
+            <option value="destination">Destination</option>
+            <option value="static">Static (navigation)</option>
+          </select>
+        </div>
+        <button
+          onClick={() => setIsEditing(true)}
+          className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium hover:opacity-90"
         >
-          <option value="all">All types</option>
-          <option value="home">Home</option>
-          <option value="package">Package</option>
-          <option value="destination">Destination</option>
-          <option value="static">Static (navigation)</option>
-        </select>
+          Create Landing Page
+        </button>
       </div>
+
+      {isEditing ? (
+        <LandingPageEditor onCancel={() => setIsEditing(false)} />
+      ) : (
 
       <div className="rounded-xl border border-border overflow-hidden">
         <table className="w-full text-sm">
@@ -88,6 +98,7 @@ export function LandingPagesPage() {
           </tbody>
         </table>
       </div>
+      )}
     </MarketingPageShell>
   );
 }

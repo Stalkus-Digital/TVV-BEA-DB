@@ -7,8 +7,8 @@ import { validateEnv, type EnvSchema } from "@/shared/validation";
  * source — only when a supplier is actually implemented.
  */
 const supplierEnvSchema = {
-  tripjackEnabled: { key: "TRIPJACK_ENABLED", type: "boolean", default: false },
-  ferryEnabled: { key: "FERRY_ENABLED", type: "boolean", default: false },
+  tripjackEnabled: { key: "TRIPJACK_ENABLED", type: "boolean", default: true },
+  ferryEnabled: { key: "FERRY_ENABLED", type: "boolean", default: true },
   manualSupplierEnabled: { key: "MANUAL_SUPPLIER_ENABLED", type: "boolean", default: true },
 } satisfies EnvSchema;
 

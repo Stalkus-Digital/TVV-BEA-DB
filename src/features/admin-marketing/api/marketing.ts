@@ -38,8 +38,20 @@ export async function fetchWebsiteNavigation() {
   return result;
 }
 
+export async function fetchCampaigns() {
+  return await adminApiClient.get<{ items: any[] }>("/api/marketing/campaigns");
+}
+
+export async function createCampaign(data: any) {
+  return await adminApiClient.post("/api/marketing/campaigns", data);
+}
+
+export async function deleteCampaign(id: string) {
+  return await adminApiClient.delete(`/api/marketing/campaigns/${id}`);
+}
+
 async function fetchAllWebsitePackages(): Promise<WebsitePackageSummary[]> {
-  const pageSize = 100;
+  const pageSize = 20;
   let page = 1;
   let totalPages = 1;
   const items: WebsitePackageSummary[] = [];
@@ -62,7 +74,7 @@ async function fetchAllWebsitePackages(): Promise<WebsitePackageSummary[]> {
 }
 
 async function fetchAllWebsiteDestinations(): Promise<WebsiteDestinationSummary[]> {
-  const pageSize = 100;
+  const pageSize = 20;
   let page = 1;
   let totalPages = 1;
   const items: WebsiteDestinationSummary[] = [];
@@ -112,22 +124,27 @@ export async function fetchMarketingDashboard(): Promise<MarketingDashboardData>
       createdAt: quote.createdAt,
     }));
 
+  const analytics = await adminApiClient.get<any>("/api/marketing/analytics");
+
   return {
     leads: buildLeadStatistics(enquiries),
     funnel: buildConversionFunnel(enquiries.length, quotes.length, bookingTotal),
     recentEnquiries,
     recentQuotes,
-    websiteTrafficAvailable: false,
-    topDestinationsAvailable: false,
-    topPackagesAvailable: false,
+    websiteTrafficAvailable: true,
+    websiteTraffic: analytics?.traffic,
+    topDestinationsAvailable: true,
+    topPackagesAvailable: true,
+    topPages: analytics?.topPages || [],
     featuredDestinations: home.featuredDestinations,
     featuredPackages: home.featuredPackages,
   };
 }
 
 export async function fetchFormStatistics(): Promise<FormStatistics> {
-  const [enquiries, quotes] = await Promise.all([fetchAllEnquiries(), fetchAllQuotes()]);
-  return buildFormStatistics(enquiries, quotes);
+  const result = await adminApiClient.get<FormStatistics>("/api/marketing/forms");
+  if (!result) throw new Error("Failed to fetch form stats");
+  return result;
 }
 
 export async function fetchSeoDashboard(): Promise<SeoListItem[]> {
@@ -156,10 +173,11 @@ export async function fetchLandingPages(): Promise<LandingPageRow[]> {
 }
 
 export async function fetchContentPerformance() {
-  const [home, packages, destinations] = await Promise.all([
+  const [home, packages, destinations, analytics] = await Promise.all([
     fetchWebsiteHome(),
     fetchAllPackages(),
     fetchAllDestinations(),
+    adminApiClient.get<any>("/api/marketing/analytics"),
   ]);
 
   const recentlyUpdatedPackages = [...packages]
@@ -177,6 +195,7 @@ export async function fetchContentPerformance() {
     popularDestinations: home.popularDestinations,
     recentlyUpdatedPackages,
     recentlyUpdatedDestinations,
-    popularPagesAvailable: false,
+    popularPagesAvailable: true,
+    popularPages: analytics?.topPages || [],
   };
 }

@@ -63,8 +63,8 @@ export const adminQueryKeys = {
     geography: {
       countries: ["admin", "destinations", "geography", "countries"] as const,
       states: (countryId?: string) => ["admin", "destinations", "geography", "states", countryId ?? ""] as const,
-      regions: ["admin", "destinations", "geography", "regions"] as const,
-      cities: (filter: Record<string, unknown>) => ["admin", "destinations", "geography", "cities", filter] as const,
+      regions: (countryId?: string) => ["admin", "destinations", "geography", "regions", countryId ?? ""] as const,
+      cities: (countryId?: string, stateId?: string) => ["admin", "destinations", "geography", "cities", { countryId, stateId }] as const,
     },
   },
   bookings: {

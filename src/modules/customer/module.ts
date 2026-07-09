@@ -10,6 +10,7 @@ import { CustomerBookingService } from "./services/customer-booking.service";
 import { EnquiryService } from "./services/enquiry.service";
 import { CustomerDocumentService } from "./documents/document.service";
 import { DashboardService } from "./dashboard/dashboard.service";
+import { SembarkService } from "./services/sembark.service";
 
 export const CUSTOMER_PROFILE_REPOSITORY_TOKEN = createToken<PrismaCustomerProfileRepository>("customer.repository.profile");
 export const ENQUIRY_REPOSITORY_TOKEN = createToken<PrismaEnquiryRepository>("customer.repository.enquiry");
@@ -21,6 +22,8 @@ export const CUSTOMER_BOOKING_SERVICE_TOKEN = createToken<CustomerBookingService
 export const ENQUIRY_SERVICE_TOKEN = createToken<EnquiryService>("customer.service.enquiry");
 export const CUSTOMER_DOCUMENT_SERVICE_TOKEN = createToken<CustomerDocumentService>("customer.service.document");
 export const DASHBOARD_SERVICE_TOKEN = createToken<DashboardService>("customer.service.dashboard");
+
+export const SEMBARK_SERVICE_TOKEN = createToken<SembarkService>("customer.service.sembark");
 
 /**
  * The ONLY backend entry point for authenticated customers (Sprint 13).
@@ -40,6 +43,11 @@ export const customerModule: ModuleDefinition = {
     c.registerFactory(NOTIFICATION_REPOSITORY_TOKEN, () => new PrismaNotificationRepository());
 
     c.registerFactory(
+      SEMBARK_SERVICE_TOKEN,
+      () => new SembarkService({ logger: createLogger("customer.sembark") })
+    );
+
+    c.registerFactory(
       CUSTOMER_PROFILE_SERVICE_TOKEN,
       () => new CustomerProfileService({ logger: createLogger("customer.profile") }, c.resolve(CUSTOMER_PROFILE_REPOSITORY_TOKEN))
     );
@@ -47,7 +55,7 @@ export const customerModule: ModuleDefinition = {
     c.registerFactory(CUSTOMER_BOOKING_SERVICE_TOKEN, () => new CustomerBookingService({ logger: createLogger("customer.booking") }));
     c.registerFactory(
       ENQUIRY_SERVICE_TOKEN,
-      () => new EnquiryService({ logger: createLogger("customer.enquiry") }, c.resolve(ENQUIRY_REPOSITORY_TOKEN))
+      () => new EnquiryService({ logger: createLogger("customer.enquiry") }, c.resolve(ENQUIRY_REPOSITORY_TOKEN), c.resolve(SEMBARK_SERVICE_TOKEN))
     );
     c.registerFactory(CUSTOMER_DOCUMENT_SERVICE_TOKEN, () => new CustomerDocumentService({ logger: createLogger("customer.document") }));
     c.registerFactory(

@@ -277,3 +277,38 @@ export type FerryRate = Prisma.FerryRateModel
  * 
  */
 export type LandingPage = Prisma.LandingPageModel
+/**
+ * Model CmsConfig
+ * 
+ */
+export type CmsConfig = Prisma.CmsConfigModel
+/**
+ * Model CmsPage
+ * 
+ */
+export type CmsPage = Prisma.CmsPageModel
+/**
+ * Model CmsGuide
+ * 
+ */
+export type CmsGuide = Prisma.CmsGuideModel
+/**
+ * Model CmsRedirect
+ * 
+ */
+export type CmsRedirect = Prisma.CmsRedirectModel
+/**
+ * Model MediaAsset
+ * 
+ */
+export type MediaAsset = Prisma.MediaAssetModel
+/**
+ * Model MarketingCampaign
+ * 
+ */
+export type MarketingCampaign = Prisma.MarketingCampaignModel
+/**
+ * Model PageAnalytics
+ * 
+ */
+export type PageAnalytics = Prisma.PageAnalyticsModel

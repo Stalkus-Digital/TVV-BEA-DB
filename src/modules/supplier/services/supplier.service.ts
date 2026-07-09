@@ -7,6 +7,8 @@ import {
   type SupplierCapability,
   type SupplierHealthStatus,
   type SupplierRecord,
+  type SupplierBookingRequest,
+  type SupplierBookingConfirmation,
 } from "../types";
 import type { SupplierRecordRepository } from "../repositories/supplier-record.repository";
 import type { SupplierRegistry } from "./supplier-registry";
@@ -68,5 +70,11 @@ export class SupplierService extends BaseService {
     const supplier = this.registry.getSupplier(code);
     if (!supplier) return err(new NotFoundError(`Supplier "${code}" not found`));
     return supplier.health();
+  }
+
+  async book(code: string, request: SupplierBookingRequest): Promise<Result<SupplierBookingConfirmation, AppError>> {
+    const supplier = this.registry.getSupplier(code);
+    if (!supplier) return err(new NotFoundError(`Supplier "${code}" not found`));
+    return supplier.book(request);
   }
 }

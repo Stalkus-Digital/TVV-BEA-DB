@@ -58,14 +58,11 @@ export interface ActivityItem {
 }
 
 export interface DashboardKpis {
-  totalCustomers: number;
-  totalEnquiries: number;
-  totalQuotes: number;
-  totalBookings: number;
-  activePackages: number;
-  inventoryCount: number;
-  activeDestinations: number;
-  revenueCollected: number;
+  totalRevenue: number;
+  revenueVariance: number;
+  activeBookings: number;
+  newLeads: number;
+  conversionRate: number;
   revenueCurrency: string;
 }
 

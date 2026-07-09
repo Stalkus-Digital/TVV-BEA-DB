@@ -7,9 +7,9 @@ import { adminQueryKeys } from "@/shared/lib/query-client";
 import { BACKEND_GAPS, UPLOAD_CATEGORIES } from "../constants";
 import { useDeleteMediaMutation, useUploadMediaMutation } from "../hooks/useCmsMutations";
 import { formatBytes, formatDate } from "../utils";
-import { BackendGapNotice } from "./BackendGapNotice";
 import { CmsPageShell } from "./CmsPageShell";
 import type { StorageCategory } from "../types";
+import { adminApiClient } from "@/lib/admin-api/client";
 
 export function MediaBrowserPage() {
   const { user } = useAdminAuth();
@@ -21,8 +21,11 @@ export function MediaBrowserPage() {
 
   const uploadsQuery = useQuery({
     queryKey: adminQueryKeys.cms.uploads,
-    queryFn: () => [] as import("../types").StorageObject[],
-    staleTime: Infinity,
+    queryFn: async () => {
+      const res = await adminApiClient.get<{ items: any[] }>("/api/storage/list");
+      return res?.items ?? [];
+    },
+    staleTime: 0,
   });
 
   const uploads = uploadsQuery.data ?? [];
@@ -54,12 +57,10 @@ export function MediaBrowserPage() {
   return (
     <CmsPageShell
       title="Media Browser"
-      description="Upload files via POST /api/storage/upload. Deletes use POST /api/storage/delete."
+      description="Upload, browse, and manage media assets for the website."
       isRefreshing={uploadMutation.isPending || deleteMutation.isPending}
       onRefresh={() => uploadsQuery.refetch()}
     >
-      <BackendGapNotice title="No server-side browse/list API" message={BACKEND_GAPS.storageList} />
-      <BackendGapNotice title="Gallery integration" message={BACKEND_GAPS.galleryUpload} />
 
       {error && <p className="text-sm text-destructive mt-4">{error}</p>}
 
@@ -107,10 +108,7 @@ export function MediaBrowserPage() {
 
       <div className="rounded-xl border border-border overflow-hidden mt-6">
         <div className="px-4 py-3 border-b border-border bg-muted/50">
-          <h3 className="font-semibold text-sm">Uploads this session</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Files uploaded during this browser session (from Storage API responses). No persistent list exists.
-          </p>
+          <h3 className="font-semibold text-sm">Media Library</h3>
         </div>
         <table className="w-full text-sm">
           <thead className="border-b border-border">
@@ -136,8 +134,8 @@ export function MediaBrowserPage() {
                 </td>
                 <td className="px-4 py-3 font-mono text-xs max-w-[200px] truncate">{item.key}</td>
                 <td className="px-4 py-3 text-muted-foreground">{item.category}</td>
-                <td className="px-4 py-3">{formatBytes(item.size)}</td>
-                <td className="px-4 py-3 text-muted-foreground">{formatDate(item.uploadedAt)}</td>
+                <td className="px-4 py-3">{formatBytes(item.sizeBytes || item.size || 0)}</td>
+                <td className="px-4 py-3 text-muted-foreground">{formatDate(item.createdAt || item.uploadedAt)}</td>
                 <td className="px-4 py-3 text-right space-x-2">
                   <button
                     type="button"

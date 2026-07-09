@@ -41,10 +41,10 @@ export function InventoryTable({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-white text-slate-900 rounded-lg shadow-sm border border-border overflow-hidden">
       <div className="overflow-x-auto flex-1">
         <table className="w-full text-sm">
-          <thead className="bg-muted/50 border-b border-border sticky top-0">
+          <thead className="bg-slate-100 border-b border-border sticky top-0 text-slate-700">
             <tr>
               <th className="text-left font-medium px-4 py-3">Name</th>
               <th className="text-left font-medium px-4 py-3">Type</th>
@@ -61,7 +61,7 @@ export function InventoryTable({
               <tr
                 key={row.id}
                 onClick={() => onSelect(row.id)}
-                className="border-b border-border hover:bg-muted/30 cursor-pointer transition-colors"
+                className="border-b border-slate-200 hover:bg-slate-50 cursor-pointer transition-colors"
               >
                 <td className="px-4 py-3 font-medium">{row.title}</td>
                 <td className="px-4 py-3 text-muted-foreground">{INVENTORY_KIND_LABELS[row.kind]}</td>
@@ -79,8 +79,8 @@ export function InventoryTable({
         </table>
       </div>
 
-      <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-card shrink-0">
-        <p className="text-xs text-muted-foreground">
+      <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 bg-slate-50 shrink-0">
+        <p className="text-xs text-slate-500">
           Page {data.page} of {data.totalPages} · {data.total} total
         </p>
         <div className="flex items-center gap-2">

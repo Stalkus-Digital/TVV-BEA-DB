@@ -57,12 +57,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   } else {
     const [
-      { manualPackages, destinationsMock, experiencesMock, guidesMock, ferryRoutesMock },
-      { fromManualList },
-    ] = await Promise.all([import("@/lib/mock"), import("@/lib/adapters")]);
-
-    fromManualList(manualPackages).forEach((p) => packageSlugs.add(p.slug));
-    destinationsMock.filter((d) => d.slug !== "andaman").forEach((d) => destinationSlugs.add(d.slug));
+      { experiencesMock, guidesMock, ferryRoutesMock },
+    ] = await Promise.all([import("@/lib/mock")]);
 
     for (const e of experiencesMock) {
       items.push({

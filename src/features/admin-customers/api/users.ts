@@ -22,7 +22,7 @@ export async function fetchUsers(params: {
 }
 
 export async function fetchAllUsers(): Promise<PublicUser[]> {
-  const pageSize = 100;
+  const pageSize = 20;
   let page = 1;
   let totalPages = 1;
   const items: PublicUser[] = [];

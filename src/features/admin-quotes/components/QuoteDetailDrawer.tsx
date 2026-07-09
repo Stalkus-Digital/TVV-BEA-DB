@@ -253,7 +253,7 @@ function QuoteDetailContent({
         )}
         {convertResult && <p className="text-xs text-emerald-700">{convertResult}</p>}
         <p className="text-xs text-muted-foreground">
-          Delete quote is not supported — no <code className="text-[11px]">DELETE /api/quotes/:id</code> endpoint exists.
+          Delete quote is not supported.
         </p>
       </section>
 

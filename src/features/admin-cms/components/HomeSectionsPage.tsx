@@ -3,16 +3,22 @@
 import Link from "next/link";
 import { useState } from "react";
 import { BACKEND_GAPS } from "../constants";
-import { useUpdateFeaturedMutation } from "../hooks/useCmsMutations";
+import { useUpdateCmsConfigMutation, useUpdateFeaturedMutation } from "../hooks/useCmsMutations";
 import { useCmsContentQuery } from "../hooks/useCmsQueries";
 import { formatDate } from "../utils";
-import { BackendGapNotice } from "./BackendGapNotice";
 import { CmsPageShell } from "./CmsPageShell";
 
 export function HomeSectionsPage() {
   const cms = useCmsContentQuery();
   const featuredMutation = useUpdateFeaturedMutation();
+  const configMutation = useUpdateCmsConfigMutation();
   const [error, setError] = useState<string | null>(null);
+
+  const [isEditingHero, setIsEditingHero] = useState(false);
+  const [heroForm, setHeroForm] = useState({ headline: "", subheadline: "", ctaLabel: "", ctaUrl: "", backgroundImage: "" });
+
+  const [isEditingLinks, setIsEditingLinks] = useState(false);
+  const [linksForm, setLinksForm] = useState<{ label: string; url: string }[]>([]);
 
   async function toggleFeatured(id: string, current: boolean) {
     setError(null);
@@ -23,10 +29,40 @@ export function HomeSectionsPage() {
     }
   }
 
+  async function saveHeroBanner(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    try {
+      const currentConfig = { heroBanner: cms.home?.heroBanner, quickLinks: cms.home?.quickLinks };
+      await configMutation.mutateAsync({
+        key: "HOME_SECTIONS",
+        value: { ...currentConfig, heroBanner: { ...heroForm, backgroundImage: heroForm.backgroundImage || null } }
+      });
+      setIsEditingHero(false);
+    } catch (err) {
+      setError("Failed to save hero banner");
+    }
+  }
+
+  async function saveQuickLinks(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    try {
+      const currentConfig = { heroBanner: cms.home?.heroBanner, quickLinks: cms.home?.quickLinks };
+      await configMutation.mutateAsync({
+        key: "HOME_SECTIONS",
+        value: { ...currentConfig, quickLinks: linksForm.filter(l => l.label && l.url) }
+      });
+      setIsEditingLinks(false);
+    } catch (err) {
+      setError("Failed to save quick links");
+    }
+  }
+
   return (
     <CmsPageShell
       title="Home Page Sections"
-      description="Read homepage output from GET /api/website/home. Featured destinations can be toggled via Destination PATCH."
+      description="Manage the hero banner, featured destinations, and quick links on the homepage."
       isLoading={cms.isLoading}
       isError={cms.isError}
       errorMessage={cms.error instanceof Error ? cms.error.message : undefined}
@@ -37,21 +73,70 @@ export function HomeSectionsPage() {
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Hero banner</h2>
-        <BackendGapNotice title="Read-only — no write API" message={BACKEND_GAPS.heroBannerWrite} />
-        {cms.home?.heroBanner && (
-          <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-2 text-sm">
-            <p><span className="text-muted-foreground">Headline:</span> {cms.home.heroBanner.headline}</p>
-            <p><span className="text-muted-foreground">Subheadline:</span> {cms.home.heroBanner.subheadline}</p>
-            <p><span className="text-muted-foreground">CTA:</span> {cms.home.heroBanner.ctaLabel} → {cms.home.heroBanner.ctaUrl}</p>
-            <p><span className="text-muted-foreground">Background:</span> {cms.home.heroBanner.backgroundImage ?? "—"}</p>
-          </div>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Hero banner</h2>
+          {!isEditingHero && (
+            <button
+              onClick={() => {
+                setHeroForm({
+                  headline: cms.home?.heroBanner?.headline || "",
+                  subheadline: cms.home?.heroBanner?.subheadline || "",
+                  ctaLabel: cms.home?.heroBanner?.ctaLabel || "",
+                  ctaUrl: cms.home?.heroBanner?.ctaUrl || "",
+                  backgroundImage: cms.home?.heroBanner?.backgroundImage || "",
+                });
+                setIsEditingHero(true);
+              }}
+              className="text-sm text-primary hover:underline"
+            >
+              Edit
+            </button>
+          )}
+        </div>
+        {isEditingHero ? (
+          <form onSubmit={saveHeroBanner} className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
+            <div>
+              <label className="block text-xs font-medium mb-1">Headline</label>
+              <input required value={heroForm.headline} onChange={e => setHeroForm(f => ({ ...f, headline: e.target.value }))} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Subheadline</label>
+              <input required value={heroForm.subheadline} onChange={e => setHeroForm(f => ({ ...f, subheadline: e.target.value }))} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium mb-1">CTA Label</label>
+                <input required value={heroForm.ctaLabel} onChange={e => setHeroForm(f => ({ ...f, ctaLabel: e.target.value }))} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">CTA URL</label>
+                <input required value={heroForm.ctaUrl} onChange={e => setHeroForm(f => ({ ...f, ctaUrl: e.target.value }))} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Background Image URL (optional)</label>
+              <input value={heroForm.backgroundImage} onChange={e => setHeroForm(f => ({ ...f, backgroundImage: e.target.value }))} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" onClick={() => setIsEditingHero(false)} className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-md">Cancel</button>
+              <button type="submit" disabled={configMutation.isPending} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary-hover">Save</button>
+            </div>
+          </form>
+        ) : (
+          cms.home?.heroBanner && (
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-2 text-sm">
+              <p><span className="text-muted-foreground">Headline:</span> {cms.home.heroBanner.headline}</p>
+              <p><span className="text-muted-foreground">Subheadline:</span> {cms.home.heroBanner.subheadline}</p>
+              <p><span className="text-muted-foreground">CTA:</span> {cms.home.heroBanner.ctaLabel} → {cms.home.heroBanner.ctaUrl}</p>
+              <p><span className="text-muted-foreground">Background:</span> {cms.home.heroBanner.backgroundImage ?? "—"}</p>
+            </div>
+          )
         )}
       </section>
 
       <section className="space-y-4 mt-8">
         <h2 className="text-lg font-semibold">Featured packages</h2>
-        <BackendGapNotice title="Read-only — no curation API" message={BACKEND_GAPS.featuredPackagesCurate} />
+
         <div className="rounded-xl border border-border overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 border-b border-border">
@@ -88,8 +173,7 @@ export function HomeSectionsPage() {
       <section className="space-y-4 mt-8">
         <h2 className="text-lg font-semibold">Featured destinations</h2>
         <p className="text-sm text-muted-foreground">
-          Toggle <code className="text-xs bg-muted px-1 rounded">isFeatured</code> via PATCH /api/destinations/:id.
-          Homepage uses GET /api/destinations/featured.
+          Toggle which destinations appear in the featured section on the homepage.
         </p>
         <div className="rounded-xl border border-border overflow-hidden">
           <table className="w-full text-sm">
@@ -134,16 +218,45 @@ export function HomeSectionsPage() {
       </section>
 
       <section className="space-y-4 mt-8">
-        <h2 className="text-lg font-semibold">Quick links</h2>
-        <BackendGapNotice title="Read-only — no write API" message={BACKEND_GAPS.quickLinksWrite} />
-        <ul className="rounded-xl border border-border bg-card divide-y divide-border">
-          {(cms.home?.quickLinks ?? []).map((link) => (
-            <li key={link.url} className="px-4 py-3 text-sm flex justify-between">
-              <span>{link.label}</span>
-              <span className="text-muted-foreground font-mono text-xs">{link.url}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Quick links</h2>
+          {!isEditingLinks && (
+            <button
+              onClick={() => {
+                setLinksForm(cms.home?.quickLinks ?? []);
+                setIsEditingLinks(true);
+              }}
+              className="text-sm text-primary hover:underline"
+            >
+              Edit
+            </button>
+          )}
+        </div>
+        {isEditingLinks ? (
+          <form onSubmit={saveQuickLinks} className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
+            {linksForm.map((link, idx) => (
+              <div key={idx} className="flex gap-2">
+                <input required placeholder="Label" value={link.label} onChange={e => { const newLinks = [...linksForm]; newLinks[idx].label = e.target.value; setLinksForm(newLinks); }} className="flex-1 bg-background border border-input rounded-md px-3 py-2 text-sm" />
+                <input required placeholder="URL" value={link.url} onChange={e => { const newLinks = [...linksForm]; newLinks[idx].url = e.target.value; setLinksForm(newLinks); }} className="flex-1 bg-background border border-input rounded-md px-3 py-2 text-sm" />
+                <button type="button" onClick={() => setLinksForm(linksForm.filter((_, i) => i !== idx))} className="px-3 py-2 bg-destructive text-destructive-foreground rounded-md text-sm">X</button>
+              </div>
+            ))}
+            <button type="button" onClick={() => setLinksForm([...linksForm, { label: "", url: "" }])} className="text-sm text-primary hover:underline">+ Add Link</button>
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" onClick={() => setIsEditingLinks(false)} className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-md">Cancel</button>
+              <button type="submit" disabled={configMutation.isPending} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary-hover">Save</button>
+            </div>
+          </form>
+        ) : (
+          <ul className="rounded-xl border border-border bg-card divide-y divide-border">
+            {(cms.home?.quickLinks ?? []).map((link) => (
+              <li key={link.url} className="px-4 py-3 text-sm flex justify-between">
+                <span>{link.label}</span>
+                <span className="text-muted-foreground font-mono text-xs">{link.url}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </CmsPageShell>
   );

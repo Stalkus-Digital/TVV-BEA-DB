@@ -43,10 +43,11 @@ export class TripJackClient {
   ) {}
 
   /** "Every request must be prepared for logging" — never logs the password/token values themselves. */
-  private prepareRequestLog(operation: string, payload: unknown): void {
+  private prepareRequestLog(operation: string, path: string, payload: unknown): void {
     this.logger.info("Prepared TripJack request", {
       operation,
       apiUrl: this.config.get("apiUrl"),
+      path,
       agencyId: this.config.get("agencyId"),
       timeoutMs: this.config.get("timeoutMs"),
       payload,
@@ -66,7 +67,7 @@ export class TripJackClient {
   }
 
   async searchHotels(request: TripJackHotelSearchRequestDTO, signal?: AbortSignal): Promise<Result<TripJackHotelSearchResponseDTO, AppError>> {
-    const result = await this.request<TripJackHotelSearchResponseDTO>("searchHotels", "/hotels/search", request, signal);
+    const result = await this.request<TripJackHotelSearchResponseDTO>("searchHotels", "/hms/v1/hotel-search", request, signal);
     if (isErr(result)) return result;
     return this.responseParser.parse<TripJackHotelSearchResponseDTO>(result.value, ["results"]);
   }
@@ -78,15 +79,18 @@ export class TripJackClient {
   }
 
   async book(request: unknown, signal?: AbortSignal): Promise<Result<any, AppError>> {
-    this.prepareRequestLog("book", request);
-    const result = await this.request<any>("book", "/book", request, signal);
+    // Determine if it's a flight or hotel based on payload
+    const isHotel = (request as any).hotelId !== undefined;
+    const path = isHotel ? "/hms/v1/hotel-book" : "/fms/v1/book";
+    const result = await this.request<any>("book", path, request, signal);
     if (isErr(result)) return result;
     return this.responseParser.parse<any>(result.value, ["bookingId"]);
   }
 
   async cancel(request: unknown, signal?: AbortSignal): Promise<Result<any, AppError>> {
-    this.prepareRequestLog("cancel", request);
-    const result = await this.request<any>("cancel", "/cancel", request, signal);
+    const isHotel = (request as any).hotelId !== undefined;
+    const path = isHotel ? "/hms/v1/cancel" : "/fms/v1/cancel";
+    const result = await this.request<any>("cancel", path, request, signal);
     if (isErr(result)) return result;
     return this.responseParser.parse<any>(result.value, ["cancellationId"]);
   }
@@ -111,7 +115,7 @@ export class TripJackClient {
 
   /** The one place every real call funnels through — token attachment, request logging, JSON parsing, and error normalization all happen here exactly once. */
   private async request<T>(operation: string, path: string, payload: unknown, signal?: AbortSignal): Promise<Result<T, AppError>> {
-    this.prepareRequestLog(operation, payload);
+    this.prepareRequestLog(operation, path, payload);
 
     const tokenResult = await this.auth.getToken();
     if (isErr(tokenResult)) return tokenResult;
@@ -119,7 +123,7 @@ export class TripJackClient {
     try {
       const response = await fetch(`${this.config.get("apiUrl")}${path}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${tokenResult.value}` },
+        headers: { "Content-Type": "application/json", apikey: tokenResult.value },
         body: JSON.stringify(payload),
         signal,
       });

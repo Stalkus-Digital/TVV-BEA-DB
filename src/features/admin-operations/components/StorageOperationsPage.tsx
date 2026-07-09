@@ -13,7 +13,7 @@ import {
 import { useSignedUrlMutation, useUploadStorageMutation } from "../hooks/useOperationsMutations";
 import { useSystemModulesQuery } from "../hooks/useOperationsQueries";
 import { findModule, formatBytes, formatDate, resolveModuleMessage } from "../utils";
-import { BackendGapNotice } from "./BackendGapNotice";
+
 import { OperationsPageShell } from "./OperationsPageShell";
 import { StatusBadge } from "./StatusBadge";
 import type { StorageCategory } from "../types";
@@ -33,8 +33,17 @@ export function StorageOperationsPage() {
 
   const uploadsQuery = useQuery({
     queryKey: adminQueryKeys.operations.storageUploads,
-    queryFn: () => [] as import("../types").StorageObject[],
-    staleTime: Infinity,
+    queryFn: async () => {
+      const res = await fetch("/api/storage/list");
+      if (!res.ok) throw new Error("Failed to fetch storage list");
+      const data = await res.json();
+      const items = (data.data?.items || data.items || []);
+      return items.map((item: any) => ({
+        ...item,
+        uploadedAt: item.uploadedAt || item.createdAt || new Date().toISOString(),
+      })) as import("../types").StorageObject[];
+    },
+    staleTime: 10000,
   });
 
   const storageModule = findModule(modulesQuery.data ?? [], "storage");
@@ -74,7 +83,7 @@ export function StorageOperationsPage() {
   return (
     <OperationsPageShell
       title="Storage"
-      description="Upload via POST /api/storage/upload and test signed URLs via GET /api/storage/signed-url."
+      description="Manage media assets, documents, and secure signed URLs."
       isLoading={modulesQuery.isLoading}
       isError={modulesQuery.isError}
       errorMessage={modulesQuery.error instanceof Error ? modulesQuery.error.message : undefined}
@@ -82,7 +91,7 @@ export function StorageOperationsPage() {
       onRefresh={() => void modulesQuery.refetch()}
       onRetry={() => void modulesQuery.refetch()}
     >
-      <BackendGapNotice title="No browse/list API" message={BACKEND_GAPS.storageList} />
+
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 

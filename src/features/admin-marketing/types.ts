@@ -109,9 +109,11 @@ export interface MarketingDashboardData {
   funnel: ConversionFunnel;
   recentEnquiries: Enquiry[];
   recentQuotes: { id: string; title: string; quoteNumber: string; status: string; createdAt: string }[];
-  websiteTrafficAvailable: false;
-  topDestinationsAvailable: false;
-  topPackagesAvailable: false;
+  websiteTrafficAvailable: boolean;
+  websiteTraffic?: { totalViews: number; uniqueVisitors: number; totalSessions: number };
+  topDestinationsAvailable: boolean;
+  topPackagesAvailable: boolean;
+  topPages?: { path: string; views: number }[];
   featuredDestinations: WebsiteDestinationSummary[];
   featuredPackages: WebsitePackageSummary[];
 }

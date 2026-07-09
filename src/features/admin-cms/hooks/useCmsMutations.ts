@@ -10,6 +10,7 @@ import {
   updateDestinationFeatured,
   updateDestinationSeo,
   updatePackageSeo,
+  updateCmsConfig,
 } from "../api/cms";
 import { deleteStorageObject, uploadStorageObject } from "../api/storage";
 import type { CreateFaqInput, DeleteStorageInput, UpdateSeoInput, UploadStorageInput } from "../types";
@@ -104,5 +105,13 @@ export function useDeleteMediaMutation() {
         (current) => current?.filter((item) => item.key !== variables.key) ?? []
       );
     },
+  });
+}
+
+export function useUpdateCmsConfigMutation() {
+  const invalidate = useInvalidateCmsQueries();
+  return useMutation({
+    mutationFn: ({ key, value }: { key: string; value: any }) => updateCmsConfig(key, value),
+    onSuccess: invalidate,
   });
 }

@@ -82,11 +82,16 @@ export class PrismaStateRepository extends PrismaStore<any> implements StateRepo
   }
 }
 
-export interface RegionRepository extends BaseRepository<Region, string> {}
+export interface RegionRepository extends BaseRepository<Region, string> {
+  findByCountry(countryId: string): Promise<Result<Region[], AppError>>;
+}
 
 export class PrismaRegionRepository extends PrismaStore<any> implements RegionRepository {
   constructor() {
     super(prisma.region);
+  }
+  async findByCountry(countryId: string): Promise<Result<Region[], AppError>> {
+    return ok((await this.delegate.findMany()).filter(( r: any ) => r.countryId === countryId));
   }
 }
 

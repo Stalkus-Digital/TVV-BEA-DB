@@ -6,12 +6,14 @@ import { NavigationService } from "./navigation/navigation.service";
 import { WebsiteSearchService } from "./search/website-search.service";
 import { WebsiteDestinationService } from "./services/website-destination.service";
 import { WebsitePackageService } from "./services/website-package.service";
+import { LandingPageService } from "./services/landing-page.service";
 
 export const WEBSITE_PACKAGE_SERVICE_TOKEN = createToken<WebsitePackageService>("website.service.package");
 export const WEBSITE_DESTINATION_SERVICE_TOKEN = createToken<WebsiteDestinationService>("website.service.destination");
 export const HOMEPAGE_SERVICE_TOKEN = createToken<HomepageService>("website.service.homepage");
 export const NAVIGATION_SERVICE_TOKEN = createToken<NavigationService>("website.service.navigation");
 export const WEBSITE_SEARCH_SERVICE_TOKEN = createToken<WebsiteSearchService>("website.service.search");
+export const LANDING_PAGE_SERVICE_TOKEN = createToken<LandingPageService>("website.service.landingPage");
 
 /**
  * Backend for Frontend — owns no repositories of its own (pure
@@ -41,6 +43,10 @@ export const websiteModule: ModuleDefinition = {
     c.registerFactory(
       WEBSITE_SEARCH_SERVICE_TOKEN,
       () => new WebsiteSearchService({ logger: createLogger("website.search") }, c.resolve(WEBSITE_PACKAGE_SERVICE_TOKEN))
+    );
+    c.registerFactory(
+      LANDING_PAGE_SERVICE_TOKEN,
+      () => new LandingPageService({ logger: createLogger("website.landingPage") })
     );
   },
 };
@@ -72,4 +78,7 @@ export function getNavigationService(): NavigationService {
 }
 export function getWebsiteSearchService(): WebsiteSearchService {
   return container.resolve(WEBSITE_SEARCH_SERVICE_TOKEN);
+}
+export function getLandingPageService(): LandingPageService {
+  return container.resolve(LANDING_PAGE_SERVICE_TOKEN);
 }

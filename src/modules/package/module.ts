@@ -33,6 +33,7 @@ import { PackageDayService } from "./services/package-day.service";
 import { PackageItemService } from "./services/package-item.service";
 import { PackageService } from "./services/package.service";
 import { PackageVersionService } from "./services/package-version.service";
+import { AiGeneratorService } from "./services/ai-generator.service";
 
 export const PACKAGE_REPOSITORY_TOKEN = createToken<PackageRepository>("package.repository.package");
 export const PACKAGE_DAY_REPOSITORY_TOKEN = createToken<PackageDayRepository>("package.repository.day");
@@ -50,6 +51,7 @@ export const PACKAGE_VERSION_SERVICE_TOKEN = createToken<PackageVersionService>(
 export const PACKAGE_PRICING_SERVICE_TOKEN = createToken<PackagePricingService>("package.service.pricing");
 export const PACKAGE_RULE_SERVICE_TOKEN = createToken<PackageRuleService>("package.service.rule");
 export const PACKAGE_ITINERARY_SERVICE_TOKEN = createToken<PackageItineraryService>("package.service.itinerary");
+export const AI_GENERATOR_SERVICE_TOKEN = createToken<AiGeneratorService>("package.service.ai");
 
 export const PACKAGE_DRAFT_BUILDER_TOKEN = createToken<PackageDraftBuilder>("package.builder.draft");
 export const MANUAL_PACKAGE_BUILDER_TOKEN = createToken<ManualPackageBuilder>("package.builder.manual");
@@ -116,6 +118,7 @@ export const packageModule: ModuleDefinition = {
       () => new PackageRuleService({ logger: createLogger("package.rule") }, c.resolve(PACKAGE_RULE_REPOSITORY_TOKEN))
     );
     c.registerFactory(PACKAGE_ITINERARY_SERVICE_TOKEN, () => new PackageItineraryService({ logger: createLogger("package.itinerary") }));
+    c.registerFactory(AI_GENERATOR_SERVICE_TOKEN, () => new AiGeneratorService({ logger: createLogger("package.ai") }));
 
     c.registerFactory(
       PACKAGE_SERVICE_TOKEN,
@@ -184,6 +187,9 @@ export function getPackageRuleService(): PackageRuleService {
 }
 export function getPackageItineraryService(): PackageItineraryService {
   return container.resolve(PACKAGE_ITINERARY_SERVICE_TOKEN);
+}
+export function getAiGeneratorService(): AiGeneratorService {
+  return container.resolve(AI_GENERATOR_SERVICE_TOKEN);
 }
 export function getManualPackageBuilder(): ManualPackageBuilder {
   return container.resolve(MANUAL_PACKAGE_BUILDER_TOKEN);

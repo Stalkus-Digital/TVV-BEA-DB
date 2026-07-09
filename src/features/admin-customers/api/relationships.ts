@@ -4,7 +4,7 @@ import type { PaginatedResult } from "@/lib/admin-api/types";
 import type { CustomerBookingRecord, CustomerEnquiryRecord, CustomerQuoteRecord, CustomerRelationshipBundle } from "../types";
 
 async function fetchAllPages<T>(path: string): Promise<T[]> {
-  const pageSize = 100;
+  const pageSize = 20;
   let page = 1;
   let totalPages = 1;
   const items: T[] = [];

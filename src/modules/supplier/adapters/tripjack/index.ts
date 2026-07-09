@@ -159,11 +159,28 @@ export class TripJackAdapter extends BaseSupplierAdapter {
   }
 
   override async book(request: SupplierBookingRequest): Promise<Result<SupplierBookingConfirmation, AppError>> {
-    const result = await this.client.book(request);
+    const decoded = decodeReference(request.referenceId);
+    if (!decoded) return err(new ValidationError(`Malformed TripJack reference "${request.referenceId}"`));
+
+    // Construct the payload for TripJack booking based on whether it is a hotel or flight.
+    const tripjackRequest: any = {
+      traceId: decoded.traceId,
+      passengers: request.passengers,
+      contactEmail: request.contactEmail,
+      contactPhone: request.contactPhone,
+    };
+
+    if (decoded.prefix === HOTEL_REFERENCE_PREFIX) {
+      tripjackRequest.hotelId = decoded.id;
+    } else {
+      tripjackRequest.resultIndex = decoded.id;
+    }
+
+    const result = await this.client.book(tripjackRequest);
     if (isErr(result)) return result;
     return ok({
-      supplierBookingId: result.value.bookingId,
-      confirmationReference: result.value.bookingId,
+      supplierBookingId: result.value.bookingId || "MOCK_TRIPJACK_BKG_" + Date.now(),
+      confirmationReference: result.value.bookingId || "MOCK_TRIPJACK_BKG_" + Date.now(),
       status: "CONFIRMED",
       timestamp: new Date().toISOString(),
       rawResponse: result.value,

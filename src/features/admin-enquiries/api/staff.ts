@@ -4,7 +4,7 @@ import type { PaginatedResult } from "@/lib/admin-api/types";
 import type { StaffUser } from "../types";
 
 export async function fetchStaffUsers(): Promise<StaffUser[]> {
-  const pageSize = 100;
+  const pageSize = 20;
   let page = 1;
   let totalPages = 1;
   const users: StaffUser[] = [];

@@ -29,7 +29,7 @@ export async function fetchInventory(filters: InventoryListFilters = {}): Promis
 }
 
 export async function fetchAllInventory(filters: Pick<InventoryListFilters, "kind"> = {}): Promise<InventoryItem[]> {
-  const pageSize = 100;
+  const pageSize = 20;
   let page = 1;
   let totalPages = 1;
   const items: InventoryItem[] = [];

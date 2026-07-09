@@ -24,7 +24,7 @@ export function SystemHealthPage() {
   return (
     <OperationsPageShell
       title="System Health"
-      description="Module status from GET /api/system/modules with overall summary from GET /api/system/health."
+      description="Overall module status and service availability."
       isLoading={isLoading}
       isError={isError}
       errorMessage={error instanceof Error ? error.message : undefined}

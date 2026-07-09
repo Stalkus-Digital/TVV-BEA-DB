@@ -3,7 +3,7 @@
 import { BACKEND_GAPS } from "../constants";
 import { useObservabilityBundleQuery } from "../hooks/useOperationsQueries";
 import { formatDate, formatDurationMs, formatUptime } from "../utils";
-import { BackendGapNotice } from "./BackendGapNotice";
+
 import { OperationsPageShell } from "./OperationsPageShell";
 import { StatusBadge } from "./StatusBadge";
 
@@ -13,7 +13,7 @@ export function ObservabilityPage() {
   return (
     <OperationsPageShell
       title="Observability"
-      description="Metrics, performance, and audit timeline from existing /api/system/* endpoints."
+      description="System metrics, performance analytics, and audit timeline."
       isLoading={obs.isLoading}
       isError={obs.isError}
       errorMessage={obs.error instanceof Error ? obs.error.message : undefined}
@@ -21,8 +21,7 @@ export function ObservabilityPage() {
       onRefresh={() => void obs.refetch()}
       onRetry={() => void obs.refetch()}
     >
-      <BackendGapNotice title="No dashboard endpoint" message={BACKEND_GAPS.systemDashboard} />
-      <BackendGapNotice title="Request counters" message={BACKEND_GAPS.requestCounters} />
+
 
       <div className="grid gap-6 lg:grid-cols-2 mt-6">
         <Panel title="System version">

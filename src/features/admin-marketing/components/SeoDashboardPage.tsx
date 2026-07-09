@@ -3,9 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useDebouncedValue } from "@/features/admin-enquiries/hooks/useDebouncedValue";
-import { BACKEND_GAPS } from "../constants";
 import { useSeoDashboardQuery } from "../hooks/useMarketingQueries";
-import { BackendGapNotice } from "./BackendGapNotice";
 import { MarketingPageShell } from "./MarketingPageShell";
 
 export function SeoDashboardPage() {
@@ -48,8 +46,6 @@ export function SeoDashboardPage() {
         </Link>
       }
     >
-      <BackendGapNotice title="Static page SEO" message={BACKEND_GAPS.staticPageSeo} />
-
       <div className="grid gap-4 sm:grid-cols-3 mt-4 mb-4">
         <StatCard label="Total records" value={String(seoQuery.data?.length ?? 0)} />
         <StatCard label="Missing SEO fields" value={String(missingCount)} />

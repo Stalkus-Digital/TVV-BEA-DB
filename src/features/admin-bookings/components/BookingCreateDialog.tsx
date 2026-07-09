@@ -48,7 +48,7 @@ export function BookingCreateDialog({ open, onClose, onCreated }: BookingCreateD
         </div>
         <div className="p-6 space-y-4">
           <p className="text-xs text-muted-foreground">
-            Bookings are created only from an APPROVED quote via <code className="text-[11px]">POST /api/bookings</code>.
+            Bookings are created automatically when a quote is approved.
           </p>
           {approvedQuotesQuery.isLoading ? (
             <WidgetLoading label="Loading approved quotes…" />

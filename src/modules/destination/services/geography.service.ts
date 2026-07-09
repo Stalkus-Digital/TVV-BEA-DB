@@ -64,8 +64,11 @@ export class GeographyService extends BaseService {
   }
 
   // Regions
-  async listRegions(params: PaginationParams = {}): Promise<Result<PaginatedResult<Region>, AppError>> {
-    return this.regions.findMany(params);
+  async listRegions(countryId?: string): Promise<Result<Region[], AppError>> {
+    if (countryId) return this.regions.findByCountry(countryId);
+    const result = await this.regions.findMany();
+    if (isErr(result)) return result;
+    return ok(result.value.items);
   }
 
   async createRegion(input: unknown): Promise<Result<Region, AppError>> {

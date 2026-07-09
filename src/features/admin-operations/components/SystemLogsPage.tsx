@@ -4,7 +4,7 @@ import { useState } from "react";
 import { BACKEND_GAPS, LOG_LEVELS } from "../constants";
 import { useSystemLogsQuery } from "../hooks/useOperationsQueries";
 import { formatDate } from "../utils";
-import { BackendGapNotice } from "./BackendGapNotice";
+
 import { OperationsPageShell } from "./OperationsPageShell";
 import { StatusBadge } from "./StatusBadge";
 
@@ -22,7 +22,7 @@ export function SystemLogsPage() {
   return (
     <OperationsPageShell
       title="System Logs"
-      description="Captured logs from GET /api/system/logs — filters supported where backend validates them."
+      description="Live streaming logs and historical diagnostic events."
       isLoading={logsQuery.isLoading}
       isError={logsQuery.isError}
       errorMessage={logsQuery.error instanceof Error ? logsQuery.error.message : undefined}
@@ -32,7 +32,7 @@ export function SystemLogsPage() {
       isEmpty={!logsQuery.isLoading && !logsQuery.isError && (logsQuery.data?.length ?? 0) === 0}
       emptyMessage="No log entries match your filters"
     >
-      <BackendGapNotice title="Correlation IDs" message={BACKEND_GAPS.logCorrelationIds} />
+
 
       <div className="flex flex-wrap gap-3 mb-4">
         <select value={level} onChange={(e) => setLevel(e.target.value)} className="bg-background border border-input rounded-md px-3 py-2 text-sm">

@@ -34,14 +34,14 @@ export function InventoryFiltersBar({
             placeholder="Search inventory…"
             value={searchInput}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-sm border border-border rounded-md bg-background"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-border rounded-md bg-white text-slate-900"
           />
         </div>
 
         <select
           value={filters.kind ?? ""}
           onChange={(e) => onFiltersChange({ kind: (e.target.value || undefined) as InventoryListFilters["kind"], page: 1 })}
-          className="px-3 py-2 text-sm border border-border rounded-md bg-background"
+          className="px-3 py-2 text-sm border border-border rounded-md bg-white text-slate-900"
         >
           <option value="">All types</option>
           {INVENTORY_KINDS.map((kind) => (
@@ -54,7 +54,7 @@ export function InventoryFiltersBar({
         <select
           value={filters.destinationId ?? ""}
           onChange={(e) => onFiltersChange({ destinationId: e.target.value || undefined, page: 1 })}
-          className="px-3 py-2 text-sm border border-border rounded-md bg-background max-w-[180px]"
+          className="px-3 py-2 text-sm border border-border rounded-md bg-white text-slate-900 max-w-[180px]"
           title="Client-side filter — no destinationId on list API"
         >
           <option value="">All destinations</option>
@@ -70,7 +70,7 @@ export function InventoryFiltersBar({
           onChange={(e) =>
             onFiltersChange({ status: (e.target.value || undefined) as InventoryListFilters["status"], page: 1 })
           }
-          className="px-3 py-2 text-sm border border-border rounded-md bg-background"
+          className="px-3 py-2 text-sm border border-border rounded-md bg-white text-slate-900"
           title="Client-side filter — no status on list API"
         >
           <option value="">All statuses</option>
@@ -87,7 +87,7 @@ export function InventoryFiltersBar({
             const [sortBy, sortDir] = e.target.value.split(":") as [InventoryListFilters["sortBy"], InventoryListFilters["sortDir"]];
             onFiltersChange({ sortBy, sortDir, page: 1 });
           }}
-          className="px-3 py-2 text-sm border border-border rounded-md bg-background"
+          className="px-3 py-2 text-sm border border-border rounded-md bg-white text-slate-900"
         >
           <option value="updatedAt:desc">Updated (newest)</option>
           <option value="updatedAt:asc">Updated (oldest)</option>

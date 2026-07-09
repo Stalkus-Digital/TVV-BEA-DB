@@ -1,8 +1,7 @@
 "use client";
 
-import { BACKEND_GAPS } from "../constants";
+
 import { useFormStatisticsQuery } from "../hooks/useMarketingQueries";
-import { BackendGapNotice } from "./BackendGapNotice";
 import { MarketingPageShell } from "./MarketingPageShell";
 
 export function FormsPage() {
@@ -20,8 +19,6 @@ export function FormsPage() {
       onRefresh={() => void formsQuery.refetch()}
       onRetry={() => void formsQuery.refetch()}
     >
-      <BackendGapNotice title="No form aggregation API" message={BACKEND_GAPS.formAggregation} />
-      <BackendGapNotice title="No conversion attribution" message={BACKEND_GAPS.conversionTracking} />
 
       {stats && (
         <div className="grid gap-6 lg:grid-cols-2 mt-6">

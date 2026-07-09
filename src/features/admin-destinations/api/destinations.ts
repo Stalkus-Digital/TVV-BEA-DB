@@ -39,7 +39,7 @@ export async function fetchDestinations(filters: DestinationListFilters = {}): P
 export async function fetchAllDestinations(
   filters: Pick<DestinationListFilters, "countryId" | "stateId" | "categoryId"> = {}
 ): Promise<Destination[]> {
-  const pageSize = 100;
+  const pageSize = 20;
   let page = 1;
   let totalPages = 1;
   const items: Destination[] = [];
@@ -138,9 +138,11 @@ export async function fetchAllStates(): Promise<State[]> {
   return fetchStates();
 }
 
-export async function fetchRegions(): Promise<Region[]> {
-  const result = await adminApiClient.get<PaginatedResult<Region>>("/api/geography/regions");
-  return result?.items ?? [];
+export async function fetchRegions(countryId?: string): Promise<Region[]> {
+  const result = await adminApiClient.get<Region[]>("/api/geography/regions", {
+    params: countryId ? { countryId } : undefined,
+  });
+  return result ?? [];
 }
 
 export async function fetchCities(filter: { countryId?: string; stateId?: string } = {}): Promise<City[]> {

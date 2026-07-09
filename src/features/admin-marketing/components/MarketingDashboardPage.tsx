@@ -3,10 +3,9 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight, BarChart3, FileText, Globe, Layout, Megaphone, Search, TrendingUp } from "lucide-react";
-import { MARKETING_SECTIONS, UNAVAILABLE_METRIC } from "../constants";
+import { MARKETING_SECTIONS } from "../constants";
 import { useMarketingDashboardQuery } from "../hooks/useMarketingQueries";
 import { formatDate, formatRate } from "../utils";
-import { BackendGapNotice, UnavailableMetric } from "./BackendGapNotice";
 import { MarketingPageShell } from "./MarketingPageShell";
 
 const SECTION_ICONS: Record<string, LucideIcon> = {
@@ -33,10 +32,6 @@ export function MarketingDashboardPage() {
       onRefresh={() => void dashboardQuery.refetch()}
       onRetry={() => void dashboardQuery.refetch()}
     >
-      <BackendGapNotice
-        title="Website traffic"
-        message="No analytics or traffic API exists — page views and sessions cannot be displayed."
-      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mt-4">
         <StatCard label="Total leads" value={String(data?.leads.total ?? 0)} />
@@ -47,7 +42,26 @@ export function MarketingDashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-2 mt-6">
         <Panel title="Website traffic">
-          <UnavailableMetric />
+          {!data?.websiteTrafficAvailable ? (
+            <div className="h-24 flex items-center justify-center border border-dashed rounded-md text-sm text-muted-foreground mt-4">
+              Website traffic data unavailable
+            </div>
+          ) : (
+            <div className="mt-4 grid grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-muted/50 rounded-lg">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Page Views</p>
+                <p className="text-2xl font-bold mt-1">{data.websiteTraffic?.totalViews || 0}</p>
+              </div>
+              <div className="text-center p-4 bg-muted/50 rounded-lg">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Unique Visitors</p>
+                <p className="text-2xl font-bold mt-1">{data.websiteTraffic?.uniqueVisitors || 0}</p>
+              </div>
+              <div className="text-center p-4 bg-muted/50 rounded-lg">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Sessions</p>
+                <p className="text-2xl font-bold mt-1">{data.websiteTraffic?.totalSessions || 0}</p>
+              </div>
+            </div>
+          )}
         </Panel>
         <Panel title="Conversion funnel">
           {data && (
@@ -64,12 +78,34 @@ export function MarketingDashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-2 mt-6">
         <Panel title="Top destinations">
-          <UnavailableMetric label={UNAVAILABLE_METRIC} />
-          <p className="text-xs text-muted-foreground mt-2">Homepage featured destinations shown on Content Performance.</p>
+          {!data?.topDestinationsAvailable ? (
+            <div className="h-24 flex items-center justify-center border border-dashed rounded-md text-sm text-muted-foreground mt-4">
+              Destination metrics unavailable
+            </div>
+          ) : (
+            <ul className="space-y-3 mt-4">
+              {data.featuredDestinations.map((dest) => (
+                <li key={dest.slug} className="flex justify-between items-center text-sm">
+                  <span>{dest.name}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </Panel>
         <Panel title="Top packages">
-          <UnavailableMetric label={UNAVAILABLE_METRIC} />
-          <p className="text-xs text-muted-foreground mt-2">Homepage featured packages shown on Content Performance.</p>
+          {!data?.topPackagesAvailable ? (
+            <div className="h-24 flex items-center justify-center border border-dashed rounded-md text-sm text-muted-foreground mt-4">
+              Package metrics unavailable
+            </div>
+          ) : (
+            <ul className="space-y-3 mt-4">
+              {data.featuredPackages.map((pkg) => (
+                <li key={pkg.slug} className="flex justify-between items-center text-sm">
+                  <span>{pkg.title}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </Panel>
       </div>
 

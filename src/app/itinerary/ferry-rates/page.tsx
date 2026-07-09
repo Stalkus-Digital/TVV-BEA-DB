@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Ship, Plus, Search, Filter, ArrowUpDown, X } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Ship, Plus, Search, Filter, ArrowUpDown, X, Loader2 } from "lucide-react";
 
 interface FerryRate {
   id: string;
@@ -14,16 +15,8 @@ interface FerryRate {
   status: "Active" | "Inactive";
 }
 
-const INITIAL_RATES: FerryRate[] = [
-  { id: "FR-101", route: "Port Blair ➔ Havelock", operator: "Makruzz", class: "Premium", fare: 1250, surcharge: 150, total: 1400, status: "Active" },
-  { id: "FR-102", route: "Port Blair ➔ Havelock", operator: "Nautika", class: "Royal", fare: 1800, surcharge: 150, total: 1950, status: "Active" },
-  { id: "FR-103", route: "Havelock ➔ Neil Island", operator: "Green Ocean", class: "Deluxe", fare: 950, surcharge: 100, total: 1050, status: "Active" },
-  { id: "FR-104", route: "Neil Island ➔ Port Blair", operator: "Makruzz", class: "Deluxe", fare: 1100, surcharge: 150, total: 1250, status: "Inactive" },
-  { id: "FR-105", route: "Port Blair ➔ Havelock", operator: "Nautika", class: "Luxury", fare: 2500, surcharge: 200, total: 2700, status: "Active" },
-];
-
 export default function FerryRatesPage() {
-  const [rates, setRates] = useState<FerryRate[]>(INITIAL_RATES);
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newRate, setNewRate] = useState<Partial<FerryRate>>({
@@ -35,6 +28,46 @@ export default function FerryRatesPage() {
     status: "Active",
   });
 
+  const { data: ratesResponse, isLoading } = useQuery({
+    queryKey: ["ferry-rates"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/ferries");
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    }
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (rate: Partial<FerryRate>) => {
+      const res = await fetch("/api/admin/ferries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rate),
+      });
+      if (!res.ok) throw new Error("Failed to create");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ferry-rates"] });
+      setIsModalOpen(false);
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/admin/ferries?id=${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ferry-rates"] });
+    }
+  });
+
+  const rates: FerryRate[] = ratesResponse?.data ?? [];
+
   const filteredRates = rates.filter(r => 
     r.operator.toLowerCase().includes(search.toLowerCase()) || 
     r.route.toLowerCase().includes(search.toLowerCase()) ||
@@ -45,8 +78,7 @@ export default function FerryRatesPage() {
     e.preventDefault();
     const fare = Number(newRate.fare) || 0;
     const surcharge = Number(newRate.surcharge) || 0;
-    const rate: FerryRate = {
-      id: `FR-${Date.now().toString().slice(-4)}`,
+    createMutation.mutate({
       route: newRate.route || "",
       operator: newRate.operator || "",
       class: newRate.class || "",
@@ -54,16 +86,6 @@ export default function FerryRatesPage() {
       surcharge,
       total: fare + surcharge,
       status: newRate.status as "Active" | "Inactive" || "Active",
-    };
-    setRates([rate, ...rates]);
-    setIsModalOpen(false);
-    setNewRate({
-      route: "Port Blair ➔ Havelock",
-      operator: "Makruzz",
-      class: "Premium",
-      fare: 1000,
-      surcharge: 100,
-      status: "Active",
     });
   };
 
@@ -165,7 +187,14 @@ export default function FerryRatesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredRates.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-8 text-center text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2" />
+                    Loading ferry rates...
+                  </td>
+                </tr>
+              ) : filteredRates.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-8 text-center text-muted-foreground">
                     No ferry rates found matching your search.
@@ -175,7 +204,7 @@ export default function FerryRatesPage() {
                 filteredRates.map((rate) => (
                   <tr key={rate.id} className="hover:bg-muted/50 transition-colors">
                     <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
-                      {rate.id}
+                      {rate.id.substring(0, 8).toUpperCase()}
                     </td>
                     <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
                       {rate.route}
@@ -203,8 +232,9 @@ export default function FerryRatesPage() {
                     <td className="px-6 py-4 text-right whitespace-nowrap">
                       <button className="text-primary hover:underline font-medium mr-3">Edit</button>
                       <button 
-                        onClick={() => setRates(rates.filter(r => r.id !== rate.id))}
-                        className="text-muted-foreground hover:text-destructive font-medium"
+                        onClick={() => deleteMutation.mutate(rate.id)}
+                        disabled={deleteMutation.isPending}
+                        className="text-muted-foreground hover:text-destructive font-medium disabled:opacity-50"
                       >
                         Delete
                       </button>
@@ -325,9 +355,10 @@ export default function FerryRatesPage() {
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 py-2.5 text-sm font-bold bg-primary text-primary-foreground rounded-lg hover:bg-primary-hover transition-colors shadow-sm"
+                  disabled={createMutation.isPending}
+                  className="flex-1 py-2.5 text-sm font-bold bg-primary text-primary-foreground rounded-lg hover:bg-primary-hover transition-colors shadow-sm disabled:opacity-50"
                 >
-                  Add Rate
+                  {createMutation.isPending ? "Saving..." : "Add Rate"}
                 </button>
               </div>
             </form>

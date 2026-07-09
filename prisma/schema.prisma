@@ -771,3 +771,92 @@ model LandingPage {
   @@map("landing_pages")
 }
 
+// ── CMS Engine ─────────────────────────────────────────────────────────
+
+model CmsConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+
+  @@map("cms_configs")
+}
+
+model CmsPage {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  title     String
+  content   Json
+  status    String   @default("DRAFT")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cms_pages")
+}
+
+model CmsGuide {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  content     Json
+  authorId    String?
+  status      String   @default("DRAFT")
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("cms_guides")
+}
+
+model CmsRedirect {
+  id        String   @id @default(uuid())
+  source    String   @unique
+  target    String
+  isPermanent Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cms_redirects")
+}
+
+model MediaAsset {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  url       String
+  fileName  String
+  category  String
+  sizeBytes Int
+  mimeType  String
+  createdAt DateTime @default(now())
+
+  @@map("media_assets")
+}
+
+// -- Marketing Engine ---------------------------------------------------
+
+model MarketingCampaign {
+  id          String    @id @default(uuid())
+  name        String
+  type        String
+  status      String    @default("DRAFT")
+  startDate   DateTime?
+  endDate     DateTime?
+  budget      Float?
+  impressions Int       @default(0)
+  clicks      Int       @default(0)
+  conversions Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("marketing_campaigns")
+}
+
+model PageAnalytics {
+  id             String   @id @default(uuid())
+  path           String   @unique
+  views          Int      @default(0)
+  uniqueVisitors Int      @default(0)
+  lastVisitedAt  DateTime @default(now())
+
+  @@map("page_analytics")
+}

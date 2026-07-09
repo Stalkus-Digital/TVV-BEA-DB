@@ -37,7 +37,7 @@ export async function fetchBookings(filters: BookingListFilters = {}): Promise<P
 }
 
 export async function fetchAllBookings(filters: Pick<BookingListFilters, "status"> = {}): Promise<Booking[]> {
-  const pageSize = 100;
+  const pageSize = 20;
   let page = 1;
   let totalPages = 1;
   const items: Booking[] = [];

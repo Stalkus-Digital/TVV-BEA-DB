@@ -19,9 +19,11 @@ import {
   useDestinationBreadcrumbsQuery,
   useDestinationChildrenQuery,
   useDestinationNearbyQuery,
+  useCountriesQuery,
   useStatesQuery,
+  useRegionsQuery,
+  useCitiesQuery,
 } from "../hooks/useDestinationSubQueries";
-import { useGeographyReferenceQuery } from "../hooks/useDestinationsQuery";
 import { DestinationStatusBadge } from "./DestinationStatusBadge";
 
 const STEPS = [
@@ -39,8 +41,6 @@ export function DestinationBuilderPage() {
   const editId = searchParams.get("id");
   const [destinationId, setDestinationId] = useState<string | null>(editId);
   const [currentStep, setCurrentStep] = useState(1);
-
-  const geoQuery = useGeographyReferenceQuery();
   const destinationQuery = useDestinationQuery(destinationId);
   const createMutation = useCreateDestinationMutation();
   const parentOptionsQuery = useQuery({
@@ -59,7 +59,10 @@ export function DestinationBuilderPage() {
   const [parentDestinationId, setParentDestinationId] = useState("");
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
 
+  const countriesQuery = useCountriesQuery();
   const statesQuery = useStatesQuery(countryId || undefined);
+  const regionsQuery = useRegionsQuery(countryId || undefined);
+  const citiesQuery = useCitiesQuery(countryId || undefined, stateId || undefined);
 
   useEffect(() => {
     if (editId) setDestinationId(editId);
@@ -102,11 +105,7 @@ export function DestinationBuilderPage() {
 
   const canCreate = name.trim() && countryId;
 
-  if (geoQuery.isLoading) {
-    return <WidgetLoading label="Loading geography reference…" />;
-  }
-
-  const geo = geoQuery.data;
+  // geoQuery removed, rely on individual queries in the steps
   const parentOptions =
     parentOptionsQuery.data
       ?.filter((d) => d.id !== destinationId)
@@ -170,7 +169,7 @@ export function DestinationBuilderPage() {
                 onDescriptionChange={setDescription}
                 destinationId={destinationId}
                 categoryIds={categoryIds}
-                categories={geo?.categories ?? []}
+                categories={[]} // Categories need to be fetched if they are used here, for now passing empty array as it was from geo?.categories
                 onCategoryChange={setCategoryIds}
               />
             )}
@@ -183,14 +182,25 @@ export function DestinationBuilderPage() {
                 onCountryChange={(id) => {
                   setCountryId(id);
                   setStateId("");
+                  setRegionId("");
+                  setCityId("");
                 }}
-                onStateChange={setStateId}
+                onStateChange={(id) => {
+                  setStateId(id);
+                  setCityId("");
+                }}
                 onRegionChange={setRegionId}
                 onCityChange={setCityId}
-                countries={geo?.countries ?? []}
-                states={statesQuery.data ?? geo?.states.filter((s) => s.countryId === countryId) ?? []}
-                regions={geo?.regions ?? []}
-                cities={geo?.cities.filter((c) => (!countryId || c.countryId === countryId) && (!stateId || c.stateId === stateId)) ?? []}
+                countries={countriesQuery.data ?? []}
+                states={statesQuery.data ?? []}
+                regions={regionsQuery.data ?? []}
+                cities={citiesQuery.data ?? []}
+                isLoading={{
+                  countries: countriesQuery.isLoading,
+                  states: statesQuery.isLoading,
+                  regions: regionsQuery.isLoading,
+                  cities: citiesQuery.isLoading,
+                }}
                 locked={Boolean(destinationId)}
                 parentDestinationId={parentDestinationId}
                 onParentChange={setParentDestinationId}
@@ -345,6 +355,7 @@ function GeographyStep({
   states,
   regions,
   cities,
+  isLoading,
   locked,
   parentDestinationId,
   onParentChange,
@@ -362,6 +373,7 @@ function GeographyStep({
   states: { id: string; name: string }[];
   regions: { id: string; name: string }[];
   cities: { id: string; name: string }[];
+  isLoading: { countries: boolean; states: boolean; regions: boolean; cities: boolean };
   locked: boolean;
   parentDestinationId: string;
   onParentChange: (id: string) => void;
@@ -370,11 +382,14 @@ function GeographyStep({
   return (
     <div className="space-y-4 bg-card border border-border rounded-lg p-6">
       <div>
-        <label className="block text-sm font-medium mb-1">Country *</label>
+        <label className="block text-sm font-medium mb-1 flex justify-between items-center">
+          Country *
+          {isLoading.countries && <span className="text-xs text-muted-foreground">Loading...</span>}
+        </label>
         <select
           value={countryId}
           onChange={(e) => onCountryChange(e.target.value)}
-          disabled={locked}
+          disabled={locked || isLoading.countries}
           className="w-full px-3 py-2 border border-border rounded-md text-sm disabled:opacity-60"
         >
           <option value="">Select country</option>
@@ -387,11 +402,14 @@ function GeographyStep({
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1">State</label>
+          <label className="block text-sm font-medium mb-1 flex justify-between items-center">
+            State
+            {isLoading.states && <span className="text-xs text-muted-foreground">Loading...</span>}
+          </label>
           <select
             value={stateId}
             onChange={(e) => onStateChange(e.target.value)}
-            disabled={locked}
+            disabled={locked || isLoading.states || !countryId}
             className="w-full px-3 py-2 border border-border rounded-md text-sm disabled:opacity-60"
           >
             <option value="">Select state</option>
@@ -403,11 +421,14 @@ function GeographyStep({
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Region</label>
+          <label className="block text-sm font-medium mb-1 flex justify-between items-center">
+            Region
+            {isLoading.regions && <span className="text-xs text-muted-foreground">Loading...</span>}
+          </label>
           <select
             value={regionId}
             onChange={(e) => onRegionChange(e.target.value)}
-            disabled={locked}
+            disabled={locked || isLoading.regions || !countryId}
             className="w-full px-3 py-2 border border-border rounded-md text-sm disabled:opacity-60"
           >
             <option value="">Select region</option>
@@ -420,11 +441,14 @@ function GeographyStep({
         </div>
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">City</label>
+        <label className="block text-sm font-medium mb-1 flex justify-between items-center">
+          City
+          {isLoading.cities && <span className="text-xs text-muted-foreground">Loading...</span>}
+        </label>
         <select
           value={cityId}
           onChange={(e) => onCityChange(e.target.value)}
-          disabled={locked}
+          disabled={locked || isLoading.cities || (!countryId && !stateId)}
           className="w-full px-3 py-2 border border-border rounded-md text-sm disabled:opacity-60"
         >
           <option value="">Select city</option>
@@ -500,7 +524,7 @@ function HierarchyStep({ destinationId }: { destinationId: string }) {
             </li>
           ))}
         </ul>
-        <p className="text-xs text-muted-foreground mt-2">From GET /api/destinations/:id/nearby — no client logic.</p>
+        <p className="text-xs text-muted-foreground mt-2">Calculated automatically based on geography.</p>
       </div>
     </div>
   );

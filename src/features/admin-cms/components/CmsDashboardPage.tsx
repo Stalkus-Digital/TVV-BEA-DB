@@ -5,7 +5,6 @@ import type { LucideIcon } from "lucide-react";
 import { ArrowRight, FileText, Globe, Image, Layout, Link2, Megaphone } from "lucide-react";
 import { CMS_SECTIONS, BACKEND_GAPS } from "../constants";
 import { useCmsContentQuery } from "../hooks/useCmsQueries";
-import { BackendGapNotice } from "./BackendGapNotice";
 import { CmsPageShell } from "./CmsPageShell";
 
 const SECTION_ICONS: Record<string, LucideIcon> = {
@@ -23,7 +22,7 @@ export function CmsDashboardPage() {
   return (
     <CmsPageShell
       title="Content Dashboard"
-      description="Overview of website content — sourced from the Website BFF and existing Destination/Package APIs."
+      description="Overview of your website's content, including homepage, navigation, and SEO metrics."
       isLoading={cms.isLoading}
       isError={cms.isError}
       errorMessage={cms.error instanceof Error ? cms.error.message : undefined}
@@ -31,7 +30,7 @@ export function CmsDashboardPage() {
       onRefresh={() => void cms.refetch()}
       onRetry={() => void cms.refetch()}
     >
-      <BackendGapNotice title="CMS Engine not implemented" message={BACKEND_GAPS.cmsModule} />
+
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mt-6">
         <StatCard label="Featured destinations" value={cms.stats.featuredDestinationCount} />

@@ -724,7 +724,7 @@ function PreviewStep({
           </button>
         </div>
       )}
-      <p className="text-xs text-muted-foreground">Preview rendered from GET /api/packages/:id/preview — no client-side calculations.</p>
+      <p className="text-xs text-muted-foreground">Preview generated based on your package configuration.</p>
     </div>
   );
 }

@@ -33,7 +33,7 @@ export async function fetchQuotes(filters: QuoteListFilters = {}): Promise<Pagin
 }
 
 export async function fetchAllQuotes(filters: Pick<QuoteListFilters, "status"> = {}): Promise<Quote[]> {
-  const pageSize = 100;
+  const pageSize = 20;
   let page = 1;
   let totalPages = 1;
   const items: Quote[] = [];
@@ -129,7 +129,7 @@ export async function fetchQuoteVersions(id: string): Promise<QuoteVersion[]> {
 }
 
 export async function fetchAllDestinations(): Promise<DestinationOption[]> {
-  const pageSize = 100;
+  const pageSize = 20;
   let page = 1;
   let totalPages = 1;
   const items: DestinationOption[] = [];

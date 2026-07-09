@@ -18,12 +18,8 @@ export async function packageStaticSlugs(): Promise<string[]> {
     return [];
   }
 
-  const [{ manualPackages }, { fromManualList }] = await Promise.all([
-    import("@/lib/mock"),
-    import("@/lib/adapters"),
-  ]);
-  return fromManualList(manualPackages).map((p) => p.slug);
-}
+  return [];
+};
 
 export async function destinationStaticSlugs(): Promise<string[]> {
   if (!apiConfig.useMock) {
@@ -35,8 +31,7 @@ export async function destinationStaticSlugs(): Promise<string[]> {
     }
   }
 
-  const { destinationsMock } = await import("@/lib/mock");
-  return destinationsMock.filter((d) => d.slug !== "andaman").map((d) => d.slug);
+  return [];
 }
 
 export async function experienceStaticSlugs(): Promise<string[]> {

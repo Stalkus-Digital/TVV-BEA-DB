@@ -10,6 +10,8 @@ import {
   validateUpdateEnquiryStatus,
 } from "../validation/enquiry.validation";
 
+import type { SembarkService } from "./sembark.service";
+
 /**
  * `POST /api/enquiries` is public — an anonymous visitor or a logged-in
  * customer can both submit one. `customerId` is optional and, when
@@ -21,7 +23,8 @@ import {
 export class EnquiryService extends BaseService {
   constructor(
     context: ServiceContext,
-    private readonly enquiries: EnquiryRepository
+    private readonly enquiries: EnquiryRepository,
+    private readonly sembark: SembarkService
   ) {
     super(context);
   }
@@ -33,7 +36,8 @@ export class EnquiryService extends BaseService {
 
     const now = new Date().toISOString();
     this.logger.info("Enquiry submitted", { type: value.type, customerId });
-    return this.enquiries.create({
+    
+    const createdResult = await this.enquiries.create({
       ...value,
       customerId,
       status: EnquiryStatus.NEW,
@@ -41,6 +45,15 @@ export class EnquiryService extends BaseService {
       createdAt: now,
       updatedAt: now,
     });
+    
+    if (isErr(createdResult)) return createdResult;
+    
+    // Push the lead to Sembark asynchronously so it doesn't block the request
+    this.sembark.pushLead(createdResult.value).catch(err => {
+      this.logger.error("Failed to push lead to Sembark asynchronously", { err });
+    });
+    
+    return createdResult;
   }
 
   /** Admin-facing: list/search leads. */

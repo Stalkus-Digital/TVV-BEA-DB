@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev -p 3001 --turbopack",
     "verify:local": "node scripts/verify-local-api.mjs",
-    "build": "prisma generate --schema=./prisma-hierarchy/schema.prisma && next build",
+    "build": "next build",
     "start": "next start -p 3001",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",

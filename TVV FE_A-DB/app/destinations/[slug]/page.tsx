@@ -39,7 +39,6 @@ export const revalidate = 600;
 
 export default async function DestinationPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  if (slug === "andaman") redirect("/andaman");
 
   const destRes = await destinationsService.getBySlug(slug);
   if (!destRes.ok || !destRes.data) notFound();

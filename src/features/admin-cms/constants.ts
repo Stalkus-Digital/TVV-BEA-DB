@@ -5,12 +5,12 @@ export const CMS_SECTIONS = [
   { href: "/cms/home", label: "Home Sections", description: "Hero, featured packages & destinations" },
   { href: "/cms/seo", label: "SEO Pages", description: "Destination & package SEO metadata" },
   { href: "/cms/faqs", label: "FAQ Management", description: "Destination & package FAQs" },
-  { href: "/cms/media", label: "Media Browser", description: "Upload via Storage module" },
-  { href: "/cms/navigation", label: "Navigation Menus", description: "Website navigation (read-only)" },
-  { href: "/cms/footer", label: "Footer Content", description: "Footer columns (read-only)" },
+  { href: "/cms/media", label: "Media Browser", description: "Website media files" },
+  { href: "/cms/navigation", label: "Navigation Menus", description: "Website top navigation" },
+  { href: "/cms/footer", label: "Footer Content", description: "Footer columns and links" },
   { href: "/cms/redirects", label: "Redirect Management", description: "URL redirects" },
   { href: "/cms/pages", label: "Static Pages", description: "Static content pages" },
-  { href: "/cms/guides", label: "Guides (Blogs)", description: "Blog / guide articles" },
+  { href: "/cms/guides", label: "Guides (Blogs)", description: "Blog and guide articles" },
   { href: "/cms/landing-pages", label: "Landing Pages", description: "Dynamic Marketing Builder" },
 ] as const;
 

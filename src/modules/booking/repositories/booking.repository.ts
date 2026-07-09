@@ -25,16 +25,27 @@ export class PrismaBookingRepository extends PrismaStore<any> implements Booking
   }
 
   async findByFilter(filter: BookingListFilter): Promise<Result<PaginatedResult<Booking>, AppError>> {
-    let items = (await this.delegate.findMany());
-    if (filter.status) items = items.filter(( b: any ) => b.status === filter.status);
-    if (filter.destinationId) items = items.filter(( b: any ) => b.destinationId === filter.destinationId);
-    if (filter.sourceQuoteId) items = items.filter(( b: any ) => b.sourceQuoteId === filter.sourceQuoteId);
-    if (filter.customerId) items = items.filter(( b: any ) => b.customerId === filter.customerId);
-
     const page = filter.page ?? DEFAULT_PAGINATION.page;
     const pageSize = filter.pageSize ?? DEFAULT_PAGINATION.pageSize;
-    const start = (page - 1) * pageSize;
-    return ok(toPaginatedResult(items.slice(start, start + pageSize), items.length, { page, pageSize }));
+    const skip = (page - 1) * pageSize;
+
+    const where: any = {};
+    if (filter.status) where.status = filter.status;
+    if (filter.destinationId) where.destinationId = filter.destinationId;
+    if (filter.sourceQuoteId) where.sourceQuoteId = filter.sourceQuoteId;
+    if (filter.customerId) where.customerId = filter.customerId;
+
+    const [items, total] = await Promise.all([
+      this.delegate.findMany({
+        where,
+        skip,
+        take: pageSize,
+        include: { items: true, travellers: true }
+      }),
+      this.delegate.count({ where })
+    ]);
+
+    return ok(toPaginatedResult(items, total, { page, pageSize }));
   }
 
   async countAll(): Promise<Result<number, AppError>> {

@@ -94,6 +94,10 @@ export class PrismaRegionRepository implements RegionRepository {
     const row = await prisma.region.findUnique({ where: { id } });
     return ok(row ? toDates(row) : null);
   }
+  async findByCountry(countryId: string): Promise<Result<Region[], AppError>> {
+    const rows = await prisma.region.findMany({ where: { countryId } });
+    return ok(rows.map(toDates));
+  }
   async findMany(params: PaginationParams = {}): Promise<Result<PaginatedResult<Region>, AppError>> {
     const { skip, take, page, pageSize } = pageArgs(params);
     const [rows, total] = await Promise.all([prisma.region.findMany({ skip, take }), prisma.region.count()]);

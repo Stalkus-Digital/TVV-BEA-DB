@@ -63,32 +63,40 @@ interface KpiGridProps {
   errorMessage?: string;
   onRetry?: () => void;
   data?: {
-    totalCustomers: number;
-    totalEnquiries: number;
-    totalQuotes: number;
-    totalBookings: number;
-    activePackages: number;
-    inventoryCount: number;
-    activeDestinations: number;
-    revenueCollected: number;
-    revenueCurrency: string;
+    totalRevenue: number;
+    revenueVariance: number;
+    activeBookings: number;
+    newLeads: number;
+    conversionRate: number;
+    revenueCurrency?: string;
   };
 }
 
 export function KpiGrid({ isLoading, isError, errorMessage, onRetry, data }: KpiGridProps) {
   const cards = [
-    { title: "Total Customers", value: formatCount(data?.totalCustomers), hint: "All registered accounts", icon: Users },
-    { title: "Total Enquiries", value: formatCount(data?.totalEnquiries), icon: Inbox },
-    { title: "Total Quotes", value: formatCount(data?.totalQuotes), icon: FileText },
-    { title: "Total Bookings", value: formatCount(data?.totalBookings), icon: Calendar },
-    { title: "Active Packages", value: formatCount(data?.activePackages), hint: "Published packages", icon: PackageSearch },
-    { title: "Inventory Count", value: formatCount(data?.inventoryCount), icon: Warehouse },
-    { title: "Active Destinations", value: formatCount(data?.activeDestinations), icon: MapPin },
     {
-      title: "Revenue Collected",
-      value: formatCurrency(data?.revenueCollected, data?.revenueCurrency ?? "INR"),
-      hint: "Manual payments · gateway integration pending",
+      title: "Total Revenue",
+      value: formatCurrency(data?.totalRevenue, data?.revenueCurrency ?? "INR"),
+      hint: data?.revenueVariance ? `+${data.revenueVariance}% from last month` : "Calculated from confirmed bookings",
       icon: CreditCard,
+    },
+    { 
+      title: "Active Bookings", 
+      value: formatCount(data?.activeBookings), 
+      hint: "Trips currently in progress/pending", 
+      icon: Calendar 
+    },
+    { 
+      title: "New Leads", 
+      value: formatCount(data?.newLeads), 
+      hint: "Unassigned recent inquiries",
+      icon: Inbox 
+    },
+    { 
+      title: "Conversion Rate", 
+      value: data?.conversionRate !== undefined ? `${data.conversionRate.toFixed(1)}%` : "—", 
+      hint: "Bookings per lead ratio",
+      icon: FileText 
     },
   ];
 

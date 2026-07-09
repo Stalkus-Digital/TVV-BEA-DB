@@ -1,15 +1,16 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle, ArrowLeft, BarChart2, CheckCircle, ChevronRight,
   Eye, EyeOff, FileText, Globe, GripVertical, HelpCircle,
-  Plus, Save, Search, Send, Upload, X
+  Plus, Save, Search, Send, Upload, X, Loader2
 } from "lucide-react";
 
 import {
   type Article, type ArticleSection, type EditorPanel, type SectionType,
-  CATEGORIES, MOCK_ARTICLES, SECTION_TYPE_META,
+  CATEGORIES, SECTION_TYPE_META,
   newArticle, newSection, seoScore, slugify,
 } from "./guides-types";
 import { ArticlePreview, F, SectionCard, SectionEditor, fi } from "./guides-sections";
@@ -17,7 +18,7 @@ import { ArticlePreview, F, SectionCard, SectionEditor, fi } from "./guides-sect
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 
 export function GuidesBuilder() {
-  const [articles, setArticles] = useState<Article[]>(MOCK_ARTICLES);
+  const queryClient = useQueryClient();
   const [editing, setEditing] = useState<Article | null>(null);
   const [search, setSearch] = useState("");
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
@@ -27,6 +28,70 @@ export function GuidesBuilder() {
   const [addingSection, setAddingSection] = useState(false);
   const ogFileRef = useRef<HTMLInputElement>(null);
   const coverFileRef = useRef<HTMLInputElement>(null);
+
+  // Queries
+  const { data: guidesResponse, isLoading } = useQuery({
+    queryKey: ["cms-guides"],
+    queryFn: async () => {
+      const res = await fetch("/api/cms/guides");
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    }
+  });
+
+  const articles: Article[] = (guidesResponse?.items ?? []).map((g: any) => {
+    // If we saved the full Article object inside `content`
+    if (g.content && typeof g.content === "object" && !Array.isArray(g.content)) {
+      return { ...newArticle(), ...g.content, id: g.id, status: g.status.toLowerCase() };
+    }
+    // Fallback if empty
+    return { ...newArticle(), id: g.id, title: g.title, status: g.status.toLowerCase() };
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (article: Article) => {
+      const res = await fetch("/api/cms/guides", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: article.title || "Untitled",
+          slug: article.seo.slug || slugify(article.title || "untitled"),
+          content: article,
+          status: article.status.toUpperCase(),
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to create");
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cms-guides"] })
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (article: Article) => {
+      const res = await fetch(`/api/cms/guides/${article.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: article.title,
+          slug: article.seo.slug || slugify(article.title || "untitled"),
+          content: article,
+          status: article.status.toUpperCase(),
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cms-guides"] })
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/cms/guides/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete");
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cms-guides"] })
+  });
 
   const filtered = articles.filter(a =>
     a.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -45,14 +110,17 @@ export function GuidesBuilder() {
     setEditing(cur => {
       if (!cur) return null;
       const updated = { ...cur, ...overrides };
-      setArticles(prev =>
-        prev.find(a => a.id === updated.id)
-          ? prev.map(a => a.id === updated.id ? updated : a)
-          : [...prev, updated]
-      );
+      
+      // Check if it's a new article (e.g. starts with new- or not in DB)
+      if (updated.id.startsWith("new-") || !articles.some(a => a.id === updated.id)) {
+        createMutation.mutate(updated);
+      } else {
+        updateMutation.mutate(updated);
+      }
+      
       return null; // close editor
     });
-  }, []);
+  }, [articles, createMutation, updateMutation]);
 
   const updateEditing = useCallback(<K extends keyof Article>(key: K, val: Article[K]) => {
     setEditing(e => e ? { ...e, [key]: val } : null);
@@ -161,7 +229,20 @@ export function GuidesBuilder() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filtered.map(article => {
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-8 text-center text-muted-foreground">
+                      <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2" />
+                      Loading guides...
+                    </td>
+                  </tr>
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-8 text-center text-muted-foreground">
+                      No articles found.
+                    </td>
+                  </tr>
+                ) : filtered.map(article => {
                   const { score } = seoScore(article);
                   const sc = score >= 80 ? "text-emerald-600 bg-emerald-50" : score >= 50 ? "text-amber-600 bg-amber-50" : "text-red-600 bg-red-50";
                   return (
@@ -169,7 +250,13 @@ export function GuidesBuilder() {
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={article.coverImage} alt="" className="w-12 h-9 object-cover rounded-md border border-border shrink-0" />
+                          {article.coverImage ? (
+                            <img src={article.coverImage} alt="" className="w-12 h-9 object-cover rounded-md border border-border shrink-0" />
+                          ) : (
+                            <div className="w-12 h-9 bg-muted rounded-md border border-border shrink-0 flex items-center justify-center">
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          )}
                           <div>
                             <p className="font-semibold text-foreground leading-tight">{article.title}</p>
                             <p className="text-xs text-muted-foreground mt-0.5">{article.seo.slug ? `/${article.seo.slug}` : "—"}</p>
@@ -177,13 +264,13 @@ export function GuidesBuilder() {
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-primary bg-primary/10 px-2 py-1 rounded">{article.category}</span>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-primary bg-primary/10 px-2 py-1 rounded">{article.category || "Uncategorized"}</span>
                       </td>
                       <td className="px-5 py-4">
                         <span className={`text-xs font-bold px-2 py-1 rounded-full ${sc}`}>{score}%</span>
                       </td>
                       <td className="px-5 py-4 text-muted-foreground text-xs">{article.readTime} min</td>
-                      <td className="px-5 py-4 text-muted-foreground text-xs">{article.publishDate}</td>
+                      <td className="px-5 py-4 text-muted-foreground text-xs">{article.publishDate || "—"}</td>
                       <td className="px-5 py-4">
                         <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${article.status === "published" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
                           {article.status === "published" ? "Published" : "Draft"}
@@ -191,7 +278,13 @@ export function GuidesBuilder() {
                       </td>
                       <td className="px-5 py-4 text-right">
                         <button onClick={() => startEdit(article)} className="text-primary hover:underline font-semibold text-xs mr-3">Edit</button>
-                        <button onClick={() => setArticles(prev => prev.filter(a => a.id !== article.id))} className="text-muted-foreground hover:text-destructive text-xs font-medium">Delete</button>
+                        <button 
+                          onClick={() => deleteMutation.mutate(article.id)} 
+                          disabled={deleteMutation.isPending}
+                          className="text-muted-foreground hover:text-destructive text-xs font-medium disabled:opacity-50"
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   );

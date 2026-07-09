@@ -5,6 +5,7 @@ import { getStorageService } from "../module";
 import { StorageCategory } from "../types/storage-category";
 import type { StorageObject } from "../types/storage-object";
 import type { SignedUrlResult } from "../services/storage.service";
+import { prisma } from "@/shared/database/prisma-client";
 
 function isStorageCategory(value: unknown): value is StorageCategory {
   return typeof value === "string" && Object.values(StorageCategory).includes(value as StorageCategory);
@@ -44,12 +45,31 @@ export async function uploadHandler(context: AuthContext | null, input: UploadRe
   const validated = validateUploadShape(input);
   if (isErr(validated)) return validated;
 
-  return getStorageService().upload(input.fileBuffer, {
+  const result = await getStorageService().upload(input.fileBuffer, {
     category: validated.value.category,
     ownerId: validated.value.ownerId,
     fileName: input.fileName,
     contentType: input.contentType,
   });
+
+  if (!isErr(result)) {
+    try {
+      await prisma.mediaAsset.create({
+        data: {
+          key: result.value.key,
+          url: result.value.url,
+          fileName: (result.value as any).fileName || input.fileName,
+          category: (result.value as any).category,
+          sizeBytes: (result.value as any).sizeBytes || (result.value as any).size,
+          mimeType: (result.value as any).contentType || (result.value as any).mimeType,
+        }
+      });
+    } catch (e) {
+      console.error("Failed to save media asset to DB", e);
+    }
+  }
+
+  return result;
 }
 
 export interface ReplaceRequestInput extends UploadRequestInput {
@@ -82,7 +102,17 @@ export async function deleteHandler(context: AuthContext | null, body: unknown):
   if (typeof record.key !== "string" || !record.key) return err(new ValidationError("key is required"));
   if (typeof record.ownerId !== "string" || !record.ownerId) return err(new ValidationError("ownerId is required"));
 
-  return getStorageService().delete(record.category, record.key, record.ownerId);
+  const result = await getStorageService().delete(record.category, record.key, record.ownerId);
+  if (!isErr(result)) {
+    try {
+      await prisma.mediaAsset.delete({
+        where: { key: record.key }
+      });
+    } catch (e) {
+      console.error("Failed to delete media asset from DB", e);
+    }
+  }
+  return result;
 }
 
 export async function metadataHandler(

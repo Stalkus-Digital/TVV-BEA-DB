@@ -96,7 +96,14 @@ export const ModelName = {
   Notification: 'Notification',
   Lead: 'Lead',
   FerryRate: 'FerryRate',
-  LandingPage: 'LandingPage'
+  LandingPage: 'LandingPage',
+  CmsConfig: 'CmsConfig',
+  CmsPage: 'CmsPage',
+  CmsGuide: 'CmsGuide',
+  CmsRedirect: 'CmsRedirect',
+  MediaAsset: 'MediaAsset',
+  MarketingCampaign: 'MarketingCampaign',
+  PageAnalytics: 'PageAnalytics'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -819,6 +826,99 @@ export const LandingPageScalarFieldEnum = {
 } as const
 
 export type LandingPageScalarFieldEnum = (typeof LandingPageScalarFieldEnum)[keyof typeof LandingPageScalarFieldEnum]
+
+
+export const CmsConfigScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  value: 'value',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CmsConfigScalarFieldEnum = (typeof CmsConfigScalarFieldEnum)[keyof typeof CmsConfigScalarFieldEnum]
+
+
+export const CmsPageScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  title: 'title',
+  content: 'content',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CmsPageScalarFieldEnum = (typeof CmsPageScalarFieldEnum)[keyof typeof CmsPageScalarFieldEnum]
+
+
+export const CmsGuideScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  slug: 'slug',
+  content: 'content',
+  authorId: 'authorId',
+  status: 'status',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CmsGuideScalarFieldEnum = (typeof CmsGuideScalarFieldEnum)[keyof typeof CmsGuideScalarFieldEnum]
+
+
+export const CmsRedirectScalarFieldEnum = {
+  id: 'id',
+  source: 'source',
+  target: 'target',
+  isPermanent: 'isPermanent',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CmsRedirectScalarFieldEnum = (typeof CmsRedirectScalarFieldEnum)[keyof typeof CmsRedirectScalarFieldEnum]
+
+
+export const MediaAssetScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  url: 'url',
+  fileName: 'fileName',
+  category: 'category',
+  sizeBytes: 'sizeBytes',
+  mimeType: 'mimeType',
+  createdAt: 'createdAt'
+} as const
+
+export type MediaAssetScalarFieldEnum = (typeof MediaAssetScalarFieldEnum)[keyof typeof MediaAssetScalarFieldEnum]
+
+
+export const MarketingCampaignScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  type: 'type',
+  status: 'status',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  budget: 'budget',
+  impressions: 'impressions',
+  clicks: 'clicks',
+  conversions: 'conversions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MarketingCampaignScalarFieldEnum = (typeof MarketingCampaignScalarFieldEnum)[keyof typeof MarketingCampaignScalarFieldEnum]
+
+
+export const PageAnalyticsScalarFieldEnum = {
+  id: 'id',
+  path: 'path',
+  views: 'views',
+  uniqueVisitors: 'uniqueVisitors',
+  lastVisitedAt: 'lastVisitedAt'
+} as const
+
+export type PageAnalyticsScalarFieldEnum = (typeof PageAnalyticsScalarFieldEnum)[keyof typeof PageAnalyticsScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -3,7 +3,7 @@
 import { BACKEND_GAPS } from "../constants";
 import { useSystemMetricsQuery } from "../hooks/useOperationsQueries";
 import { formatDate } from "../utils";
-import { BackendGapNotice } from "./BackendGapNotice";
+
 import { OperationsPageShell } from "./OperationsPageShell";
 import { StatusBadge } from "./StatusBadge";
 
@@ -14,7 +14,7 @@ export function AlertsPage() {
   return (
     <OperationsPageShell
       title="Alerts"
-      description="Active alerts from GET /api/system/metrics — evaluated fresh on each request."
+      description="Active system alerts and anomaly detections."
       isLoading={metricsQuery.isLoading}
       isError={metricsQuery.isError}
       errorMessage={metricsQuery.error instanceof Error ? metricsQuery.error.message : undefined}
@@ -24,8 +24,7 @@ export function AlertsPage() {
       isEmpty={!metricsQuery.isLoading && !metricsQuery.isError && alerts.length === 0}
       emptyMessage="No active alerts"
     >
-      <BackendGapNotice title="No dedicated alerts endpoint" message={BACKEND_GAPS.systemAlertsEndpoint} />
-      <BackendGapNotice title="Resolved status" message={BACKEND_GAPS.alertResolvedStatus} />
+
 
       <div className="rounded-xl border border-border overflow-hidden mt-4">
         <table className="w-full text-sm">

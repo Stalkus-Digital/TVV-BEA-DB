@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { BACKEND_GAPS, UNAVAILABLE_METRIC } from "../constants";
+
 import { useContentPerformanceQuery } from "../hooks/useMarketingQueries";
 import { formatDate } from "../utils";
-import { BackendGapNotice, UnavailableMetric } from "./BackendGapNotice";
 import { MarketingPageShell } from "./MarketingPageShell";
 
 export function ContentPerformancePage() {
@@ -22,7 +21,7 @@ export function ContentPerformancePage() {
       onRefresh={() => void contentQuery.refetch()}
       onRetry={() => void contentQuery.refetch()}
     >
-      <BackendGapNotice title="Popular pages" message={BACKEND_GAPS.topPagesAnalytics} />
+
 
       <div className="grid gap-6 lg:grid-cols-2 mt-6">
         <ContentPanel title="Featured packages (homepage)">
@@ -127,8 +126,23 @@ export function ContentPerformancePage() {
       </div>
 
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm mt-6">
-        <h3 className="font-semibold mb-2">Popular pages</h3>
-        <UnavailableMetric label={UNAVAILABLE_METRIC} />
+        <h3 className="font-semibold mb-4">Popular pages</h3>
+        {!data?.popularPagesAvailable ? (
+          <div className="h-24 flex items-center justify-center border border-dashed rounded-md text-sm text-muted-foreground mt-4">
+            Page metrics unavailable
+          </div>
+        ) : data.popularPages && data.popularPages.length > 0 ? (
+          <ul className="space-y-3 mt-4">
+            {data.popularPages.map((page: any) => (
+              <li key={page.path} className="flex justify-between items-center text-sm">
+                <span className="font-mono text-xs text-muted-foreground">{page.path}</span>
+                <span className="font-medium">{page.views} views</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">No page views yet.</p>
+        )}
       </div>
     </MarketingPageShell>
   );

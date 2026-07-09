@@ -19,7 +19,7 @@ async function fetchTotal(path: string, params?: Record<string, string | number 
 async function fetchAllPages<T>(
   path: string,
   params?: Record<string, string | number | boolean | undefined>,
-  pageSize = 100
+  pageSize = 20
 ): Promise<T[]> {
   const items: T[] = [];
   let page = 1;
@@ -49,11 +49,11 @@ async function sumBookingRevenue(): Promise<{ amount: number; currency: string }
 }
 
 export async function fetchDashboardKpis(): Promise<DashboardKpis> {
-  const result = await adminApiClient.get<{ data: DashboardKpis }>("/dashboard/kpis");
-  if (!result || !result.data) {
+  const result = await adminApiClient.get<DashboardKpis>(adminEndpoints.dashboardMetrics);
+  if (!result) {
     throw new Error("Failed to load KPIs");
   }
-  return result.data;
+  return result;
 }
 
 export async function fetchSystemHealth(): Promise<SystemHealthResponse> {

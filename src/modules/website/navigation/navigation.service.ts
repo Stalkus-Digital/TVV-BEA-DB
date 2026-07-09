@@ -5,6 +5,7 @@ import { getDestinationService } from "@/modules/destination";
 import { toDestinationSummary } from "../transformers/destination.transformer";
 import type { FooterColumnDTO, MenuItemDTO, NavigationResponseDTO } from "../dto/website-navigation.dto";
 import type { QuickLinkDTO } from "../dto/website-homepage.dto";
+import { CmsConfigService } from "../services/cms-config.service";
 
 const POPULAR_DESTINATIONS_LIMIT = 8;
 
@@ -47,10 +48,30 @@ export class NavigationService extends BaseService {
     const result = await getDestinationService().list({ pageSize: POPULAR_DESTINATIONS_LIMIT });
     if (isErr(result)) return result;
 
+    let menu = STATIC_MENU;
+    let footerColumns = STATIC_FOOTER_COLUMNS;
+    let quickLinks = STATIC_QUICK_LINKS;
+
+    const [navConfigRes, footerConfigRes] = await Promise.all([
+      CmsConfigService.getInstance().getConfig("NAVIGATION"),
+      CmsConfigService.getInstance().getConfig("FOOTER")
+    ]);
+
+    if (!isErr(navConfigRes) && navConfigRes.value && Array.isArray(navConfigRes.value)) {
+      menu = navConfigRes.value;
+    }
+
+    if (!isErr(footerConfigRes) && footerConfigRes.value && footerConfigRes.value.columns) {
+      footerColumns = footerConfigRes.value.columns;
+    }
+    if (!isErr(footerConfigRes) && footerConfigRes.value && footerConfigRes.value.quickLinks) {
+      quickLinks = footerConfigRes.value.quickLinks;
+    }
+
     return ok({
-      menu: STATIC_MENU,
-      footer: { columns: STATIC_FOOTER_COLUMNS },
-      quickLinks: STATIC_QUICK_LINKS,
+      menu,
+      footer: { columns: footerColumns },
+      quickLinks,
       popularDestinations: result.value.items.map(toDestinationSummary),
     });
   }

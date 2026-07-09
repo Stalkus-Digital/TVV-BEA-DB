@@ -1,26 +1,16 @@
 import { NextResponse } from "next/server";
+import { SembarkClient } from "@/modules/supplier/adapters/sembark/sembark.client";
+import { createLogger } from "@/shared/logger";
+
+const sembarkClient = new SembarkClient({ logger: createLogger("api.sembark") });
 
 export async function POST() {
-  if (!process.env.SEMBARK_API_KEY) {
-    return NextResponse.json({ 
-      success: false, 
-      error: "Missing SEMBARK_API_KEY. Cannot sync inventory." 
-    }, { status: 400 });
+  const result = await sembarkClient.pullInventory();
+  if (result.ok) {
+    return NextResponse.json({
+      success: true,
+      message: `Successfully synchronized ${result.value.hotels} hotels and ${result.value.destinations} destinations from Sembark.`,
+    });
   }
-
-  // Mock implementation for Phase 3 scaffolding
-  // In a real implementation, we would:
-  // 1. Fetch Sembark /inventory/hotels
-  // 2. Map to local Prisma schema
-  // 3. Upsert into database
-
-  return NextResponse.json({
-    success: true,
-    message: "Sembark inventory synchronized successfully.",
-    stats: {
-      hotelsImported: 0,
-      destinationsImported: 0,
-      packagesImported: 0,
-    }
-  });
+  return NextResponse.json({ error: result.error.message }, { status: 500 });
 }

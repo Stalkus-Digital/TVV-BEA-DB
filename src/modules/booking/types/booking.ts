@@ -1,5 +1,7 @@
 import type { BookingStatus } from "./booking-status";
 import type { PaymentStatus } from "./booking-payment";
+import type { BookingItem } from "./booking-item";
+import type { Traveller } from "./traveller";
 
 /**
  * Created ONLY from an APPROVED Quote (see ../services/booking.service.ts's
@@ -42,4 +44,6 @@ export interface Booking {
   customerId: string | null;
   createdAt: string;
   updatedAt: string;
+  items?: BookingItem[];
+  travellers?: Traveller[];
 }

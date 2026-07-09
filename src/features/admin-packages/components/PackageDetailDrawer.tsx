@@ -246,7 +246,7 @@ function OverviewTab({
           >
             Archive package
           </button>
-          <p className="text-xs text-muted-foreground mt-2">Uses DELETE /api/packages/:id (no POST …/archive endpoint).</p>
+          <p className="text-xs text-muted-foreground mt-2">Removes this package from the system.</p>
         </div>
       )}
     </div>
@@ -411,7 +411,7 @@ function DaysTab({
           )}
         </div>
       ))}
-      <p className="text-xs text-muted-foreground">Items loaded via GET /api/packages/:id/preview (no GET …/items endpoint).</p>
+      <p className="text-xs text-muted-foreground">Preview generated based on your package configuration.</p>
     </div>
   );
 }

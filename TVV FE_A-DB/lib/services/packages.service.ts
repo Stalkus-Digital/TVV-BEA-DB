@@ -16,9 +16,7 @@ import {
 } from "@/lib/api/packages";
 import { ApiError } from "@/lib/api/errors";
 import type { Package, Region } from "@/lib/models";
-import { manualPackages } from "@/lib/mock";
 import { imageOrFallback } from "@/lib/adapters/publicApi";
-import { fromManualList } from "@/lib/adapters";
 
 export interface PackageQuery {
   region?: Region;
@@ -30,9 +28,6 @@ export interface PackageQuery {
   sort?: "relevant" | "price-asc" | "price-desc" | "rating" | "duration-asc";
 }
 
-function allUnified(): Package[] {
-  return fromManualList(manualPackages);
-}
 
 function normalizePackageHero(pkg: Package): Package {
   const image = pkg.hero?.image?.trim();
@@ -69,7 +64,6 @@ function applyQuery(list: Package[], q: PackageQuery): Package[] {
 export const packagesService = {
   /** Full list (filtered/sorted/limited). */
   async list(q: PackageQuery = {}): Promise<ServiceResult<Package[]>> {
-    if (apiConfig.useMock) return ok(applyQuery(allUnified(), q), "mock");
     try {
       const rows = (await fetchPackages(q as Record<string, string>)).map(normalizePackageHero);
       return ok(applyQuery(rows, q), "live");
@@ -85,7 +79,6 @@ export const packagesService = {
    * URL params (region, tripType, durationTag, plus any existing params).
    */
   async listRemote(params: Record<string, string> = {}): Promise<ServiceResult<Package[]>> {
-    if (apiConfig.useMock) return ok(applyQuery(allUnified(), {}), "mock");
     try {
       const rows = (await fetchPackages(params)).map(normalizePackageHero);
       return ok(rows, "live");
@@ -96,10 +89,6 @@ export const packagesService = {
 
   /** Single package by frontend slug. */
   async getBySlug(slug: string): Promise<ServiceResult<Package | null>> {
-    if (apiConfig.useMock) {
-      const found = allUnified().find((p) => p.slug === slug) ?? null;
-      return ok(found, "mock");
-    }
     try {
       const pkg = await fetchPackageBySlug(slug);
       return ok(pkg ? normalizePackageHero(pkg) : null, "live");
@@ -110,17 +99,6 @@ export const packagesService = {
 
   /** Related packages — embedded on Travel OS package detail in live mode. */
   async getRelated(slug: string, limit = 6): Promise<ServiceResult<Package[]>> {
-    if (apiConfig.useMock) {
-      const all = allUnified();
-      const me = all.find((p) => p.slug === slug);
-      if (!me) return ok([], "mock");
-      const related = all.filter((p) =>
-        p.slug !== me.slug && (
-          p.region === me.region || (me.themes ?? []).some((t) => p.themes?.includes(t))
-        ),
-      );
-      return ok(related.slice(0, limit), "mock");
-    }
     try {
       const rows = await fetchRelatedPackages(slug, limit);
       return ok(rows.slice(0, limit), "live");
@@ -141,7 +119,6 @@ export const packagesService = {
 
   /** Featured shelf — uses `/api/website/home` in live mode. */
   async featured(limit = 8): Promise<ServiceResult<Package[]>> {
-    if (apiConfig.useMock) return ok(applyQuery(allUnified(), { sort: "relevant", limit }), "mock");
     try {
       const rows = (await fetchFeaturedPackages(limit)).map(normalizePackageHero);
       return ok(rows, "live");

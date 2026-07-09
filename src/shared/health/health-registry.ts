@@ -53,6 +53,13 @@ export class HealthCheckRegistry {
 }
 
 /** App-wide default health registry, seeded with the built-in self and database checks. */
-export const healthCheckRegistry = new HealthCheckRegistry();
+const globalForHealthRegistry = globalThis as unknown as {
+  __app_health_registry: HealthCheckRegistry | undefined;
+};
+
+export const healthCheckRegistry = globalForHealthRegistry.__app_health_registry ?? new HealthCheckRegistry();
+if (process.env.NODE_ENV !== "production") {
+  globalForHealthRegistry.__app_health_registry = healthCheckRegistry;
+}
 healthCheckRegistry.register(new SelfHealthCheck());
 healthCheckRegistry.register(new DatabaseHealthCheck());

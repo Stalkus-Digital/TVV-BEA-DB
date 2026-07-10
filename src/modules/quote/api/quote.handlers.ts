@@ -24,6 +24,10 @@ export async function updateQuoteHandler(id: string, body: unknown): Promise<Res
   return getQuoteService().update(id, body);
 }
 
+export async function deleteQuoteHandler(id: string): Promise<Result<void, AppError>> {
+  return getQuoteService().delete(id);
+}
+
 export async function sendQuoteHandler(id: string, changeNote: string | null): Promise<Result<Quote, AppError>> {
   return getQuoteService().send(id, changeNote);
 }

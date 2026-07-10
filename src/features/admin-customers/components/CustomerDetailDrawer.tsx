@@ -39,7 +39,7 @@ export function CustomerDetailDrawer({ userId, bundle, onClose }: CustomerDetail
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <button type="button" className="absolute inset-0 bg-black/30" onClick={onClose} aria-label="Close customer detail" />
-      <div className="relative w-full max-w-lg h-full bg-card border-l border-border shadow-xl overflow-y-auto">
+      <div className="relative w-full max-w-lg h-full bg-white dark:bg-slate-900 border-l border-border shadow-xl overflow-y-auto">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-6 py-4">
           <div>
             <h2 className="text-lg font-semibold">Customer Detail</h2>
@@ -102,8 +102,8 @@ function CustomerDetailContent({
           <DetailRow label="Last login" value={user.lastLoginAt ? formatCustomerDate(user.lastLoginAt) : "—"} />
         </dl>
         <p className="text-xs text-muted-foreground">
-          Extended profile fields (passport, nationality, preferences) require an admin customer-profile endpoint — only
-          self-service <code className="text-[11px]">/api/me/profile</code> exists today.
+          Extended profile fields (passport, nationality, preferences) require manual verification.
+          Full profile management self-service features exist via the customer account page.
         </p>
       </section>
 
@@ -118,8 +118,7 @@ function CustomerDetailContent({
       <section className="space-y-3">
         <h4 className="text-sm font-semibold">Documents</h4>
         <p className="text-xs text-muted-foreground rounded-lg border border-dashed border-border bg-muted/20 p-3">
-          Customer documents are only available via self-service <code className="text-[11px]">/api/me/documents</code>.
-          No admin documents endpoint exists yet.
+          Customer documents are only available via the secure customer document portal.
         </p>
       </section>
 

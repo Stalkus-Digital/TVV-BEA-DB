@@ -78,6 +78,7 @@ export interface BookingListFilters {
   sortDir?: SortDirection;
   page?: number;
   pageSize?: number;
+  hasItemKind?: string;
 }
 
 export interface Traveller {

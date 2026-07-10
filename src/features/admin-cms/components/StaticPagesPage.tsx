@@ -19,6 +19,7 @@ export function StaticPagesPage() {
   
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({ id: "", title: "", slug: "", status: "DRAFT" });
+  const [pageToDelete, setPageToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPages();
@@ -51,10 +52,11 @@ export function StaticPagesPage() {
     }
   }
 
-  async function deletePage(id: string) {
-    if (!confirm("Are you sure?")) return;
+  async function handleDelete() {
+    if (!pageToDelete) return;
     try {
-      await adminApiClient.delete(`/api/cms/pages/${id}`);
+      await adminApiClient.delete(`/api/cms/pages/${pageToDelete}`);
+      setPageToDelete(null);
       fetchPages();
     } catch (err) {
       alert("Failed to delete page");
@@ -126,7 +128,7 @@ export function StaticPagesPage() {
                   <td className="px-4 py-3">{page.status}</td>
                   <td className="px-4 py-3 text-right space-x-3">
                     <button onClick={() => { setForm({ id: page.id, title: page.title, slug: page.slug, status: page.status }); setIsEditing(true); }} className="text-primary hover:underline">Edit</button>
-                    <button onClick={() => deletePage(page.id)} className="text-destructive hover:underline">Delete</button>
+                    <button onClick={() => setPageToDelete(page.id)} className="text-destructive hover:underline">Delete</button>
                   </td>
                 </tr>
               ))}
@@ -137,6 +139,28 @@ export function StaticPagesPage() {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {pageToDelete && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setPageToDelete(null)} aria-label="Cancel" />
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">Delete Static Page</h3>
+            <p className="text-sm text-muted-foreground">Are you sure you want to delete this page?</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setPageToDelete(null)} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-muted transition-colors">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDelete()}
+                className="px-4 py-2 text-sm rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </CmsPageShell>

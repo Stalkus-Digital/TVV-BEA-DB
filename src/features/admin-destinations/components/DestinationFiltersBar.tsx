@@ -150,7 +150,7 @@ export function DestinationFiltersBar({
         </button>
         <Link
           href="/destinations/new"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary-hover"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary-hover transition-colors shadow-sm"
         >
           <Plus className="h-4 w-4" /> Add Destination
         </Link>

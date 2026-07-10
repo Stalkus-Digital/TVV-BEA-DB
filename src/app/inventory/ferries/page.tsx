@@ -25,6 +25,7 @@ export default function FerryAdminPage() {
     basePrice: "",
     markupPrice: "",
   });
+  const [rateToDelete, setRateToDelete] = useState<string | null>(null);
 
   const fetchRates = async () => {
     try {
@@ -60,10 +61,11 @@ export default function FerryAdminPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure?")) return;
+  const handleDelete = async () => {
+    if (!rateToDelete) return;
     try {
-      await fetch(`/api/admin/ferries?id=${id}`, { method: "DELETE" });
+      await fetch(`/api/admin/ferries?id=${rateToDelete}`, { method: "DELETE" });
+      setRateToDelete(null);
       fetchRates();
     } catch (e) {
       console.error(e);
@@ -137,7 +139,7 @@ export default function FerryAdminPage() {
                   <td className="p-4">₹{rate.basePrice}</td>
                   <td className="p-4 font-medium text-emerald-600">₹{rate.markupPrice}</td>
                   <td className="p-4">
-                    <button onClick={() => handleDelete(rate.id)} className="text-rose-500 hover:text-rose-700">
+                    <button onClick={() => setRateToDelete(rate.id)} className="text-rose-500 hover:text-rose-700">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </td>
@@ -147,6 +149,28 @@ export default function FerryAdminPage() {
           </tbody>
         </table>
       </div>
+
+      {rateToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setRateToDelete(null)} aria-label="Cancel" />
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">Delete Ferry Rate</h3>
+            <p className="text-sm text-muted-foreground">Are you sure you want to delete this ferry rate?</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setRateToDelete(null)} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-muted transition-colors">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDelete()}
+                className="px-4 py-2 text-sm rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

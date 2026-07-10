@@ -26,6 +26,7 @@ export async function fetchBookings(filters: BookingListFilters = {}): Promise<P
   const result = await adminApiClient.get<PaginatedResult<Booking>>(adminEndpoints.bookings, {
     params: {
       status: filters.status,
+      hasItemKind: filters.hasItemKind,
       page: filters.page ?? 1,
       pageSize: filters.pageSize ?? 20,
     },
@@ -36,7 +37,7 @@ export async function fetchBookings(filters: BookingListFilters = {}): Promise<P
   return result;
 }
 
-export async function fetchAllBookings(filters: Pick<BookingListFilters, "status"> = {}): Promise<Booking[]> {
+export async function fetchAllBookings(filters: Pick<BookingListFilters, "status" | "hasItemKind"> = {}): Promise<Booking[]> {
   const pageSize = 20;
   let page = 1;
   let totalPages = 1;

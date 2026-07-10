@@ -90,6 +90,7 @@ function NoteItem({
   const deleteNote = useDeleteEnquiryNoteMutation(enquiryId);
   const [editing, setEditing] = useState(false);
   const [editBody, setEditBody] = useState(body);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   return (
     <div className="rounded-lg border border-border p-3 space-y-2">
@@ -113,7 +114,7 @@ function NoteItem({
             type="button"
             disabled={deleteNote.isPending}
             onClick={() => {
-              if (window.confirm("Delete this note?")) deleteNote.mutate(noteId);
+              setIsConfirmingDelete(true);
             }}
             className="p-1 rounded hover:bg-muted text-destructive"
             title="Delete note"
@@ -152,6 +153,31 @@ function NoteItem({
         </div>
       ) : (
         <p className="text-sm whitespace-pre-wrap">{body}</p>
+      )}
+
+      {isConfirmingDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setIsConfirmingDelete(false)} aria-label="Cancel" />
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">Delete Note</h3>
+            <p className="text-sm text-muted-foreground">Are you sure you want to delete this note?</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setIsConfirmingDelete(false)} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-muted transition-colors">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteNote.mutate(noteId);
+                  setIsConfirmingDelete(false);
+                }}
+                className="px-4 py-2 text-sm rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

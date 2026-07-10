@@ -118,8 +118,14 @@ export async function removeDestinationGalleryImage(id: string, imageId: string)
 }
 
 export async function fetchDestinationCategories(): Promise<DestinationCategory[]> {
-  const result = await adminApiClient.get<PaginatedResult<DestinationCategory>>("/api/destinations/categories");
-  return result?.items ?? [];
+  const result = await adminApiClient.get<DestinationCategory[]>(`${adminEndpoints.destinations}/categories`);
+  return result ?? [];
+}
+
+export async function createDestinationCategory(input: { name: string; slug: string; description?: string }): Promise<DestinationCategory> {
+  const result = await adminApiClient.post<DestinationCategory>(`${adminEndpoints.destinations}/categories`, input);
+  if (!result) throw new Error("Failed to create destination category");
+  return result;
 }
 
 export async function fetchCountries(): Promise<Country[]> {

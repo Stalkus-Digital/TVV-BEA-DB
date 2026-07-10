@@ -42,8 +42,8 @@ export function SystemHealthPanel({ isLoading, isError, errorMessage, onRetry, d
     <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6">
       <div className="flex items-center justify-between pb-4">
         <div>
-          <h3 className="font-semibold leading-none tracking-tight">System Health</h3>
-          <p className="text-sm text-muted-foreground mt-1">Platform services from `/api/system/health`</p>
+          <h2 className="text-xl font-bold tracking-tight text-foreground">System Health</h2>
+          <p className="text-sm text-muted-foreground mt-1">Platform services diagnostics</p>
         </div>
         <Activity className="h-4 w-4 text-muted-foreground" />
       </div>

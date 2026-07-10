@@ -117,6 +117,10 @@ export async function deleteQuoteItem(quoteId: string, itemId: string): Promise<
   await adminApiClient.delete(`${quotePath(quoteId)}/items/${itemId}`);
 }
 
+export async function deleteQuote(id: string): Promise<void> {
+  await adminApiClient.delete(quotePath(id));
+}
+
 export async function fetchQuotePricing(id: string): Promise<QuotePriceResult> {
   const result = await adminApiClient.get<QuotePriceResult>(`${quotePath(id)}/pricing`);
   if (!result) throw new Error("Pricing unavailable");

@@ -7,6 +7,8 @@ import {
   addPackageFaq,
   removeDestinationFaq,
   removePackageFaq,
+  updateDestinationFaq,
+  updatePackageFaq,
   updateDestinationFeatured,
   updateDestinationSeo,
   updatePackageSeo,
@@ -77,6 +79,27 @@ export function useRemoveFaqMutation() {
     }) => {
       if (parentType === "destination") return removeDestinationFaq(parentId, faqId);
       return removePackageFaq(parentId, faqId);
+    },
+    onSuccess: invalidate,
+  });
+}
+
+export function useUpdateFaqMutation() {
+  const invalidate = useInvalidateCmsQueries();
+  return useMutation({
+    mutationFn: async ({
+      parentType,
+      parentId,
+      faqId,
+      input,
+    }: {
+      parentType: "destination" | "package";
+      parentId: string;
+      faqId: string;
+      input: { question: string; answer: string };
+    }) => {
+      if (parentType === "destination") return updateDestinationFaq(parentId, faqId, input);
+      return updatePackageFaq(parentId, faqId, input);
     },
     onSuccess: invalidate,
   });

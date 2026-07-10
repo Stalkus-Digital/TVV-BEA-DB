@@ -1,5 +1,5 @@
 import { err, ok, type PaginatedResult, type PaginationParams, type Result } from "@/shared/types";
-import { NotFoundError, type AppError } from "@/shared/errors";
+import { NotFoundError, InternalError, type AppError } from "@/shared/errors";
 import { prisma } from "@/shared/database/prisma-client";
 import type { Prisma, Destination as PrismaDestinationRow } from "@/generated/prisma/client";
 import type { Destination } from "../types/destination";
@@ -36,18 +36,30 @@ function toWhere(filter: DestinationListFilter): Prisma.DestinationWhereInput {
 
 export class PrismaDestinationRepository implements DestinationRepository {
   async findById(id: string): Promise<Result<Destination | null, AppError>> {
-    const row = await prisma.destination.findUnique({ where: { id } });
-    return ok(row ? toDomain(row) : null);
+    try {
+      const row = await prisma.destination.findUnique({ where: { id } });
+      return ok(row ? toDomain(row) : null);
+    } catch (e: any) {
+      return err(new InternalError(e.message));
+    }
   }
 
   async findBySlug(slug: string): Promise<Result<Destination | null, AppError>> {
-    const row = await prisma.destination.findUnique({ where: { slug } });
-    return ok(row ? toDomain(row) : null);
+    try {
+      const row = await prisma.destination.findUnique({ where: { slug } });
+      return ok(row ? toDomain(row) : null);
+    } catch (e: any) {
+      return err(new InternalError(e.message));
+    }
   }
 
   async findChildren(parentDestinationId: string): Promise<Result<Destination[], AppError>> {
-    const rows = await prisma.destination.findMany({ where: { parentDestinationId } });
-    return ok(rows.map(toDomain));
+    try {
+      const rows = await prisma.destination.findMany({ where: { parentDestinationId } });
+      return ok(rows.map(toDomain));
+    } catch (e: any) {
+      return err(new InternalError(e.message));
+    }
   }
 
   async findMany(params: PaginationParams = {}): Promise<Result<PaginatedResult<Destination>, AppError>> {
@@ -55,26 +67,37 @@ export class PrismaDestinationRepository implements DestinationRepository {
   }
 
   async findByFilter(filter: DestinationListFilter): Promise<Result<PaginatedResult<Destination>, AppError>> {
-    const page = filter.page ?? DEFAULT_PAGE;
-    const pageSize = filter.pageSize ?? DEFAULT_PAGE_SIZE;
-    const where = toWhere(filter);
-    const [rows, total] = await Promise.all([
-      prisma.destination.findMany({ where, skip: (page - 1) * pageSize, take: pageSize, orderBy: { createdAt: "desc" } }),
-      prisma.destination.count({ where }),
-    ]);
-    return ok({ items: rows.map(toDomain), page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) });
+    try {
+      const page = filter.page ?? DEFAULT_PAGE;
+      const pageSize = filter.pageSize ?? DEFAULT_PAGE_SIZE;
+      const where = toWhere(filter);
+      const [rows, total] = await Promise.all([
+        prisma.destination.findMany({ where, skip: (page - 1) * pageSize, take: pageSize, orderBy: { createdAt: "desc" } }),
+        prisma.destination.count({ where }),
+      ]);
+      return ok({ items: rows.map(toDomain), page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) });
+    } catch (e: any) {
+      return err(new InternalError(e.message));
+    }
   }
 
   async create(data: Omit<Destination, "id">): Promise<Result<Destination, AppError>> {
-    const row = await prisma.destination.create({
-      data: {
-        ...data,
-        seo: data.seo as object,
-        gallery: data.gallery as unknown as object,
-        faqs: data.faqs as unknown as object,
-      },
-    });
-    return ok(toDomain(row));
+    try {
+      const row = await prisma.destination.create({
+        data: {
+          ...data,
+          seo: data.seo as object,
+          gallery: data.gallery as unknown as object,
+          faqs: data.faqs as unknown as object,
+          createdAt: new Date(data.createdAt),
+          updatedAt: new Date(data.updatedAt),
+        },
+      });
+      return ok(toDomain(row));
+    } catch (e: any) {
+      console.error("Prisma destination.create failed:", e);
+      return err(new InternalError(e.message || "Failed to create destination in database"));
+    }
   }
 
   async update(id: string, data: Partial<Omit<Destination, "id">>): Promise<Result<Destination, AppError>> {

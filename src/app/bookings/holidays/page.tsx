@@ -1,17 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Luggage, Search, Filter, IndianRupee } from "lucide-react";
+import { Luggage, Search, Filter, IndianRupee, Plus } from "lucide-react";
 import { useBookingsQueryState } from "@/features/admin-bookings/hooks/useBookingsQuery";
+import { BookingCreateDialog } from "@/features/admin-bookings/components/BookingCreateDialog";
 
 export default function HolidayBookingsPage() {
   const [search, setSearch] = useState("");
-  const { data, isLoading } = useBookingsQueryState({ search });
+  const [createOpen, setCreateOpen] = useState(false);
+  const { data, isLoading, refetch } = useBookingsQueryState({ search, hasItemKind: "HOLIDAY_OR_PACKAGE" });
 
-  // Client-side filter: Only bookings for packages (holidays)
-  const holidayBookings = data?.items?.filter(
-    (b) => b.packageId !== null || (b.items && b.items.some(i => i.kind === "PACKAGE"))
-  ) ?? [];
+  const holidayBookings = data?.items ?? [];
 
   return (
     <div className="space-y-6">
@@ -36,9 +35,17 @@ export default function HolidayBookingsPage() {
               className="w-full bg-background border border-input rounded-md pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
-          <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-border rounded-md hover:bg-muted transition-colors">
-            <Filter className="h-4 w-4" /> Filters
-          </button>
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-border rounded-md hover:bg-muted transition-colors">
+              <Filter className="h-4 w-4" /> Filters
+            </button>
+            <button 
+              onClick={() => setCreateOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary-hover transition-colors"
+            >
+              <Plus className="h-4 w-4" /> Create Booking
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -110,6 +117,12 @@ export default function HolidayBookingsPage() {
           </table>
         </div>
       </div>
+
+      <BookingCreateDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={() => void refetch()}
+      />
     </div>
   );
 }

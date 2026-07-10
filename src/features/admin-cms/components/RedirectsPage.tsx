@@ -19,6 +19,7 @@ export function RedirectsPage() {
   
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({ id: "", source: "", target: "", isPermanent: true });
+  const [redirectToDelete, setRedirectToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRedirects();
@@ -51,10 +52,11 @@ export function RedirectsPage() {
     }
   }
 
-  async function deleteRedirect(id: string) {
-    if (!confirm("Are you sure?")) return;
+  async function handleDelete() {
+    if (!redirectToDelete) return;
     try {
-      await adminApiClient.delete(`/api/cms/redirects/${id}`);
+      await adminApiClient.delete(`/api/cms/redirects/${redirectToDelete}`);
+      setRedirectToDelete(null);
       fetchRedirects();
     } catch (err) {
       alert("Failed to delete redirect");
@@ -125,7 +127,7 @@ export function RedirectsPage() {
                   <td className="px-4 py-3">{redirect.isPermanent ? "301 (Permanent)" : "302 (Temporary)"}</td>
                   <td className="px-4 py-3 text-right space-x-3">
                     <button onClick={() => { setForm({ id: redirect.id, source: redirect.source, target: redirect.target, isPermanent: redirect.isPermanent }); setIsEditing(true); }} className="text-primary hover:underline">Edit</button>
-                    <button onClick={() => deleteRedirect(redirect.id)} className="text-destructive hover:underline">Delete</button>
+                    <button onClick={() => setRedirectToDelete(redirect.id)} className="text-destructive hover:underline">Delete</button>
                   </td>
                 </tr>
               ))}
@@ -136,6 +138,28 @@ export function RedirectsPage() {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {redirectToDelete && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setRedirectToDelete(null)} aria-label="Cancel" />
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">Delete Redirect</h3>
+            <p className="text-sm text-muted-foreground">Are you sure you want to delete this redirect?</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setRedirectToDelete(null)} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-muted transition-colors">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDelete()}
+                className="px-4 py-2 text-sm rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </CmsPageShell>

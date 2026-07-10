@@ -8,7 +8,7 @@ export async function fetchUsers(params: {
   pageSize?: number;
   isActive?: boolean;
 }): Promise<PaginatedResult<PublicUser>> {
-  const result = await adminApiClient.get<PaginatedResult<PublicUser>>(adminEndpoints.users, {
+  const result = await adminApiClient.get<PaginatedResult<PublicUser>>(adminEndpoints.customers, {
     params: {
       page: params.page ?? 1,
       pageSize: params.pageSize ?? 20,

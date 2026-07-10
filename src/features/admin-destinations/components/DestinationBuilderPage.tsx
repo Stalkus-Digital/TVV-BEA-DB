@@ -13,10 +13,12 @@ import {
   useAddGalleryImageMutation,
   useCreateDestinationMutation,
   useUpdateDestinationMutation,
+  useCreateCategoryMutation,
 } from "../hooks/useDestinationMutations";
 import { useDestinationQuery } from "../hooks/useDestinationQuery";
 import {
   useDestinationBreadcrumbsQuery,
+  useDestinationCategoriesQuery,
   useDestinationChildrenQuery,
   useDestinationNearbyQuery,
   useCountriesQuery,
@@ -59,6 +61,7 @@ export function DestinationBuilderPage() {
   const [parentDestinationId, setParentDestinationId] = useState("");
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
 
+  const categoriesQuery = useDestinationCategoriesQuery();
   const countriesQuery = useCountriesQuery();
   const statesQuery = useStatesQuery(countryId || undefined);
   const regionsQuery = useRegionsQuery(countryId || undefined);
@@ -169,7 +172,8 @@ export function DestinationBuilderPage() {
                 onDescriptionChange={setDescription}
                 destinationId={destinationId}
                 categoryIds={categoryIds}
-                categories={[]} // Categories need to be fetched if they are used here, for now passing empty array as it was from geo?.categories
+                categories={categoriesQuery.data ?? []}
+                isLoadingCategories={categoriesQuery.isLoading}
                 onCategoryChange={setCategoryIds}
               />
             )}
@@ -262,6 +266,7 @@ function BasicStep({
   destinationId,
   categoryIds,
   categories,
+  isLoadingCategories,
   onCategoryChange,
 }: {
   name: string;
@@ -273,9 +278,25 @@ function BasicStep({
   destinationId: string | null;
   categoryIds: string[];
   categories: { id: string; name: string }[];
+  isLoadingCategories?: boolean;
   onCategoryChange: (ids: string[]) => void;
 }) {
   const updateMutation = useUpdateDestinationMutation(destinationId ?? "");
+  const createCategoryMutation = useCreateCategoryMutation();
+  const [newCategoryName, setNewCategoryName] = useState("");
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    try {
+      const slug = newCategoryName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const category = await createCategoryMutation.mutateAsync({ name: newCategoryName.trim(), slug });
+      onCategoryChange([...categoryIds, category.id]);
+      setNewCategoryName("");
+    } catch (err) {
+      console.error("Failed to create category", err);
+      alert("Failed to create category");
+    }
+  };
 
   return (
     <div className="space-y-4 bg-card border border-border rounded-lg p-6">
@@ -312,21 +333,59 @@ function BasicStep({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Categories</label>
-        <select
-          multiple
-          value={categoryIds}
-          onChange={(e) =>
-            onCategoryChange(Array.from(e.target.selectedOptions, (opt) => opt.value))
-          }
-          className="w-full px-3 py-2 border border-border rounded-md text-sm min-h-[80px]"
-        >
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <label className="block text-sm font-medium mb-2">
+          Categories
+          {isLoadingCategories && <span className="ml-2 text-xs text-muted-foreground">Loading…</span>}
+        </label>
+        {!isLoadingCategories && categories.length === 0 && (
+          <p className="text-sm text-muted-foreground italic">No categories found. Create destination categories first.</p>
+        )}
+        {categories.length > 0 && (
+          <div className="border border-border rounded-md p-3 grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+            {categories.map((c) => (
+              <label key={c.id} className="flex items-center gap-2 cursor-pointer text-sm">
+                <input
+                  type="checkbox"
+                  checked={categoryIds.includes(c.id)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      onCategoryChange([...categoryIds, c.id]);
+                    } else {
+                      onCategoryChange(categoryIds.filter((id) => id !== c.id));
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-border"
+                />
+                {c.name}
+              </label>
+            ))}
+          </div>
+        )}
+        {categoryIds.length > 0 && (
+          <p className="text-xs text-muted-foreground mt-1">{categoryIds.length} selected</p>
+        )}
+        <div className="mt-3 flex items-center gap-2">
+          <input
+            value={newCategoryName}
+            onChange={(e) => setNewCategoryName(e.target.value)}
+            className="flex-1 px-3 py-1 border border-border rounded-md text-sm"
+            placeholder="New Category Name..."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                void handleCreateCategory();
+              }
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => void handleCreateCategory()}
+            disabled={createCategoryMutation.isPending || !newCategoryName.trim()}
+            className="px-3 py-1 text-sm bg-secondary text-secondary-foreground rounded-md disabled:opacity-50 border border-border"
+          >
+            {createCategoryMutation.isPending ? "Adding..." : "Add"}
+          </button>
+        </div>
       </div>
       {destinationId && (
         <button
@@ -462,26 +521,18 @@ function GeographyStep({
       {!locked && (
         <div>
           <label className="block text-sm font-medium mb-1">Parent destination (optional)</label>
-          <input
+          <select
             value={parentDestinationId}
             onChange={(e) => onParentChange(e.target.value)}
-            placeholder="Parent destination UUID"
-            className="w-full px-3 py-2 border border-border rounded-md text-sm font-mono"
-          />
-          {parentOptions.length > 0 && (
-            <select
-              value={parentDestinationId}
-              onChange={(e) => onParentChange(e.target.value)}
-              className="w-full mt-2 px-3 py-2 border border-border rounded-md text-sm"
-            >
-              <option value="">Or pick from list</option>
-              {parentOptions.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          )}
+            className="w-full px-3 py-2 border border-border rounded-md text-sm"
+          >
+            <option value="">None (Top-level destination)</option>
+            {parentOptions.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
           <p className="text-xs text-muted-foreground mt-1">Set at create only — hierarchy from backend.</p>
         </div>
       )}

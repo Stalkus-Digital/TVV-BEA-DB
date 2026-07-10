@@ -1,25 +1,35 @@
 import type { NextRequest } from "next/server";
-import { jsonError, jsonSuccess } from "@/api";
-import { readAuthContextFromHeaders } from "@/modules/auth";
-import { addAdminEnquiryNoteHandler, listAdminEnquiryNotesHandler } from "@/modules/customer";
-import { isErr } from "@/shared/types";
+import { NextResponse } from "next/server";
+import { prisma } from "@/shared/database/prisma-client";
 
-interface RouteParams {
-  params: Promise<{ id: string }>;
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const notes = await prisma.enquiryNote.findMany({
+      where: { enquiryId: id },
+      orderBy: { createdAt: "desc" },
+    });
+    return NextResponse.json(notes);
+  } catch (error) {
+    return NextResponse.json({ success: false, error: "Failed to fetch notes" }, { status: 500 });
+  }
 }
 
-export async function GET(_request: NextRequest, { params }: RouteParams) {
-  const { id } = await params;
-  const result = await listAdminEnquiryNotesHandler(id);
-  if (isErr(result)) return jsonError(result.error);
-  return jsonSuccess(result.value);
-}
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const { body } = await request.json();
 
-export async function POST(request: NextRequest, { params }: RouteParams) {
-  const { id } = await params;
-  const context = readAuthContextFromHeaders(request.headers);
-  const body = await request.json().catch(() => null);
-  const result = await addAdminEnquiryNoteHandler(id, body, context);
-  if (isErr(result)) return jsonError(result.error);
-  return jsonSuccess(result.value, { status: 201 });
+    const note = await prisma.enquiryNote.create({
+      data: {
+        enquiryId: id,
+        body,
+        createdAt: new Date(),
+      },
+    });
+
+    return NextResponse.json(note);
+  } catch (error) {
+    return NextResponse.json({ success: false, error: "Failed to create note" }, { status: 500 });
+  }
 }

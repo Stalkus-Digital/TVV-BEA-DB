@@ -21,6 +21,7 @@ export default function ActivitiesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isSearchingLive, setIsSearchingLive] = useState(false);
   const [alertState, setAlertState] = useState({ isOpen: false, message: "" });
@@ -118,9 +119,14 @@ export default function ActivitiesPage() {
     });
   };
 
-  const removeActivity = async (id: string) => {
-    if (confirm("Are you sure?")) {
-      await deleteMutation.mutateAsync(id);
+  const removeActivity = (id: string) => {
+    setConfirmDeleteId(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (confirmDeleteId) {
+      await deleteMutation.mutateAsync(confirmDeleteId);
+      setConfirmDeleteId(null);
     }
   };
 
@@ -515,6 +521,29 @@ export default function ActivitiesPage() {
         message={alertState.message}
         onClose={() => setAlertState({ isOpen: false, message: "" })}
       />
+
+      {/* Confirm delete dialog */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setConfirmDeleteId(null)} aria-label="Cancel" />
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">Remove Activity</h3>
+            <p className="text-sm text-muted-foreground">Are you sure you want to delete this activity? This action cannot be undone.</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setConfirmDeleteId(null)} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-muted transition-colors">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleConfirmDelete()}
+                className="px-4 py-2 text-sm rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

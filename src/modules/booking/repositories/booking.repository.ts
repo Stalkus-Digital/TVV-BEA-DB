@@ -12,6 +12,7 @@ export interface BookingListFilter extends PaginationParams {
   sourceQuoteId?: string;
   /** Sprint 13 — row-level ownership scoping, e.g. `getBookingService().list({ customerId })`. */
   customerId?: string;
+  hasItemKind?: string;
 }
 
 export interface BookingRepository extends BaseRepository<Booking, string> {
@@ -34,6 +35,16 @@ export class PrismaBookingRepository extends PrismaStore<any> implements Booking
     if (filter.destinationId) where.destinationId = filter.destinationId;
     if (filter.sourceQuoteId) where.sourceQuoteId = filter.sourceQuoteId;
     if (filter.customerId) where.customerId = filter.customerId;
+    if (filter.hasItemKind) {
+      if (filter.hasItemKind === "HOLIDAY_OR_PACKAGE") {
+        where.OR = [
+          { packageId: { not: null } },
+          { items: { some: { kind: "PACKAGE" } } }
+        ];
+      } else {
+        where.items = { some: { kind: filter.hasItemKind } };
+      }
+    }
 
     const [items, total] = await Promise.all([
       this.delegate.findMany({

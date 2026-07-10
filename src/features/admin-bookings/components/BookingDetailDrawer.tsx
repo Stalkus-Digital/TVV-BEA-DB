@@ -58,7 +58,7 @@ export function BookingDetailDrawer({ bookingId, users, bundle, onClose }: Booki
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <button type="button" className="absolute inset-0 bg-black/30" onClick={onClose} aria-label="Close booking detail" />
-      <div className="relative w-full max-w-2xl h-full bg-card border-l border-border shadow-xl overflow-y-auto">
+      <div className="relative w-full max-w-2xl h-full bg-white dark:bg-slate-900 border-l border-border shadow-xl overflow-y-auto">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-6 py-4">
           <div>
             <h2 className="text-lg font-semibold">Booking Detail</h2>

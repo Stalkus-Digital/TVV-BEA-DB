@@ -79,6 +79,26 @@ export async function removePackageFaq(id: string, faqId: string): Promise<Packa
   return result;
 }
 
+export async function updateDestinationFaq(
+  id: string,
+  faqId: string,
+  input: { question: string; answer: string }
+): Promise<Destination> {
+  const result = await adminApiClient.patch<Destination>(`${adminEndpoints.destinations}/${id}/faqs/${faqId}`, input);
+  if (!result) throw new Error("Failed to update destination FAQ");
+  return result;
+}
+
+export async function updatePackageFaq(
+  id: string,
+  faqId: string,
+  input: { question: string; answer: string }
+): Promise<Package> {
+  const result = await adminApiClient.patch<Package>(`${adminEndpoints.packages}/${id}/faqs/${faqId}`, input);
+  if (!result) throw new Error("Failed to update package FAQ");
+  return result;
+}
+
 export async function updateCmsConfig(key: string, value: any): Promise<void> {
   const result = await adminApiClient.put(`/api/cms/config`, { key, value });
   if (!result) throw new Error(`Failed to update CMS config ${key}`);

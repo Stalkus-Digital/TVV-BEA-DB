@@ -19,6 +19,7 @@ import { adminQueryKeys } from "@/shared/lib/query-client";
 function serializeFilters(filters: BookingListFilters) {
   return {
     status: filters.status ?? "",
+    hasItemKind: filters.hasItemKind ?? "",
     paymentStatus: filters.paymentStatus ?? "",
     search: filters.search ?? "",
     dateFrom: filters.dateFrom ?? "",
@@ -42,7 +43,7 @@ export function useBookingsQuery(filters: BookingListFilters) {
       const usersById = new Map(users.map((user) => [user.id, user]));
 
       if (clientMode) {
-        const all = await fetchAllBookings({ status: filters.status });
+        const all = await fetchAllBookings({ status: filters.status, hasItemKind: filters.hasItemKind });
         let filtered = applyBookingSearch(all, filters.search);
         filtered = applyPaymentStatusFilter(filtered, filters.paymentStatus);
         filtered = applyBookingDateFilter(filtered, filters.dateFrom, filters.dateTo);

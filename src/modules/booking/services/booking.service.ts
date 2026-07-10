@@ -60,6 +60,10 @@ export class BookingService extends BaseService {
     return this.bookings.update(id, { ...validated.value, updatedAt: new Date().toISOString() });
   }
 
+  async delete(id: string): Promise<Result<void, AppError>> {
+    return this.bookings.delete(id);
+  }
+
   /**
    * The ONLY entry point that creates a Booking. Touches Quote exactly
    * once, through Quote's own public convertToBooking() service call — the

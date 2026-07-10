@@ -55,3 +55,45 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Failed to fetch leads" }, { status: 500 });
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    
+    if (!body.name || !body.email) {
+      return NextResponse.json({ success: false, error: "Name and email are required" }, { status: 400 });
+    }
+
+    const lead = await prisma.lead.create({
+      data: {
+        name: body.name,
+        email: body.email,
+        phone: body.phone || "",
+        sourceUrl: body.sourceUrl || "Manual Entry",
+        status: "NEW",
+        createdAt: new Date(),
+      },
+    });
+
+    const mapped = {
+      id: lead.id,
+      type: "GENERAL",
+      name: lead.name,
+      email: lead.email,
+      phone: lead.phone,
+      message: null,
+      destinationSlug: null,
+      packageSlug: null,
+      customerId: null,
+      source: lead.sourceUrl,
+      status: lead.status,
+      assignedToUserId: lead.assignedTo,
+      createdAt: lead.createdAt.toISOString(),
+      updatedAt: lead.createdAt.toISOString(),
+    };
+
+    return NextResponse.json({ success: true, data: mapped });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: "Failed to create lead" }, { status: 500 });
+  }
+}

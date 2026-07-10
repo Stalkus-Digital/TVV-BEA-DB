@@ -102,4 +102,18 @@ export class CustomerProfileService extends BaseService {
     if (isErr(user)) return user;
     return ok(toFullProfile(user.value, profile.value));
   }
+
+  async listCustomers(): Promise<Result<CustomerFullProfile[], AppError>> {
+    const profilesResult = await this.profiles.list();
+    if (isErr(profilesResult)) return profilesResult;
+
+    const fullProfiles: CustomerFullProfile[] = [];
+    for (const profile of profilesResult.value) {
+      const user = await getUserHandler(profile.userId);
+      if (isErr(user)) continue; // skip if user no longer exists
+      fullProfiles.push(toFullProfile(user.value, profile));
+    }
+    
+    return ok(fullProfiles);
+  }
 }

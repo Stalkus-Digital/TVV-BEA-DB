@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plane, Search, Calendar, Users, Briefcase, Plus, Filter, ArrowRight, Check } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plane, Search, Calendar, Users, Briefcase, Plus, Filter, ArrowRight, Check, Trash2, Loader2 } from "lucide-react";
 import { adminApiClient } from "@/lib/admin-api/client";
+import { adminEndpoints } from "@/lib/admin-api/endpoints";
 import { AlertModal } from "@/components/layout/AlertModal";
 
 interface Flight {
@@ -21,13 +23,68 @@ interface Flight {
 // Removed TRIPJACK_MOCK_RESULTS
 
 export default function FlightsPage() {
+  const queryClient = useQueryClient();
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [alertState, setAlertState] = useState({ isOpen: false, message: "" });
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<Flight[] | null>(null);
-  
-  // Tracked/Saved flights
-  const [savedFlights, setSavedFlights] = useState<Flight[]>([]);
+
+  const { data: savedFlightsData, isLoading: isLoadingSaved } = useQuery({
+    queryKey: ["admin", "inventory", "FLIGHT"],
+    queryFn: async () => {
+      const res = await adminApiClient.get<any>(adminEndpoints.inventory, { params: { kind: "FLIGHT", pageSize: 100 } });
+      if (!res) return [];
+      return res.items.map((item: any) => ({
+        id: item.id,
+        carrier: item.details?.carrier || "Unknown",
+        flightNo: item.details?.flightNo || item.title,
+        origin: item.details?.origin || "",
+        destination: item.details?.destination || "",
+        departure: item.details?.departure || "",
+        arrival: item.details?.arrival || "",
+        duration: item.details?.duration || "",
+        fare: item.details?.fare || 0,
+        baggage: item.details?.baggage || "",
+      })) as Flight[];
+    }
+  });
+
+  const savedFlights = savedFlightsData || [];
+
+  const saveMutation = useMutation({
+    mutationFn: async (flight: Flight) => {
+      const payload = {
+        kind: "FLIGHT",
+        title: `${flight.carrier} ${flight.flightNo}`,
+        status: "ACTIVE",
+        details: {
+          carrier: flight.carrier,
+          flightNo: flight.flightNo,
+          origin: flight.origin,
+          destination: flight.destination,
+          departure: flight.departure,
+          arrival: flight.arrival,
+          duration: flight.duration,
+          fare: flight.fare,
+          baggage: flight.baggage,
+        }
+      };
+      return adminApiClient.post(adminEndpoints.inventory, payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "inventory", "FLIGHT"] });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return adminApiClient.delete(`${adminEndpoints.inventory}/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "inventory", "FLIGHT"] });
+    }
+  });
 
   const [searchParams, setSearchParams] = useState({
     origin: "DEL",
@@ -78,9 +135,20 @@ export default function FlightsPage() {
     }
   };
 
-  const saveFlight = (flight: Flight) => {
-    if (!savedFlights.find(f => f.id === flight.id)) {
-      setSavedFlights([flight, ...savedFlights]);
+  const saveFlight = async (flight: Flight) => {
+    if (!savedFlights.find(f => f.flightNo === flight.flightNo && f.departure === flight.departure)) {
+      await saveMutation.mutateAsync(flight);
+    }
+  };
+
+  const removeFlight = async (id: string) => {
+    setConfirmDelete(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (confirmDelete) {
+      await deleteMutation.mutateAsync(confirmDelete);
+      setConfirmDelete(null);
     }
   };
 
@@ -219,14 +287,14 @@ export default function FlightsPage() {
                         </div>
                         <button 
                           onClick={() => saveFlight(flight)}
-                          disabled={isSaved}
+                          disabled={isSaved || saveMutation.isPending}
                           className={`px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors ${
                             isSaved 
                               ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
                               : "bg-emerald-500 hover:bg-emerald-600 text-white"
                           }`}
                         >
-                          {isSaved ? <span className="flex items-center gap-1"><Check className="h-4 w-4"/> Saved</span> : "Select"}
+                          {isSaved ? <span className="flex items-center gap-1"><Check className="h-4 w-4"/> Saved</span> : "Save Flight"}
                         </button>
                       </div>
                     </div>
@@ -277,7 +345,9 @@ export default function FlightsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
-                  {savedFlights.length === 0 ? (
+                  {isLoadingSaved ? (
+                    <tr><td colSpan={6} className="px-6 py-8 text-center text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin mx-auto mb-2" /> Loading tracked flights...</td></tr>
+                  ) : savedFlights.length === 0 ? (
                     <tr><td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">No flights saved yet. Use the search to add flights.</td></tr>
                   ) : (
                     savedFlights.map((flight) => (
@@ -300,7 +370,13 @@ export default function FlightsPage() {
                           ₹{flight.fare.toLocaleString()}
                         </td>
                         <td className="px-6 py-4 text-right whitespace-nowrap">
-                          <button onClick={() => setSavedFlights(savedFlights.filter(f => f.id !== flight.id))} className="text-red-500 hover:underline font-medium text-xs">Remove</button>
+                          <button 
+                            onClick={() => removeFlight(flight.id)} 
+                            disabled={deleteMutation.isPending}
+                            className="text-red-500 hover:text-red-600 hover:underline font-medium text-xs flex items-center justify-end gap-1 ml-auto disabled:opacity-50"
+                          >
+                            <Trash2 className="h-3 w-3" /> Remove
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -317,6 +393,29 @@ export default function FlightsPage() {
         message={alertState.message}
         onClose={() => setAlertState({ isOpen: false, message: "" })}
       />
+
+      {/* Confirm delete dialog */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setConfirmDelete(null)} aria-label="Cancel" />
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">Remove Flight</h3>
+            <p className="text-sm text-muted-foreground">Are you sure you want to stop tracking this flight? This action cannot be undone.</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-muted transition-colors">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleConfirmDelete()}
+                className="px-4 py-2 text-sm rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

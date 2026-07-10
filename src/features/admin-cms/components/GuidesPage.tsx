@@ -18,7 +18,8 @@ export function GuidesPage() {
   const [error, setError] = useState<string | null>(null);
   
   const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState({ id: "", title: "", slug: "", status: "DRAFT" });
+  const [form, setForm] = useState({ id: "", title: "", slug: "", status: "DRAFT", body: "", excerpt: "", metaTitle: "", metaDescription: "", coverImage: "" });
+  const [guideToDelete, setGuideToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchGuides();
@@ -51,10 +52,11 @@ export function GuidesPage() {
     }
   }
 
-  async function deleteGuide(id: string) {
-    if (!confirm("Are you sure?")) return;
+  async function handleDelete() {
+    if (!guideToDelete) return;
     try {
-      await adminApiClient.delete(`/api/cms/guides/${id}`);
+      await adminApiClient.delete(`/api/cms/guides/${guideToDelete}`);
+      setGuideToDelete(null);
       fetchGuides();
     } catch (err) {
       alert("Failed to delete guide");
@@ -75,7 +77,7 @@ export function GuidesPage() {
         {!isEditing && (
           <button
             onClick={() => {
-              setForm({ id: "", title: "", slug: "", status: "DRAFT" });
+              setForm({ id: "", title: "", slug: "", status: "DRAFT", body: "", excerpt: "", metaTitle: "", metaDescription: "", coverImage: "" });
               setIsEditing(true);
             }}
             className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary-hover"
@@ -94,6 +96,31 @@ export function GuidesPage() {
           <div>
             <label className="block text-xs font-medium mb-1">Slug</label>
             <input required value={form.slug} onChange={e => setForm({ ...form, slug: e.target.value })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1">Excerpt (short summary)</label>
+            <input value={form.excerpt} onChange={e => setForm({ ...form, excerpt: e.target.value })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" placeholder="Brief description shown in listings..." />
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1">Cover Image URL</label>
+            <input type="url" value={form.coverImage} onChange={e => setForm({ ...form, coverImage: e.target.value })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" placeholder="https://..." />
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1">Body / Content (Markdown supported)</label>
+            <textarea rows={10} value={form.body} onChange={e => setForm({ ...form, body: e.target.value })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm font-mono" placeholder="Write your guide content here..." />
+          </div>
+          <div className="border-t border-border pt-4">
+            <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wide">SEO</p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium mb-1">Meta Title</label>
+                <input value={form.metaTitle} onChange={e => setForm({ ...form, metaTitle: e.target.value })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Meta Description</label>
+                <textarea rows={2} value={form.metaDescription} onChange={e => setForm({ ...form, metaDescription: e.target.value })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" />
+              </div>
+            </div>
           </div>
           <div>
             <label className="block text-xs font-medium mb-1">Status</label>
@@ -125,8 +152,8 @@ export function GuidesPage() {
                   <td className="px-4 py-3 text-muted-foreground">{guide.slug}</td>
                   <td className="px-4 py-3">{guide.status}</td>
                   <td className="px-4 py-3 text-right space-x-3">
-                    <button onClick={() => { setForm({ id: guide.id, title: guide.title, slug: guide.slug, status: guide.status }); setIsEditing(true); }} className="text-primary hover:underline">Edit</button>
-                    <button onClick={() => deleteGuide(guide.id)} className="text-destructive hover:underline">Delete</button>
+                    <button onClick={() => { setForm({ id: guide.id, title: guide.title, slug: guide.slug, status: guide.status, body: (guide as any).body ?? "", excerpt: (guide as any).excerpt ?? "", metaTitle: (guide as any).metaTitle ?? "", metaDescription: (guide as any).metaDescription ?? "", coverImage: (guide as any).coverImage ?? "" }); setIsEditing(true); }} className="text-primary hover:underline">Edit</button>
+                    <button onClick={() => setGuideToDelete(guide.id)} className="text-destructive hover:underline">Delete</button>
                   </td>
                 </tr>
               ))}
@@ -137,6 +164,28 @@ export function GuidesPage() {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {guideToDelete && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setGuideToDelete(null)} aria-label="Cancel" />
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">Delete Guide</h3>
+            <p className="text-sm text-muted-foreground">Are you sure you want to delete this guide?</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setGuideToDelete(null)} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-muted transition-colors">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDelete()}
+                className="px-4 py-2 text-sm rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </CmsPageShell>

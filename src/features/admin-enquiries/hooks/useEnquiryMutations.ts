@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   assignEnquiry,
+  createEnquiry,
   createEnquiryNote,
   deleteEnquiryNote,
   updateEnquiryNote,
@@ -59,6 +60,18 @@ export function useDeleteEnquiryNoteMutation(enquiryId: string) {
 
   return useMutation({
     mutationFn: (noteId: string) => deleteEnquiryNote(enquiryId, noteId),
-    onSuccess: () => invalidateEnquiryQueries(queryClient, enquiryId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.enquiries.notes(enquiryId) });
+    },
+  });
+}
+
+export function useCreateEnquiryMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { name: string; email: string; phone?: string; sourceUrl?: string }) => createEnquiry(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "enquiries"] });
+    },
   });
 }

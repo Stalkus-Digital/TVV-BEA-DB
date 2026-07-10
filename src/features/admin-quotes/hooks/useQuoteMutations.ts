@@ -6,6 +6,7 @@ import {
   approveQuote,
   convertQuote,
   createQuote,
+  deleteQuote,
   deleteQuoteItem,
   duplicateQuote,
   rejectQuote,
@@ -32,6 +33,14 @@ export function useCreateQuoteMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateQuoteInput) => createQuote(input),
+    onSuccess: () => invalidateQuoteQueries(queryClient),
+  });
+}
+
+export function useDeleteQuoteMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (quoteId: string) => deleteQuote(quoteId),
     onSuccess: () => invalidateQuoteQueries(queryClient),
   });
 }

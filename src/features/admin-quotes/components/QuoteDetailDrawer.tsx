@@ -12,6 +12,7 @@ import {
   useApproveQuoteMutation,
   useConvertQuoteMutation,
   useDeleteQuoteItemMutation,
+  useDeleteQuoteMutation,
   useDuplicateQuoteMutation,
   useRejectQuoteMutation,
   useSendQuoteMutation,
@@ -55,7 +56,7 @@ export function QuoteDetailDrawer({ quoteId, users, bundle, onClose, onSelectQuo
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <button type="button" className="absolute inset-0 bg-black/30" onClick={onClose} aria-label="Close quote detail" />
-      <div className="relative w-full max-w-2xl h-full bg-card border-l border-border shadow-xl overflow-y-auto">
+      <div className="relative w-full max-w-2xl h-full bg-white dark:bg-slate-900 border-l border-border shadow-xl overflow-y-auto">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-6 py-4">
           <div>
             <h2 className="text-lg font-semibold">Quote Detail</h2>
@@ -127,12 +128,14 @@ function QuoteDetailContent({
   const convertQuote = useConvertQuoteMutation(quote.id);
   const addItem = useAddQuoteItemMutation(quote.id);
   const deleteItem = useDeleteQuoteItemMutation(quote.id);
+  const deleteQuote = useDeleteQuoteMutation();
 
   const [rejectReason, setRejectReason] = useState("");
   const [sendNote, setSendNote] = useState("");
   const [convertResult, setConvertResult] = useState<string | null>(null);
   const [editNotes, setEditNotes] = useState(quote.internalNotes ?? "");
   const [newItem, setNewItem] = useState({ title: "", quantity: 1, unitPrice: 0 });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const timeline = useMemo(() => buildQuoteTimeline(quote, versions), [quote, versions]);
   const relatedEnquiries = getRelatedEnquiriesForQuote(quote, bundle, users);
@@ -253,9 +256,44 @@ function QuoteDetailContent({
         )}
         {convertResult && <p className="text-xs text-emerald-700">{convertResult}</p>}
         <p className="text-xs text-muted-foreground">
-          Delete quote is not supported.
+          Delete quote permanently removes it from the system. This cannot be undone.
         </p>
+        <button
+          type="button"
+          onClick={() => setShowDeleteConfirm(true)}
+          className="text-xs px-3 py-1.5 rounded-md border border-destructive text-destructive hover:bg-destructive/10 transition-colors"
+        >
+          Delete Quote
+        </button>
       </section>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+          <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(false)} aria-label="Cancel" />
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">Delete Quote</h3>
+            <p className="text-sm text-muted-foreground">Are you sure? This will permanently delete <strong>{quote.quoteNumber}</strong> and cannot be undone.</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-muted transition-colors">
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleteQuote.isPending}
+                onClick={() => {
+                  void deleteQuote.mutateAsync(quote.id).then(() => {
+                    setShowDeleteConfirm(false);
+                    // close the drawer from parent — we signal via a close request
+                  });
+                }}
+                className="px-4 py-2 text-sm rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50"
+              >
+                {deleteQuote.isPending ? "Deleting..." : "Delete permanently"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <section className="space-y-3">
         <h4 className="text-sm font-semibold">Customer relationship</h4>

@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     status: (status as BookingStatus) ?? undefined,
     destinationId: searchParams.get("destinationId") ?? undefined,
     sourceQuoteId: searchParams.get("sourceQuoteId") ?? undefined,
+    hasItemKind: searchParams.get("hasItemKind") ?? undefined,
     page: searchParams.get("page") ? Number(searchParams.get("page")) : undefined,
     pageSize: searchParams.get("pageSize") ? Number(searchParams.get("pageSize")) : undefined,
   });

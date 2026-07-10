@@ -14,4 +14,5 @@ export type UpsertCustomerProfileData = Partial<Omit<CustomerProfile, "id" | "us
 export interface CustomerProfileRepository {
   findByUserId(userId: string): Promise<Result<CustomerProfile | null, AppError>>;
   upsert(userId: string, data: UpsertCustomerProfileData): Promise<Result<CustomerProfile, AppError>>;
+  list(): Promise<Result<CustomerProfile[], AppError>>;
 }

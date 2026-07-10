@@ -42,6 +42,10 @@ export class QuoteService extends BaseService {
     return this.quotes.findByFilter(filter);
   }
 
+  async delete(id: string): Promise<Result<void, AppError>> {
+    return this.quotes.delete(id);
+  }
+
   async getById(id: string): Promise<Result<Quote, AppError>> {
     const result = await this.quotes.findById(id);
     if (isErr(result)) return result;

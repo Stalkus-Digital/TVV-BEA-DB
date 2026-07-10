@@ -182,6 +182,20 @@ export class DestinationService extends BaseService {
     return this.repository.update(id, { faqs });
   }
 
+  async updateFaq(id: string, faqId: string, input: unknown): Promise<Result<Destination, AppError>> {
+    const existing = await this.getById(id);
+    if (isErr(existing)) return existing;
+    const validated = validateCreateFaq(input);
+    if (isErr(validated)) return validated;
+    const faqs = existing.value.faqs.map((f) =>
+      f.id === faqId ? { ...f, question: validated.value.question, answer: validated.value.answer } : f
+    );
+    if (!faqs.some((f) => f.id === faqId)) {
+      return err(new NotFoundError(`FAQ ${faqId} not found`));
+    }
+    return this.repository.update(id, { faqs });
+  }
+
   async addGalleryImage(id: string, input: unknown): Promise<Result<Destination, AppError>> {
     const existing = await this.getById(id);
     if (isErr(existing)) return existing;

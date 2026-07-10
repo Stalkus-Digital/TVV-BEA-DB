@@ -1,17 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Receipt, Search, Filter, IndianRupee } from "lucide-react";
+import { Receipt, Search, Filter, IndianRupee, Plus } from "lucide-react";
 import { useBookingsQueryState } from "@/features/admin-bookings/hooks/useBookingsQuery";
+import { BookingCreateDialog } from "@/features/admin-bookings/components/BookingCreateDialog";
 
 export default function HotelBookingsPage() {
   const [search, setSearch] = useState("");
-  const { data, isLoading } = useBookingsQueryState({ search });
+  const [createOpen, setCreateOpen] = useState(false);
+  const { data, isLoading, refetch } = useBookingsQueryState({ search, hasItemKind: "HOTEL" });
 
-  // Client-side filter: Only bookings containing HOTEL items
-  const hotelBookings = data?.items?.filter(
-    (b) => b.items && b.items.some((i) => i.kind === "HOTEL")
-  ) ?? [];
+  const hotelBookings = data?.items ?? [];
 
   return (
     <div className="space-y-6">
@@ -36,9 +35,17 @@ export default function HotelBookingsPage() {
               className="w-full bg-background border border-input rounded-md pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
-          <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-border rounded-md hover:bg-muted transition-colors">
-            <Filter className="h-4 w-4" /> Filters
-          </button>
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-border rounded-md hover:bg-muted transition-colors">
+              <Filter className="h-4 w-4" /> Filters
+            </button>
+            <button 
+              onClick={() => setCreateOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary-hover transition-colors"
+            >
+              <Plus className="h-4 w-4" /> Create Booking
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -109,6 +116,12 @@ export default function HotelBookingsPage() {
           </table>
         </div>
       </div>
+
+      <BookingCreateDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={() => void refetch()}
+      />
     </div>
   );
 }

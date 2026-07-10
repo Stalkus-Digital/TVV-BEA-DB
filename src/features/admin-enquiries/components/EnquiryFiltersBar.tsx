@@ -10,6 +10,7 @@ interface EnquiryFiltersBarProps {
   onSearchChange: (value: string) => void;
   onFiltersChange: (patch: Partial<EnquiryListFilters>) => void;
   onRefresh: () => void;
+  onCreate?: () => void;
   isRefreshing?: boolean;
 }
 
@@ -19,6 +20,7 @@ export function EnquiryFiltersBar({
   onSearchChange,
   onFiltersChange,
   onRefresh,
+  onCreate,
   isRefreshing,
 }: EnquiryFiltersBarProps) {
   return (
@@ -34,15 +36,27 @@ export function EnquiryFiltersBar({
             className="w-full bg-background border border-input rounded-md pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={isRefreshing}
-          className="inline-flex items-center gap-2 self-start rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-muted transition-colors disabled:opacity-60"
-        >
-          <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-muted transition-colors disabled:opacity-60"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+          
+          {onCreate && (
+            <button
+              type="button"
+              onClick={onCreate}
+              className="inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm font-medium hover:bg-primary/90 transition-colors"
+            >
+              Add Lead
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

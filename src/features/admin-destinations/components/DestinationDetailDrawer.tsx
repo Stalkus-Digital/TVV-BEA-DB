@@ -61,7 +61,7 @@ export function DestinationDetailDrawer({
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <button type="button" className="absolute inset-0 bg-black/30" onClick={onClose} aria-label="Close destination detail" />
-      <div className="relative w-full max-w-2xl h-full bg-card border-l border-border shadow-xl flex flex-col">
+      <div className="relative w-full max-w-2xl h-full bg-white dark:bg-slate-900 border-l border-border shadow-xl flex flex-col">
         <div className="sticky top-0 z-10 border-b border-border bg-card shrink-0">
           <div className="flex items-center justify-between px-6 py-4">
             <div>
@@ -147,6 +147,7 @@ function OverviewTab({
   const [featured, setFeatured] = useState(destination.isFeatured);
   const updateMutation = useUpdateDestinationMutation(destinationId);
   const archiveMutation = useArchiveDestinationMutation(destinationId);
+  const [isConfirmingArchive, setIsConfirmingArchive] = useState(false);
   const editable = EDITABLE_DESTINATION_STATUSES.includes(destination.status);
 
   return (
@@ -237,13 +238,36 @@ function OverviewTab({
           <button
             type="button"
             disabled={archiveMutation.isPending}
-            onClick={() => {
-              if (window.confirm("Archive this destination?")) void archiveMutation.mutateAsync();
-            }}
+            onClick={() => setIsConfirmingArchive(true)}
             className="px-4 py-2 text-sm border border-amber-300 text-amber-800 rounded-md hover:bg-amber-50 disabled:opacity-50"
           >
             Archive destination
           </button>
+        </div>
+      )}
+
+      {isConfirmingArchive && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setIsConfirmingArchive(false)} aria-label="Cancel" />
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">Archive Destination</h3>
+            <p className="text-sm text-muted-foreground">Are you sure you want to archive this destination? It will be hidden from the website.</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setIsConfirmingArchive(false)} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-muted transition-colors">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void archiveMutation.mutateAsync();
+                  setIsConfirmingArchive(false);
+                }}
+                className="px-4 py-2 text-sm rounded-md bg-amber-600 text-white hover:bg-amber-700 transition-colors"
+              >
+                Archive
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

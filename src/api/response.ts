@@ -24,11 +24,15 @@ export function apiSuccess<T>(data: T, meta?: Record<string, unknown>): ApiSucce
   return meta ? { success: true, data, meta } : { success: true, data };
 }
 
+function isAppError(error: unknown): error is AppError {
+  return typeof error === "object" && error !== null && "code" in error && "statusCode" in error;
+}
+
 export function apiError(error: unknown): ApiErrorResponse {
-  if (error instanceof AppError) {
+  if (isAppError(error)) {
     return {
       success: false,
-      error: { code: error.code, message: error.message, details: error.details },
+      error: { code: error.code as string, message: error.message as string, details: error.details },
     };
   }
   // Non-AppError (unexpected) errors never leak their raw message/stack to the response body.
@@ -39,6 +43,6 @@ export function apiError(error: unknown): ApiErrorResponse {
 }
 
 export function statusForError(error: unknown): number {
-  if (error instanceof AppError) return error.statusCode;
+  if (isAppError(error)) return error.statusCode as number;
   return 500;
 }

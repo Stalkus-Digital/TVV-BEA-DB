@@ -55,7 +55,7 @@ export function useWebsiteHomeQuery() {
   });
 }
 
-export async function useWebsiteNavigationQuery() {
+export function useWebsiteNavigationQuery() {
   return useQuery({
     queryKey: adminQueryKeys.marketing.websiteNavigation,
     queryFn: fetchWebsiteNavigation,

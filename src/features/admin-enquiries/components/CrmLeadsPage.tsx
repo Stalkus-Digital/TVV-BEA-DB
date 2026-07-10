@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CrmKanbanBoard } from "./CrmKanbanBoard";
 import { EnquiryFiltersBar } from "./EnquiryFiltersBar";
 import { LeadDetailDrawer } from "./LeadDetailDrawer";
+import { LeadCreateDialog } from "./LeadCreateDialog";
 import { useAllEnquiriesQuery } from "../hooks/useEnquiriesQuery";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import type { EnquiryListFilters } from "../types";
@@ -12,6 +13,7 @@ export function CrmLeadsPage() {
   const [filters, setFilters] = useState<EnquiryListFilters>({});
   const [searchInput, setSearchInput] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const debouncedSearch = useDebouncedValue(searchInput);
 
   const queryFilters = { ...filters, search: debouncedSearch };
@@ -30,6 +32,7 @@ export function CrmLeadsPage() {
           onSearchChange={setSearchInput}
           onFiltersChange={(patch) => setFilters((current) => ({ ...current, ...patch }))}
           onRefresh={() => void enquiriesQuery.refetch()}
+          onCreate={() => setCreateOpen(true)}
           isRefreshing={enquiriesQuery.isFetching}
         />
       </div>
@@ -46,6 +49,12 @@ export function CrmLeadsPage() {
       </div>
 
       <LeadDetailDrawer enquiryId={selectedId} onClose={() => setSelectedId(null)} />
+      
+      <LeadCreateDialog 
+        open={createOpen} 
+        onClose={() => setCreateOpen(false)} 
+        onCreated={(id) => setSelectedId(id)} 
+      />
     </div>
   );
 }

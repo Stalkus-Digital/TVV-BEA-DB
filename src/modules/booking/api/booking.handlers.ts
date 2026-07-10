@@ -20,6 +20,10 @@ export async function updateBookingHandler(id: string, body: unknown): Promise<R
   return getBookingService().update(id, body);
 }
 
+export async function deleteBookingHandler(id: string): Promise<Result<void, AppError>> {
+  return getBookingService().delete(id);
+}
+
 export async function confirmBookingHandler(id: string): Promise<Result<Booking, AppError>> {
   return getBookingService().confirm(id);
 }

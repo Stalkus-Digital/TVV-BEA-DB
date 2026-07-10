@@ -56,6 +56,10 @@ export async function removeDestinationFaqHandler(id: string, faqId: string): Pr
   return getDestinationService().removeFaq(id, faqId);
 }
 
+export async function updateDestinationFaqHandler(id: string, faqId: string, body: unknown): Promise<Result<Destination, AppError>> {
+  return getDestinationService().updateFaq(id, faqId, body);
+}
+
 export async function addDestinationGalleryImageHandler(
   id: string,
   body: unknown

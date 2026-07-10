@@ -4,7 +4,7 @@ import type { PaginatedResult } from "@/lib/admin-api/types";
 import type { Enquiry, EnquiryListFilters, EnquiryNote, EnquiryStatus, PaginatedEnquiries } from "../types";
 
 function enquiryPath(id: string) {
-  return `${adminEndpoints.enquiries}/${id}`;
+  return `${adminEndpoints.enquiriesInbox}/${id}`;
 }
 
 function notesPath(enquiryId: string, noteId?: string) {
@@ -12,7 +12,7 @@ function notesPath(enquiryId: string, noteId?: string) {
 }
 
 export async function fetchEnquiries(filters: EnquiryListFilters = {}): Promise<PaginatedEnquiries> {
-  const result = await adminApiClient.get<PaginatedResult<Enquiry>>(adminEndpoints.enquiries, {
+  const result = await adminApiClient.get<PaginatedResult<Enquiry>>(adminEndpoints.enquiriesInbox, {
     params: {
       status: filters.status,
       type: filters.type,
@@ -60,6 +60,12 @@ export async function updateEnquiryStatus(id: string, status: EnquiryStatus): Pr
 export async function assignEnquiry(id: string, assignedToUserId: string | null): Promise<Enquiry> {
   const result = await adminApiClient.patch<Enquiry>(`${enquiryPath(id)}/assign`, { assignedToUserId });
   if (!result) throw new Error("Failed to assign enquiry");
+  return result;
+}
+
+export async function createEnquiry(data: { name: string; email: string; phone?: string; sourceUrl?: string }): Promise<Enquiry> {
+  const result = await adminApiClient.post<Enquiry>(adminEndpoints.enquiriesInbox, data);
+  if (!result) throw new Error("Failed to create lead");
   return result;
 }
 

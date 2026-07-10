@@ -4,6 +4,7 @@ export interface ListBookingsQuery {
   status?: BookingStatus;
   destinationId?: string;
   sourceQuoteId?: string;
+  hasItemKind?: string;
   page?: number;
   pageSize?: number;
 }

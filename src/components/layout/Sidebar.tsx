@@ -54,7 +54,6 @@ const navGroups = [
       { name: "Hotels", href: "/itinerary/hotels", icon: Hotel },
       { name: "Activities", href: "/itinerary/activities", icon: Compass },
       { name: "Destinations", href: "/destinations", icon: MapPin },
-      { name: "Trip Jack Packages", href: "/itinerary/tripjack", icon: Layers },
       { name: "AI Package builder", href: "/ai-studio", icon: Wand2 },
     ]
   },

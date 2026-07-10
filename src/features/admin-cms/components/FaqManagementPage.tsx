@@ -3,23 +3,37 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useDebouncedValue } from "@/features/admin-enquiries/hooks/useDebouncedValue";
-import { useAddFaqMutation, useRemoveFaqMutation } from "../hooks/useCmsMutations";
+import { useAddFaqMutation, useRemoveFaqMutation, useUpdateFaqMutation } from "../hooks/useCmsMutations";
 import { useCmsContentQuery } from "../hooks/useCmsQueries";
 import { flattenFaqs } from "../utils";
 import { CmsPageShell } from "./CmsPageShell";
+
+type FlatFaq = ReturnType<typeof flattenFaqs>[number];
 
 export function FaqManagementPage() {
   const cms = useCmsContentQuery();
   const addMutation = useAddFaqMutation();
   const removeMutation = useRemoveFaqMutation();
+  const updateMutation = useUpdateFaqMutation();
+
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "destination" | "package">("all");
   const [showAdd, setShowAdd] = useState(false);
+
+  // Add form state
   const [parentType, setParentType] = useState<"destination" | "package">("destination");
   const [parentId, setParentId] = useState("");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // Edit state
+  const [editingFaq, setEditingFaq] = useState<FlatFaq | null>(null);
+  const [editQuestion, setEditQuestion] = useState("");
+  const [editAnswer, setEditAnswer] = useState("");
+  const [editError, setEditError] = useState<string | null>(null);
+  const [faqToDelete, setFaqToDelete] = useState<FlatFaq | null>(null);
+
   const debouncedSearch = useDebouncedValue(search);
 
   const faqs = useMemo(() => flattenFaqs(cms.destinations, cms.packages), [cms.destinations, cms.packages]);
@@ -59,17 +73,44 @@ export function FaqManagementPage() {
     }
   }
 
-  async function handleRemove(faq: (typeof faqs)[number]) {
-    if (!confirm("Remove this FAQ?")) return;
+  async function handleRemove() {
+    if (!faqToDelete) return;
     setError(null);
     try {
       await removeMutation.mutateAsync({
-        parentType: faq.parentType,
-        parentId: faq.parentId,
-        faqId: faq.id,
+        parentType: faqToDelete.parentType,
+        parentId: faqToDelete.parentId,
+        faqId: faqToDelete.id,
       });
+      setFaqToDelete(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to remove FAQ");
+    }
+  }
+
+  function openEdit(faq: FlatFaq) {
+    setEditingFaq(faq);
+    setEditQuestion(faq.question);
+    setEditAnswer(faq.answer);
+    setEditError(null);
+  }
+
+  async function handleUpdate() {
+    if (!editingFaq || !editQuestion.trim() || !editAnswer.trim()) {
+      setEditError("Question and answer are required");
+      return;
+    }
+    setEditError(null);
+    try {
+      await updateMutation.mutateAsync({
+        parentType: editingFaq.parentType,
+        parentId: editingFaq.parentId,
+        faqId: editingFaq.id,
+        input: { question: editQuestion, answer: editAnswer },
+      });
+      setEditingFaq(null);
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "Failed to update FAQ");
     }
   }
 
@@ -144,12 +185,18 @@ export function FaqManagementPage() {
                   </Link>
                 </td>
                 <td className="px-4 py-3 capitalize text-muted-foreground">{faq.parentType}</td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-4 py-3 text-right space-x-2">
                   <button
                     type="button"
-                    disabled={removeMutation.isPending}
-                    onClick={() => void handleRemove(faq)}
-                    className="text-xs text-destructive hover:underline disabled:opacity-50"
+                    onClick={() => openEdit(faq)}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFaqToDelete(faq)}
+                    className="text-destructive hover:underline text-xs"
                   >
                     Remove
                   </button>
@@ -165,10 +212,11 @@ export function FaqManagementPage() {
         </table>
       </div>
 
+      {/* Add FAQ Modal */}
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button type="button" className="absolute inset-0 bg-black/30" onClick={() => setShowAdd(false)} aria-label="Close" />
-          <div className="relative w-full max-w-lg rounded-xl border border-border bg-card p-6 shadow-xl space-y-4">
+          <div className="relative w-full max-w-lg rounded-xl border border-border bg-white dark:bg-slate-900 p-6 shadow-xl space-y-4">
             <h3 className="font-semibold">Add FAQ</h3>
             <label className="block text-sm">
               <span className="text-xs font-medium text-muted-foreground">Parent type</span>
@@ -215,6 +263,7 @@ export function FaqManagementPage() {
                 className="mt-1 w-full bg-background border border-input rounded-md px-3 py-2 text-sm resize-none"
               />
             </label>
+            {error && <p className="text-xs text-destructive">{error}</p>}
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setShowAdd(false)} className="px-3 py-2 text-sm rounded-md border border-border">
                 Cancel
@@ -225,7 +274,74 @@ export function FaqManagementPage() {
                 onClick={() => void handleAdd()}
                 className="px-3 py-2 text-sm rounded-md bg-primary text-primary-foreground disabled:opacity-50"
               >
-                Add FAQ
+                {addMutation.isPending ? "Adding…" : "Add FAQ"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit FAQ Modal */}
+      {editingFaq && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button type="button" className="absolute inset-0 bg-black/30" onClick={() => setEditingFaq(null)} aria-label="Close" />
+          <div className="relative w-full max-w-lg rounded-xl border border-border bg-white dark:bg-slate-900 p-6 shadow-xl space-y-4">
+            <h3 className="font-semibold">Edit FAQ</h3>
+            <p className="text-xs text-muted-foreground">
+              {editingFaq.parentType} — {editingFaq.parentName}
+            </p>
+            <label className="block text-sm">
+              <span className="text-xs font-medium text-muted-foreground">Question</span>
+              <input
+                type="text"
+                value={editQuestion}
+                onChange={(e) => setEditQuestion(e.target.value)}
+                className="mt-1 w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="text-xs font-medium text-muted-foreground">Answer</span>
+              <textarea
+                rows={4}
+                value={editAnswer}
+                onChange={(e) => setEditAnswer(e.target.value)}
+                className="mt-1 w-full bg-background border border-input rounded-md px-3 py-2 text-sm resize-none"
+              />
+            </label>
+            {editError && <p className="text-xs text-destructive">{editError}</p>}
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setEditingFaq(null)} className="px-3 py-2 text-sm rounded-md border border-border">
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={updateMutation.isPending}
+                onClick={() => void handleUpdate()}
+                className="px-3 py-2 text-sm rounded-md bg-primary text-primary-foreground disabled:opacity-50"
+              >
+                {updateMutation.isPending ? "Saving…" : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {faqToDelete && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setFaqToDelete(null)} aria-label="Cancel" />
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">Remove FAQ</h3>
+            <p className="text-sm text-muted-foreground">Are you sure you want to remove this FAQ?</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setFaqToDelete(null)} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-muted transition-colors">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleRemove()}
+                className="px-4 py-2 text-sm rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                Remove
               </button>
             </div>
           </div>

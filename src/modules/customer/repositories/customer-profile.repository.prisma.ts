@@ -81,4 +81,9 @@ export class PrismaCustomerProfileRepository implements CustomerProfileRepositor
     });
     return ok(toDomain(row));
   }
+
+  async list(): Promise<Result<CustomerProfile[], AppError>> {
+    const rows = await prisma.customerProfile.findMany();
+    return ok(rows.map(toDomain));
+  }
 }

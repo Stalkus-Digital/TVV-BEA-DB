@@ -9,6 +9,7 @@ export function LandingPagesManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({ id: "", title: "", slug: "", heroSection: {}, packages: [], faqSection: {} });
+  const [pageToDelete, setPageToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPages();
@@ -41,10 +42,11 @@ export function LandingPagesManager() {
     }
   }
 
-  async function deletePage(id: string) {
-    if (!confirm("Are you sure?")) return;
+  async function handleDelete() {
+    if (!pageToDelete) return;
     try {
-      await adminApiClient.delete(`/api/cms/landing-pages/${id}`);
+      await adminApiClient.delete(`/api/cms/landing-pages/${pageToDelete}`);
+      setPageToDelete(null);
       fetchPages();
     } catch (err) {
       alert("Failed to delete landing page");
@@ -98,12 +100,34 @@ export function LandingPagesManager() {
                 <button className="px-3 py-1 text-sm border rounded hover:bg-muted text-emerald-600" onClick={() => window.open(`/api/admin/landing-pages/${page.id}/export?format=html`, '_blank')}>Export HTML</button>
                 <button className="px-3 py-1 text-sm border rounded hover:bg-muted text-emerald-600" onClick={() => window.open(`/api/admin/landing-pages/${page.id}/export?format=php`, '_blank')}>Export PHP</button>
                 <button className="px-3 py-1 text-sm border rounded hover:bg-muted ml-4" onClick={() => { setForm(page); setIsEditing(true); }}>Edit</button>
-                <button className="px-3 py-1 text-sm border rounded text-destructive hover:bg-destructive/10" onClick={() => deletePage(page.id)}>Delete</button>
+                <button className="px-3 py-1 text-sm border rounded text-destructive hover:bg-destructive/10" onClick={() => setPageToDelete(page.id)}>Delete</button>
               </div>
             </div>
           ))
         )}
       </div>
+
+      {pageToDelete && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setPageToDelete(null)} aria-label="Cancel" />
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">Delete Landing Page</h3>
+            <p className="text-sm text-muted-foreground">Are you sure you want to delete this landing page?</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setPageToDelete(null)} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-muted transition-colors">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDelete()}
+                className="px-4 py-2 text-sm rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </CmsPageShell>
   );
 }

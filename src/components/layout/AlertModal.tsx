@@ -20,7 +20,7 @@ export function AlertModal({ isOpen, title = "Alert", message, onClose }: AlertM
         onClick={onClose} 
         aria-label="Close modal" 
       />
-      <div className="relative w-full max-w-sm rounded-lg border border-border bg-card shadow-xl p-6 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-destructive/10 text-destructive rounded-full">

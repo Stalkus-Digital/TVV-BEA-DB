@@ -18,6 +18,7 @@ export function MediaBrowserPage() {
   const [error, setError] = useState<string | null>(null);
   const uploadMutation = useUploadMediaMutation();
   const deleteMutation = useDeleteMediaMutation();
+  const [fileToDelete, setFileToDelete] = useState<{ key: string, category: StorageCategory } | null>(null);
 
   const uploadsQuery = useQuery({
     queryKey: adminQueryKeys.cms.uploads,
@@ -43,12 +44,12 @@ export function MediaBrowserPage() {
     }
   }
 
-  async function handleDelete(key: string, itemCategory: StorageCategory) {
-    if (!user?.id) return;
-    if (!confirm("Delete this file from storage?")) return;
+  async function handleDelete() {
+    if (!user?.id || !fileToDelete) return;
     setError(null);
     try {
-      await deleteMutation.mutateAsync({ key, category: itemCategory, ownerId: user.id });
+      await deleteMutation.mutateAsync({ key: fileToDelete.key, category: fileToDelete.category, ownerId: user.id });
+      setFileToDelete(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Delete failed");
     }
@@ -144,14 +145,14 @@ export function MediaBrowserPage() {
                   >
                     Copy URL
                   </button>
-                  <button
-                    type="button"
-                    disabled={deleteMutation.isPending}
-                    onClick={() => void handleDelete(item.key, item.category)}
-                    className="text-xs text-destructive hover:underline disabled:opacity-50"
-                  >
-                    Delete
-                  </button>
+                      <button
+                        type="button"
+                        disabled={deleteMutation.isPending}
+                        onClick={() => setFileToDelete({ key: item.key, category: item.category })}
+                        className="text-destructive hover:underline disabled:opacity-50"
+                      >
+                        Delete
+                      </button>
                 </td>
               </tr>
             ))}
@@ -165,6 +166,28 @@ export function MediaBrowserPage() {
           </tbody>
         </table>
       </div>
+
+      {fileToDelete && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setFileToDelete(null)} aria-label="Cancel" />
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">Delete File</h3>
+            <p className="text-sm text-muted-foreground">Are you sure you want to delete this file from storage?</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setFileToDelete(null)} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-muted transition-colors">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDelete()}
+                className="px-4 py-2 text-sm rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </CmsPageShell>
   );
 }

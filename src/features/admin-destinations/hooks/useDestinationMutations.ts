@@ -7,6 +7,7 @@ import {
   addDestinationGalleryImage,
   archiveDestination,
   createDestination,
+  createDestinationCategory,
   removeDestinationFaq,
   removeDestinationGalleryImage,
   updateDestination,
@@ -76,5 +77,13 @@ export function useRemoveGalleryImageMutation(destinationId: string) {
   return useMutation({
     mutationFn: (imageId: string) => removeDestinationGalleryImage(destinationId, imageId),
     onSuccess: () => invalidateDestinationQueries(queryClient, destinationId),
+  });
+}
+
+export function useCreateCategoryMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { name: string; slug: string; description?: string }) => createDestinationCategory(input),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["admin", "destinations", "categories"] }),
   });
 }

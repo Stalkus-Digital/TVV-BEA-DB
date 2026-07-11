@@ -2,6 +2,8 @@ export * from "./flight-search-response.dto";
 export * from "./flight-details-response.dto";
 export * from "./hotel-search-response.dto";
 export * from "./hotel-details-response.dto";
+export * from "./hotel-review-response.dto";
+export * from "./hotel-static-detail-response.dto";
 export * from "./booking-response.dto";
 export * from "./cancellation-response.dto";
 export * from "./fare-rules-response.dto";

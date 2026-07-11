@@ -40,8 +40,8 @@ export class AiGeneratorService extends BaseService {
     });
   }
 
-  async generatePackage(prompt: string, destination: string, duration: string, budget: string): Promise<Result<GeneratedPackage, AppError>> {
-    this.logger.info("Generating AI Package", { destination, duration, budget });
+  async generatePackage(prompt: string, destination: string, duration: string, budget: string, retries = 2): Promise<Result<GeneratedPackage, AppError>> {
+    this.logger.info("Generating AI Package", { destination, duration, budget, retries });
 
     if (!process.env.OPENAI_API_KEY) {
       return err(new InternalError("OpenAI API key is missing"));
@@ -71,18 +71,19 @@ Instructions:
       });
 
       const content = response.choices[0].message.content;
-      if (!content) return err(new InternalError("Failed to parse OpenAI response"));
+      if (!content) throw new Error("Empty content from OpenAI");
+      
       const result = PackageGeneratorSchema.parse(JSON.parse(content));
       
-      if (!result) {
-        return err(new InternalError("Failed to parse OpenAI response"));
-      }
-
       this.logger.info("Successfully generated AI package", { title: result.title });
       return ok(result);
     } catch (error) {
       this.logger.error("OpenAI Generation Error", { error });
-      return err(new InternalError("Failed to generate package via OpenAI"));
+      if (retries > 0) {
+         this.logger.info("Retrying AI package generation...");
+         return this.generatePackage(prompt, destination, duration, budget, retries - 1);
+      }
+      return err(new InternalError("Failed to generate package via OpenAI after retries"));
     }
   }
 }

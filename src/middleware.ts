@@ -59,6 +59,13 @@ import { applyCorsHeaders, applyPreflightHeaders, isPreflightRequest, resolveAll
  * short-circuit runs first, before `isPublicPath`/auth/permission logic,
  * because it must never be gated by any of that.
  */
+function applySecurityHeaders(headers: Headers) {
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("X-Frame-Options", "DENY");
+  headers.set("Content-Security-Policy", "default-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none'");
+  headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const allowedOrigin = resolveAllowedOrigin(request.headers.get("origin"));
@@ -67,6 +74,7 @@ export async function middleware(request: NextRequest) {
     const preflightResponse = new NextResponse(null, { status: 204 });
     applyCorsHeaders(preflightResponse.headers, allowedOrigin);
     applyPreflightHeaders(preflightResponse.headers);
+    applySecurityHeaders(preflightResponse.headers);
     return preflightResponse;
   }
 
@@ -79,6 +87,7 @@ export async function middleware(request: NextRequest) {
     const response = NextResponse.next({ request: { headers: forwardedHeaders } });
     attachRequestContextHeaders(response.headers, requestContext);
     applyCorsHeaders(response.headers, allowedOrigin);
+    applySecurityHeaders(response.headers);
     return response;
   }
 
@@ -87,6 +96,7 @@ export async function middleware(request: NextRequest) {
     const response = jsonError(authResult.error);
     attachRequestContextHeaders(response.headers, requestContext);
     applyCorsHeaders(response.headers, allowedOrigin);
+    applySecurityHeaders(response.headers);
     return response;
   }
 
@@ -105,6 +115,7 @@ export async function middleware(request: NextRequest) {
     const response = jsonError(permissionResult.error);
     attachRequestContextHeaders(response.headers, requestContext);
     applyCorsHeaders(response.headers, allowedOrigin);
+    applySecurityHeaders(response.headers);
     return response;
   }
 
@@ -114,6 +125,7 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request: { headers: forwardedHeaders } });
   attachRequestContextHeaders(response.headers, requestContext);
   applyCorsHeaders(response.headers, allowedOrigin);
+  applySecurityHeaders(response.headers);
   return response;
 }
 

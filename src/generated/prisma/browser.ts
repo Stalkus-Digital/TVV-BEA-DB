@@ -288,3 +288,8 @@ export type MarketingCampaign = Prisma.MarketingCampaignModel
  * 
  */
 export type PageAnalytics = Prisma.PageAnalyticsModel
+/**
+ * Model WebhookEvent
+ * 
+ */
+export type WebhookEvent = Prisma.WebhookEventModel

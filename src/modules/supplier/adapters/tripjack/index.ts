@@ -1,4 +1,4 @@
-import { NotImplementedError, ValidationError, type AppError } from "@/shared/errors";
+import { NotImplementedError, ValidationError, InternalError, type AppError } from "@/shared/errors";
 import { err, isErr, ok, type Result } from "@/shared/types";
 import { BaseSupplierAdapter, type SupplierAdapterContext } from "../base-supplier.adapter";
 import {
@@ -127,8 +127,8 @@ export class TripJackAdapter extends BaseSupplierAdapter {
       const result = await this.client.searchHotels(request);
       if (isErr(result)) return result;
       return ok(
-        result.value.results.map((dto) => ({
-          referenceId: encodeReference(HOTEL_REFERENCE_PREFIX, dto.hotelId, dto.traceId),
+        result.value.hotels.map((dto) => ({
+          referenceId: encodeReference(HOTEL_REFERENCE_PREFIX, dto.tjHotelId, result.value.correlationId ?? "none"),
           ...this.hotelMapper.toInventoryHotel(dto),
         }))
       );
@@ -138,12 +138,28 @@ export class TripJackAdapter extends BaseSupplierAdapter {
       const request = this.toFlightSearchRequest(criteria);
       const result = await this.client.searchFlights(request);
       if (isErr(result)) return result;
-      return ok(
-        result.value.results.map((dto) => ({
-          referenceId: encodeReference(FLIGHT_REFERENCE_PREFIX, dto.resultIndex, dto.traceId),
-          ...this.flightMapper.toInventoryFlight(dto),
-        }))
-      );
+
+      // Real TripJack response: searchResult.tripInfos.{ONWARD|RETURN|COMBO|indexed}
+      // Each value is an array of trip groups; each group has totalPriceList (priceIds) + sI (segments)
+      const tripInfos = result.value.searchResult?.tripInfos ?? {};
+      const mappedResults: SupplierSearchResult[] = [];
+
+      for (const tripGroup of Object.values(tripInfos)) {
+        if (!Array.isArray(tripGroup)) continue;
+        for (const trip of tripGroup) {
+          const priceList = trip.totalPriceList ?? [];
+          const segments = trip.sI ?? [];
+          if (!segments.length || !priceList.length) continue;
+          const firstSegment = segments[0];
+          const cheapestPrice = priceList[0]; // already sorted cheapest-first by TripJack
+          mappedResults.push({
+            referenceId: encodeReference(FLIGHT_REFERENCE_PREFIX, cheapestPrice.id, cheapestPrice.id),
+            ...this.flightMapper.toInventoryFlight(firstSegment),
+          });
+        }
+      }
+
+      return ok(mappedResults);
     }
 
     throw new NotImplementedError(`TripJackAdapter.search() is not implemented for capability "${criteria.capability}"`);
@@ -156,6 +172,15 @@ export class TripJackAdapter extends BaseSupplierAdapter {
     if (decoded.prefix === HOTEL_REFERENCE_PREFIX) return this.hotelDetails(decoded.id, decoded.traceId, referenceId);
     if (decoded.prefix === FLIGHT_REFERENCE_PREFIX) return this.flightDetails(decoded.id, decoded.traceId, referenceId);
     return err(new ValidationError(`Unknown TripJack reference prefix in "${referenceId}"`));
+  }
+
+  /**
+   * Exposes the TripJack Review step as a callable method for the SupplierService.
+   * Required before book() for flights — TripJack OMS rejects bookings
+   * where /fms/v1/review has not been called first.
+   */
+  async reviewFlight(resultIndex: string, traceId: string): Promise<Result<any, AppError>> {
+    return this.client.reviewFlight({ resultIndex, traceId });
   }
 
   override async book(request: SupplierBookingRequest): Promise<Result<SupplierBookingConfirmation, AppError>> {
@@ -173,14 +198,33 @@ export class TripJackAdapter extends BaseSupplierAdapter {
     if (decoded.prefix === HOTEL_REFERENCE_PREFIX) {
       tripjackRequest.hotelId = decoded.id;
     } else {
-      tripjackRequest.resultIndex = decoded.id;
+      // ✅ CF-3 FIX: Use bookingId from a prior Review call if provided.
+      // SupplierService.reviewAndBook() passes this after calling /fms/v1/review.
+      // Never send resultIndex to the OMS book endpoint — TripJack will reject it.
+      if ((request as any).reviewedBookingId) {
+        tripjackRequest.bookingId = (request as any).reviewedBookingId;
+      } else {
+        // Defensive fallback — should never reach here if called via reviewAndBook()
+        return err(new ValidationError(
+          "Flight booking requires a prior Review step. Use reviewAndBook() instead of book() directly."
+        ));
+      }
     }
 
     const result = await this.client.book(tripjackRequest);
     if (isErr(result)) return result;
+
+    const bookingId = result.value.bookingId;
+    if (!bookingId) {
+      // ✅ CF-3b FIX: Fail loudly instead of generating a mock reference
+      return err(new InternalError(
+        "TripJack booking succeeded but returned no bookingId. This indicates a supplier-side error."
+      ));
+    }
+
     return ok({
-      supplierBookingId: result.value.bookingId || "MOCK_TRIPJACK_BKG_" + Date.now(),
-      confirmationReference: result.value.bookingId || "MOCK_TRIPJACK_BKG_" + Date.now(),
+      supplierBookingId: bookingId,
+      confirmationReference: bookingId,
       status: "CONFIRMED",
       timestamp: new Date().toISOString(),
       rawResponse: result.value,
@@ -207,64 +251,113 @@ export class TripJackAdapter extends BaseSupplierAdapter {
   }
 
   /** Hotel Details are cached through the Supplier Runtime's cache abstraction (`RuntimeCache`, in-memory only — no Redis) since static hotel content rarely changes within a session. Nothing else in this connector caches anything yet. */
-  private async hotelDetails(hotelId: string, traceId: string, referenceId: string): Promise<Result<SupplierSearchResult, AppError>> {
-    // Dynamic, not static, import — a top-level `import ... from "@/modules/supplier/runtime"`
-    // here creates a real circular module graph: this adapter is imported by
-    // `../../module.ts` (the Supplier Engine's own module.ts), and the Runtime's
-    // `module.ts` imports `../module` (that exact same file) for `getSupplierRegistry()`.
-    // Deferring the import to call time (well after both modules have finished
-    // their own synchronous evaluation) breaks the cycle without changing either
-    // module.ts file — verified live: a static import here made `TripJackAdapter`
-    // resolve to `undefined` at the Supplier Engine's own registration site.
+  private async hotelDetails(hotelId: string, correlationId: string, referenceId: string, context?: { checkIn?: string; checkOut?: string; rooms?: any[]; currency?: string; nationality?: string }): Promise<Result<SupplierSearchResult, AppError>> {
     const { getRuntimeCache } = await import("@/modules/supplier/runtime");
 
-    const cacheKey = `tripjack:hotel-details:${hotelId}`;
+    const cacheKey = `tripjack:hotel-details:${hotelId}:${context?.checkIn ?? "default"}`;
     const cached = await getRuntimeCache().get<SupplierSearchResult>(cacheKey);
     if (cached) return ok(cached);
 
-    const result = await this.client.getHotelDetails({ hotelId, traceId });
+    // ✅ CF-4 FIX: Derive real dates instead of hardcoded past dates.
+    // Prefer caller-supplied dates (from search context); fall back to a
+    // reasonable default (check-in tomorrow, check-out the day after) so
+    // TripJack never sees a past date.
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayAfter = new Date(tomorrow);
+    dayAfter.setDate(dayAfter.getDate() + 1);
+    const fmt = (d: Date) => d.toISOString().split("T")[0];
+
+    const checkIn = context?.checkIn ?? fmt(tomorrow);
+    const checkOut = context?.checkOut ?? fmt(dayAfter);
+    const currency = context?.currency ?? "INR";
+    const nationality = context?.nationality ?? "106";
+    const rooms = context?.rooms ?? [{ adults: 1 }];
+
+    const result = await this.client.getHotelDetails({
+      hid: hotelId,
+      correlationId,
+      checkIn,
+      checkOut,
+      currency,
+      nationality,
+      rooms,
+    });
     if (isErr(result)) return result;
+
+    const firstOption = result.value.options?.[0];
 
     const mapped: SupplierSearchResult = {
       referenceId,
-      ...this.hotelMapper.toInventoryHotel(result.value),
-      amenities: result.value.amenities,
-      cancellationPolicy: result.value.cancellationPolicy,
+      title: result.value.hotelName,
+      options: result.value.options,
+      cancellationPolicy: firstOption?.cancellation,
     };
     await getRuntimeCache().set(cacheKey, mapped, HOTEL_DETAILS_CACHE_TTL_MS);
     return ok(mapped);
   }
 
   private async flightDetails(resultIndex: string, traceId: string, referenceId: string): Promise<Result<SupplierSearchResult, AppError>> {
-    const result = await this.client.getFlightDetails({ resultIndex, traceId });
+    // getFlightDetails calls /fms/v1/review — returns bookingId + tripInfos with sI segments
+    const result = await this.client.getFlightDetails({ resultIndex, traceId } as any);
     if (isErr(result)) return result;
+    // Extract first segment for mapping — Review returns full trip details with sI array
+    const firstSegment = result.value.sI?.[0];
+    if (!firstSegment) {
+      // Review succeeded but no segment data — return minimal result
+      return ok({ referenceId, baggageAllowance: result.value.baggageAllowance, refundable: result.value.refundable ?? false } as any);
+    }
     return ok({
       referenceId,
-      ...this.flightMapper.toInventoryFlight(result.value),
+      ...this.flightMapper.toInventoryFlight(firstSegment),
       baggageAllowance: result.value.baggageAllowance,
-      refundable: result.value.refundable,
+      refundable: result.value.refundable ?? false,
     });
   }
 
   private toHotelSearchRequest(criteria: SupplierSearchCriteria): TripJackHotelSearchRequestDTO {
     return {
-      cityCode: typeof criteria.cityCode === "string" ? criteria.cityCode : "",
+      hids: Array.isArray(criteria.hotelIds) ? criteria.hotelIds.map(id => Number(id)) : (criteria.cityCode ? [] : []), // Ideally mapped from cityCode by UI
       checkIn: typeof criteria.checkIn === "string" ? criteria.checkIn : "",
       checkOut: typeof criteria.checkOut === "string" ? criteria.checkOut : "",
-      rooms: Array.isArray(criteria.rooms) ? (criteria.rooms as { adults: number; children?: number }[]) : [{ adults: 1 }],
+      rooms: Array.isArray(criteria.rooms) ? (criteria.rooms as any) : [{ adults: 1 }],
+      currency: typeof criteria.currency === "string" ? criteria.currency : "INR",
+      nationality: typeof criteria.nationality === "string" ? criteria.nationality : "106",
+      correlationId: crypto.randomUUID(),
     };
   }
 
   private toFlightSearchRequest(criteria: SupplierSearchCriteria): TripJackFlightSearchRequestDTO {
+    const routeInfos: TripJackFlightSearchRequestDTO["searchQuery"]["routeInfos"] = [
+      {
+        fromCityOrAirport: { code: typeof criteria.origin === "string" ? criteria.origin : "" },
+        toCityOrAirport: { code: typeof criteria.destination === "string" ? criteria.destination : "" },
+        travelDate: typeof criteria.departureDate === "string" ? criteria.departureDate : "",
+      },
+    ];
+
+    // Return flights: add a second leg
+    if (typeof criteria.returnDate === "string" && criteria.returnDate) {
+      routeInfos.push({
+        fromCityOrAirport: { code: typeof criteria.destination === "string" ? criteria.destination : "" },
+        toCityOrAirport: { code: typeof criteria.origin === "string" ? criteria.origin : "" },
+        travelDate: criteria.returnDate,
+      });
+    }
+
     return {
-      origin: typeof criteria.origin === "string" ? criteria.origin : "",
-      destination: typeof criteria.destination === "string" ? criteria.destination : "",
-      departureDate: typeof criteria.departureDate === "string" ? criteria.departureDate : "",
-      returnDate: typeof criteria.returnDate === "string" ? criteria.returnDate : undefined,
-      adults: typeof criteria.adults === "number" ? criteria.adults : 1,
-      children: typeof criteria.children === "number" ? criteria.children : undefined,
-      infants: typeof criteria.infants === "number" ? criteria.infants : undefined,
-      cabinClass: criteria.cabinClass as TripJackFlightSearchRequestDTO["cabinClass"],
+      searchQuery: {
+        cabinClass: criteria.cabinClass as TripJackFlightSearchRequestDTO["searchQuery"]["cabinClass"] ?? "ECONOMY",
+        paxInfo: {
+          ADULT: typeof criteria.adults === "number" ? criteria.adults : 1,
+          ...(typeof criteria.children === "number" && criteria.children > 0 ? { CHILD: criteria.children } : {}),
+          ...(typeof criteria.infants === "number" && criteria.infants > 0 ? { INFANT: criteria.infants } : {}),
+        },
+        routeInfos,
+        searchModifiers: {
+          pfts: "REGULAR",
+        },
+      },
     };
   }
 }

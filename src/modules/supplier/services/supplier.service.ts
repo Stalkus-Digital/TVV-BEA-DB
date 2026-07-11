@@ -9,6 +9,8 @@ import {
   type SupplierRecord,
   type SupplierBookingRequest,
   type SupplierBookingConfirmation,
+  type SupplierSearchCriteria,
+  type SupplierSearchResult,
 } from "../types";
 import type { SupplierRecordRepository } from "../repositories/supplier-record.repository";
 import type { SupplierRegistry } from "./supplier-registry";
@@ -72,9 +74,48 @@ export class SupplierService extends BaseService {
     return supplier.health();
   }
 
+  async search(code: string, criteria: SupplierSearchCriteria): Promise<Result<SupplierSearchResult[], AppError>> {
+    const supplier = this.registry.getSupplier(code);
+    if (!supplier) return err(new NotFoundError(`Supplier "${code}" not found`));
+    return supplier.search(criteria);
+  }
+
   async book(code: string, request: SupplierBookingRequest): Promise<Result<SupplierBookingConfirmation, AppError>> {
     const supplier = this.registry.getSupplier(code);
     if (!supplier) return err(new NotFoundError(`Supplier "${code}" not found`));
+    return supplier.book(request);
+  }
+
+  /**
+   * Review-then-Book flow required by TripJack for flights.
+   * TripJack OMS rejects book() calls that don't have a prior review().
+   * This method:
+   *  1. Calls review on the TripJack adapter to get a live bookingId
+   *  2. Passes that bookingId to book()
+   * Non-TripJack suppliers fall back to a direct book().
+   */
+  async reviewAndBook(code: string, request: SupplierBookingRequest): Promise<Result<SupplierBookingConfirmation, AppError>> {
+    const supplier = this.registry.getSupplier(code);
+    if (!supplier) return err(new NotFoundError(`Supplier "${code}" not found`));
+
+    // TripJack-specific: review() must be called before book() for flights
+    if (code === "tripjack" && typeof (supplier as any).reviewFlight === "function") {
+      // Decode the referenceId to get resultIndex and traceId for the review call
+      const parts = request.referenceId.split("::");
+      if (parts.length === 3 && parts[0] === "FLIGHT") {
+        const [, resultIndex, traceId] = parts;
+        const reviewResult = await (supplier as any).reviewFlight(resultIndex, traceId);
+        if (!reviewResult.ok) {
+          this.logger.error("TripJack flight review failed before book attempt", { error: reviewResult.error.message });
+          return reviewResult;
+        }
+        // Use the bookingId from review as the reference for the actual book call
+        const reviewedBookingId: string = reviewResult.value.bookingId ?? resultIndex;
+        return supplier.book({ ...request, reviewedBookingId });
+      }
+    }
+
+    // Fallback for hotels or non-TripJack suppliers
     return supplier.book(request);
   }
 }

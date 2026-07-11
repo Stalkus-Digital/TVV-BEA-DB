@@ -21,46 +21,95 @@ export class FulfillmentService extends BaseService {
       const items = await prisma.bookingItem.findMany({ where: { bookingId } });
       const travellers = await prisma.traveller.findMany({ where: { bookingId } });
 
-      // Currently, we only fulfill TripJack Flight and Hotel bookings.
-      // Those items have a supplierReference or inventoryItemId starting with "FLIGHT::" or "HOTEL::"
-      
       const supplierEngine = getSupplierService();
-      
-      for (const item of items) {
-        // We only attempt to book items that have a supplier reference
-        const referenceId = item.inventoryItemId; 
-        if (referenceId && (referenceId.startsWith("FLIGHT::") || referenceId.startsWith("HOTEL::"))) {
-          const supplierBookingRequest: SupplierBookingRequest = {
-            referenceId,
-            passengers: travellers.map(t => ({
-              title: t.gender === "M" ? "Mr" : "Ms",
-              firstName: t.fullName.split(" ")[0] || "Test",
-              lastName: t.fullName.split(" ").slice(1).join(" ") || "User",
-              dateOfBirth: t.dateOfBirth ? t.dateOfBirth.toISOString().split("T")[0] : "1990-01-01",
-              passportNumber: t.passportNumber,
-            })),
-            contactEmail: travellers.find(t => t.isLeadTraveller)?.email || "info@thevacationvoice.com",
-            contactPhone: travellers.find(t => t.isLeadTraveller)?.phone || "9999999999",
-          };
 
-          const bookingResult = await supplierEngine.book("tripjack", supplierBookingRequest);
-          
-          if (bookingResult.ok) {
-            // Store the supplier confirmation
-            await prisma.bookingItem.update({
-              where: { id: item.id },
-              data: {
-                supplierBookingReference: {
-                  id: bookingResult.value.confirmationReference,
-                  status: "CONFIRMED",
-                  raw: bookingResult.value as any,
-                }
+      for (const item of items) {
+        const referenceId = item.inventoryItemId;
+        const isFlightItem = referenceId?.startsWith("FLIGHT::");
+        const isHotelItem = referenceId?.startsWith("HOTEL::");
+
+        if (!referenceId || (!isFlightItem && !isHotelItem)) {
+          this.logger.info(`Skipping item ${item.id} — not a TripJack supplier reference`);
+          continue;
+        }
+
+        // Skip items already fulfilled (have a real supplier reference stored)
+        const existing = item.supplierBookingReference as any;
+        if (existing?.id && !existing.id.startsWith("MOCK_")) {
+          this.logger.info(`Item ${item.id} already has supplier reference ${existing.id} — skipping`);
+          continue;
+        }
+
+        const leadTraveller = travellers.find(t => t.isLeadTraveller);
+        const supplierBookingRequest: SupplierBookingRequest = {
+          referenceId,
+          passengers: travellers.map(t => ({
+            title: t.gender === "M" ? "Mr" : "Ms",
+            firstName: t.fullName.split(" ")[0] || "Guest",
+            lastName: t.fullName.split(" ").slice(1).join(" ") || "Traveller",
+            dateOfBirth: t.dateOfBirth ? t.dateOfBirth.toISOString().split("T")[0] : "1990-01-01",
+            passportNumber: t.passportNumber ?? undefined,
+          })),
+          contactEmail: leadTraveller?.email ?? booking.id + "@thevacationvoice.com",
+          contactPhone: leadTraveller?.phone ?? "9999999999",
+          // For flight bookings — TripJack requires Review to have been called first.
+          // The FulfillmentService calls reviewThenBook to enforce this.
+          isHotel: isHotelItem,
+        };
+
+        this.logger.info(`Fulfilling ${isFlightItem ? "flight" : "hotel"} item ${item.id} via TripJack`, {
+          bookingId,
+          referenceId,
+        });
+
+        let bookingResult;
+        if (isFlightItem) {
+          // ✅ CF-3 FIX: For flights, call Review first (required by TripJack OMS)
+          // then Book with the bookingId returned by Review.
+          bookingResult = await supplierEngine.reviewAndBook("tripjack", supplierBookingRequest);
+        } else {
+          // Hotels: Review step is separate (called during cart/checkout), Book directly
+          bookingResult = await supplierEngine.book("tripjack", supplierBookingRequest);
+        }
+
+        if (bookingResult.ok) {
+          const confirmRef = bookingResult.value.confirmationReference;
+          this.logger.info(`Item ${item.id} fulfilled — TripJack ref: ${confirmRef}`);
+
+          await prisma.bookingItem.update({
+            where: { id: item.id },
+            data: {
+              supplierBookingReference: {
+                id: confirmRef,
+                status: "CONFIRMED",
+                raw: bookingResult.value as any,
+                fulfilledAt: new Date().toISOString(),
               }
-            });
-          } else {
-            this.logger.error(`Failed to fulfill item ${item.id}`, { error: bookingResult.error });
-            // In a real system, we'd notify ops and queue for retry.
-          }
+            }
+          });
+        } else {
+          // ✅ CF-3b FIX: Fail loudly — do NOT generate a mock booking reference.
+          // Log error and mark item as FAILED so ops can see and retry.
+          this.logger.error(`FULFILLMENT FAILED for item ${item.id}`, {
+            error: bookingResult.error.message,
+            bookingId,
+            referenceId,
+          });
+
+          await prisma.bookingItem.update({
+            where: { id: item.id },
+            data: {
+              supplierBookingReference: {
+                id: null,
+                status: "FAILED",
+                error: bookingResult.error.message,
+                failedAt: new Date().toISOString(),
+              }
+            }
+          });
+
+          // Alert ops — in production this would trigger a Slack/email alert
+          this.logger.error(`[OPS ALERT] Supplier fulfillment failed for booking ${bookingId} item ${item.id}. Manual intervention required.`);
         }
       }
 

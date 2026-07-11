@@ -103,7 +103,8 @@ export const ModelName = {
   CmsRedirect: 'CmsRedirect',
   MediaAsset: 'MediaAsset',
   MarketingCampaign: 'MarketingCampaign',
-  PageAnalytics: 'PageAnalytics'
+  PageAnalytics: 'PageAnalytics',
+  WebhookEvent: 'WebhookEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -919,6 +920,16 @@ export const PageAnalyticsScalarFieldEnum = {
 } as const
 
 export type PageAnalyticsScalarFieldEnum = (typeof PageAnalyticsScalarFieldEnum)[keyof typeof PageAnalyticsScalarFieldEnum]
+
+
+export const WebhookEventScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  status: 'status',
+  createdAt: 'createdAt'
+} as const
+
+export type WebhookEventScalarFieldEnum = (typeof WebhookEventScalarFieldEnum)[keyof typeof WebhookEventScalarFieldEnum]
 
 
 export const SortOrder = {

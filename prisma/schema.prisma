@@ -860,3 +860,12 @@ model PageAnalytics {
 
   @@map("page_analytics")
 }
+
+model WebhookEvent {
+  id        String   @id
+  type      String
+  status    String   @default("PROCESSED")
+  createdAt DateTime @default(now())
+
+  @@map("webhook_events")
+}

@@ -120,7 +120,7 @@ export function CampaignsPage() {
 
       <div className="mt-4 grid gap-4">
         {isEditing ? (
-          <form onSubmit={saveCampaign} className="rounded-xl border border-border bg-white dark:bg-slate-900 p-6 shadow-sm space-y-4">
+          <form onSubmit={saveCampaign} className="rounded-xl border border-border bg-white p-6 shadow-sm space-y-4">
             <h3 className="font-semibold">{editingId ? "Edit Campaign" : "New Campaign"}</h3>
             <div>
               <label className="block text-xs font-medium mb-1">Campaign Name *</label>
@@ -216,7 +216,7 @@ export function CampaignsPage() {
             </div>
           ) : (
             campaignsQuery.data?.items?.map(campaign => (
-              <div key={campaign.id} className="p-4 border border-border bg-white dark:bg-slate-900 rounded-lg flex justify-between items-center">
+              <div key={campaign.id} className="p-4 border border-border bg-white rounded-lg flex justify-between items-center">
                 <div>
                   <h3 className="font-semibold">{campaign.name}</h3>
                   <p className="text-sm text-muted-foreground">{campaign.type} • {campaign.status}</p>
@@ -253,7 +253,7 @@ export function CampaignsPage() {
       {confirmDeleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setConfirmDeleteId(null)} aria-label="Cancel" />
-          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white shadow-xl p-6 space-y-4">
             <h3 className="font-semibold text-foreground">Delete Campaign</h3>
             <p className="text-sm text-muted-foreground">Are you sure you want to delete this campaign? This action cannot be undone.</p>
             <div className="flex justify-end gap-2">

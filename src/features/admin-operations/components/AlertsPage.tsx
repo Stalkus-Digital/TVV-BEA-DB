@@ -69,7 +69,7 @@ export function AlertsPage() {
                   <td className="px-4 py-3 text-muted-foreground">{formatDate(alert.triggeredAt)}</td>
                   <td className="px-4 py-3">{alert.message}</td>
                   <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400">
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-700">
                       <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
                       Active
                     </span>

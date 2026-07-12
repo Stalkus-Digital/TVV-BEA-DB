@@ -39,7 +39,7 @@ export function BookingCreateDialog({ open, onClose, onCreated }: BookingCreateD
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <button type="button" className="absolute inset-0 bg-black/30" onClick={onClose} aria-label="Close create booking" />
-      <div className="relative w-full max-w-lg rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl">
+      <div className="relative w-full max-w-lg rounded-lg border border-border bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <h2 className="text-lg font-semibold">Create booking</h2>
           <button type="button" onClick={onClose} className="p-2 rounded-md hover:bg-muted">

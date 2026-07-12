@@ -61,3 +61,28 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   return NextResponse.json({ success: false, error: "Not implemented. Use /status or /assign endpoints." }, { status: 501 });
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const now = new Date().toISOString();
+    const enquiry = await prisma.enquiry.create({
+      data: {
+        type: body.type || "GENERAL",
+        name: body.name || "",
+        email: body.email || "",
+        phone: body.phone,
+        message: body.message,
+        destinationSlug: body.destinationSlug,
+        packageSlug: body.packageSlug,
+        source: body.source || "WEB",
+        status: "NEW",
+        createdAt: now,
+        updatedAt: now,
+      },
+    });
+    return NextResponse.json({ success: true, data: enquiry });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: "Failed to create enquiry" }, { status: 500 });
+  }
+}

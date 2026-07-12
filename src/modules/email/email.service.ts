@@ -31,18 +31,17 @@ export class EmailService extends BaseService {
 
   async sendEmail(data: SendEmailDto): Promise<Result<void, AppError>> {
     try {
-      if (this.transporter) {
-        await this.transporter.sendMail({
-          from: process.env.SMTP_FROM || '"TVV Travel OS" <noreply@thevacationvoice.com>',
-          to: data.to,
-          subject: data.subject,
-          html: data.html,
-        });
-        this.logger.info("Email sent successfully", { to: data.to, subject: data.subject });
-      } else {
-        // Fallback for development if no SMTP is configured
-        this.logger.info("Mock Email Sent (No SMTP configured)", { to: data.to, subject: data.subject });
+      if (!this.transporter) {
+        return err(new InternalError("SMTP is not configured in the environment variables. Cannot send email."));
       }
+
+      await this.transporter.sendMail({
+        from: process.env.SMTP_FROM || '"TVV Travel OS" <noreply@thevacationvoice.com>',
+        to: data.to,
+        subject: data.subject,
+        html: data.html,
+      });
+      this.logger.info("Email sent successfully", { to: data.to, subject: data.subject });
       return ok(undefined);
     } catch (error) {
       this.logger.error("Failed to send email", { error, to: data.to });

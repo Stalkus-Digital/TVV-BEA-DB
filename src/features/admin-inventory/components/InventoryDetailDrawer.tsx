@@ -42,7 +42,7 @@ export function InventoryDetailDrawer({ itemId, destinations, onClose }: Invento
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <button type="button" className="absolute inset-0 bg-black/30" onClick={onClose} aria-label="Close inventory detail" />
-      <div className="relative w-full max-w-2xl h-full bg-white dark:bg-slate-900 border-l border-border shadow-xl flex flex-col">
+      <div className="relative w-full max-w-2xl h-full bg-white border-l border-border shadow-xl flex flex-col">
         <div className="sticky top-0 z-10 border-b border-border bg-card shrink-0">
           <div className="flex items-center justify-between px-6 py-4">
             <div>
@@ -188,7 +188,7 @@ function OverviewTab({
       {isConfirmingArchive && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setIsConfirmingArchive(false)} aria-label="Cancel" />
-          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white shadow-xl p-6 space-y-4">
             <h3 className="font-semibold text-foreground">Archive Item</h3>
             <p className="text-sm text-muted-foreground">Are you sure you want to archive this inventory item? It will no longer be available for new bookings.</p>
             <div className="flex justify-end gap-2">

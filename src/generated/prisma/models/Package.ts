@@ -261,8 +261,8 @@ export type PackageGroupByOutputType = {
   aiGeneratedFromId: string | null
   status: string
   currentVersionId: string | null
-  seo: runtime.JsonValue
-  faqs: runtime.JsonValue
+  seo: runtime.JsonValue | null
+  faqs: runtime.JsonValue | null
   createdAt: Date
   updatedAt: Date
   _count: PackageCountAggregateOutputType | null
@@ -304,10 +304,11 @@ export type PackageWhereInput = {
   aiGeneratedFromId?: Prisma.StringNullableFilter<"Package"> | string | null
   status?: Prisma.StringFilter<"Package"> | string
   currentVersionId?: Prisma.StringNullableFilter<"Package"> | string | null
-  seo?: Prisma.JsonFilter<"Package">
-  faqs?: Prisma.JsonFilter<"Package">
+  seo?: Prisma.JsonNullableFilter<"Package">
+  faqs?: Prisma.JsonNullableFilter<"Package">
   createdAt?: Prisma.DateTimeFilter<"Package"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Package"> | Date | string
+  days?: Prisma.PackageDayListRelationFilter
 }
 
 export type PackageOrderByWithRelationInput = {
@@ -324,10 +325,11 @@ export type PackageOrderByWithRelationInput = {
   aiGeneratedFromId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   currentVersionId?: Prisma.SortOrderInput | Prisma.SortOrder
-  seo?: Prisma.SortOrder
-  faqs?: Prisma.SortOrder
+  seo?: Prisma.SortOrderInput | Prisma.SortOrder
+  faqs?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  days?: Prisma.PackageDayOrderByRelationAggregateInput
 }
 
 export type PackageWhereUniqueInput = Prisma.AtLeast<{
@@ -347,10 +349,11 @@ export type PackageWhereUniqueInput = Prisma.AtLeast<{
   aiGeneratedFromId?: Prisma.StringNullableFilter<"Package"> | string | null
   status?: Prisma.StringFilter<"Package"> | string
   currentVersionId?: Prisma.StringNullableFilter<"Package"> | string | null
-  seo?: Prisma.JsonFilter<"Package">
-  faqs?: Prisma.JsonFilter<"Package">
+  seo?: Prisma.JsonNullableFilter<"Package">
+  faqs?: Prisma.JsonNullableFilter<"Package">
   createdAt?: Prisma.DateTimeFilter<"Package"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Package"> | Date | string
+  days?: Prisma.PackageDayListRelationFilter
 }, "id" | "code" | "slug">
 
 export type PackageOrderByWithAggregationInput = {
@@ -367,8 +370,8 @@ export type PackageOrderByWithAggregationInput = {
   aiGeneratedFromId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   currentVersionId?: Prisma.SortOrderInput | Prisma.SortOrder
-  seo?: Prisma.SortOrder
-  faqs?: Prisma.SortOrder
+  seo?: Prisma.SortOrderInput | Prisma.SortOrder
+  faqs?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.PackageCountOrderByAggregateInput
@@ -395,8 +398,8 @@ export type PackageScalarWhereWithAggregatesInput = {
   aiGeneratedFromId?: Prisma.StringNullableWithAggregatesFilter<"Package"> | string | null
   status?: Prisma.StringWithAggregatesFilter<"Package"> | string
   currentVersionId?: Prisma.StringNullableWithAggregatesFilter<"Package"> | string | null
-  seo?: Prisma.JsonWithAggregatesFilter<"Package">
-  faqs?: Prisma.JsonWithAggregatesFilter<"Package">
+  seo?: Prisma.JsonNullableWithAggregatesFilter<"Package">
+  faqs?: Prisma.JsonNullableWithAggregatesFilter<"Package">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Package"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Package"> | Date | string
 }
@@ -415,10 +418,11 @@ export type PackageCreateInput = {
   aiGeneratedFromId?: string | null
   status: string
   currentVersionId?: string | null
-  seo: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  faqs: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  createdAt: Date | string
-  updatedAt: Date | string
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  days?: Prisma.PackageDayCreateNestedManyWithoutPackageInput
 }
 
 export type PackageUncheckedCreateInput = {
@@ -435,10 +439,11 @@ export type PackageUncheckedCreateInput = {
   aiGeneratedFromId?: string | null
   status: string
   currentVersionId?: string | null
-  seo: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  faqs: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  createdAt: Date | string
-  updatedAt: Date | string
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  days?: Prisma.PackageDayUncheckedCreateNestedManyWithoutPackageInput
 }
 
 export type PackageUpdateInput = {
@@ -455,10 +460,11 @@ export type PackageUpdateInput = {
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  seo?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  faqs?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  days?: Prisma.PackageDayUpdateManyWithoutPackageNestedInput
 }
 
 export type PackageUncheckedUpdateInput = {
@@ -475,10 +481,11 @@ export type PackageUncheckedUpdateInput = {
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  seo?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  faqs?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  days?: Prisma.PackageDayUncheckedUpdateManyWithoutPackageNestedInput
 }
 
 export type PackageCreateManyInput = {
@@ -495,10 +502,10 @@ export type PackageCreateManyInput = {
   aiGeneratedFromId?: string | null
   status: string
   currentVersionId?: string | null
-  seo: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  faqs: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  createdAt: Date | string
-  updatedAt: Date | string
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type PackageUpdateManyMutationInput = {
@@ -515,8 +522,8 @@ export type PackageUpdateManyMutationInput = {
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  seo?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  faqs?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -535,8 +542,8 @@ export type PackageUncheckedUpdateManyInput = {
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  seo?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  faqs?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -607,6 +614,11 @@ export type PackageSumOrderByAggregateInput = {
   durationNights?: Prisma.SortOrder
 }
 
+export type PackageScalarRelationFilter = {
+  is?: Prisma.PackageWhereInput
+  isNot?: Prisma.PackageWhereInput
+}
+
 export type IntFieldUpdateOperationsInput = {
   set?: number
   increment?: number
@@ -615,6 +627,145 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type PackageCreateNestedOneWithoutDaysInput = {
+  create?: Prisma.XOR<Prisma.PackageCreateWithoutDaysInput, Prisma.PackageUncheckedCreateWithoutDaysInput>
+  connectOrCreate?: Prisma.PackageCreateOrConnectWithoutDaysInput
+  connect?: Prisma.PackageWhereUniqueInput
+}
+
+export type PackageUpdateOneRequiredWithoutDaysNestedInput = {
+  create?: Prisma.XOR<Prisma.PackageCreateWithoutDaysInput, Prisma.PackageUncheckedCreateWithoutDaysInput>
+  connectOrCreate?: Prisma.PackageCreateOrConnectWithoutDaysInput
+  upsert?: Prisma.PackageUpsertWithoutDaysInput
+  connect?: Prisma.PackageWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PackageUpdateToOneWithWhereWithoutDaysInput, Prisma.PackageUpdateWithoutDaysInput>, Prisma.PackageUncheckedUpdateWithoutDaysInput>
+}
+
+export type PackageCreateWithoutDaysInput = {
+  id?: string
+  title: string
+  code: string
+  slug: string
+  destinationId: string
+  sourceType: string
+  durationDays: number
+  durationNights: number
+  isTemplate?: boolean
+  sourceTemplateId?: string | null
+  aiGeneratedFromId?: string | null
+  status: string
+  currentVersionId?: string | null
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type PackageUncheckedCreateWithoutDaysInput = {
+  id?: string
+  title: string
+  code: string
+  slug: string
+  destinationId: string
+  sourceType: string
+  durationDays: number
+  durationNights: number
+  isTemplate?: boolean
+  sourceTemplateId?: string | null
+  aiGeneratedFromId?: string | null
+  status: string
+  currentVersionId?: string | null
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type PackageCreateOrConnectWithoutDaysInput = {
+  where: Prisma.PackageWhereUniqueInput
+  create: Prisma.XOR<Prisma.PackageCreateWithoutDaysInput, Prisma.PackageUncheckedCreateWithoutDaysInput>
+}
+
+export type PackageUpsertWithoutDaysInput = {
+  update: Prisma.XOR<Prisma.PackageUpdateWithoutDaysInput, Prisma.PackageUncheckedUpdateWithoutDaysInput>
+  create: Prisma.XOR<Prisma.PackageCreateWithoutDaysInput, Prisma.PackageUncheckedCreateWithoutDaysInput>
+  where?: Prisma.PackageWhereInput
+}
+
+export type PackageUpdateToOneWithWhereWithoutDaysInput = {
+  where?: Prisma.PackageWhereInput
+  data: Prisma.XOR<Prisma.PackageUpdateWithoutDaysInput, Prisma.PackageUncheckedUpdateWithoutDaysInput>
+}
+
+export type PackageUpdateWithoutDaysInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  destinationId?: Prisma.StringFieldUpdateOperationsInput | string
+  sourceType?: Prisma.StringFieldUpdateOperationsInput | string
+  durationDays?: Prisma.IntFieldUpdateOperationsInput | number
+  durationNights?: Prisma.IntFieldUpdateOperationsInput | number
+  isTemplate?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sourceTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type PackageUncheckedUpdateWithoutDaysInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  destinationId?: Prisma.StringFieldUpdateOperationsInput | string
+  sourceType?: Prisma.StringFieldUpdateOperationsInput | string
+  durationDays?: Prisma.IntFieldUpdateOperationsInput | number
+  durationNights?: Prisma.IntFieldUpdateOperationsInput | number
+  isTemplate?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sourceTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+
+/**
+ * Count Type PackageCountOutputType
+ */
+
+export type PackageCountOutputType = {
+  days: number
+}
+
+export type PackageCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  days?: boolean | PackageCountOutputTypeCountDaysArgs
+}
+
+/**
+ * PackageCountOutputType without action
+ */
+export type PackageCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PackageCountOutputType
+   */
+  select?: Prisma.PackageCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * PackageCountOutputType without action
+ */
+export type PackageCountOutputTypeCountDaysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PackageDayWhereInput
+}
 
 
 export type PackageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -635,6 +786,8 @@ export type PackageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   faqs?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  days?: boolean | Prisma.Package$daysArgs<ExtArgs>
+  _count?: boolean | Prisma.PackageCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["package"]>
 
 export type PackageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -698,10 +851,18 @@ export type PackageSelectScalar = {
 }
 
 export type PackageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "code" | "slug" | "destinationId" | "sourceType" | "durationDays" | "durationNights" | "isTemplate" | "sourceTemplateId" | "aiGeneratedFromId" | "status" | "currentVersionId" | "seo" | "faqs" | "createdAt" | "updatedAt", ExtArgs["result"]["package"]>
+export type PackageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  days?: boolean | Prisma.Package$daysArgs<ExtArgs>
+  _count?: boolean | Prisma.PackageCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type PackageIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type PackageIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $PackagePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Package"
-  objects: {}
+  objects: {
+    days: Prisma.$PackageDayPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     title: string
@@ -716,8 +877,8 @@ export type $PackagePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     aiGeneratedFromId: string | null
     status: string
     currentVersionId: string | null
-    seo: runtime.JsonValue
-    faqs: runtime.JsonValue
+    seo: runtime.JsonValue | null
+    faqs: runtime.JsonValue | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["package"]>
@@ -1114,6 +1275,7 @@ readonly fields: PackageFieldRefs;
  */
 export interface Prisma__PackageClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  days<T extends Prisma.Package$daysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Package$daysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PackageDayPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1177,6 +1339,10 @@ export type PackageFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.Inter
    */
   omit?: Prisma.PackageOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageInclude<ExtArgs> | null
+  /**
    * Filter, which Package to fetch.
    */
   where: Prisma.PackageWhereUniqueInput
@@ -1195,6 +1361,10 @@ export type PackageFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extension
    */
   omit?: Prisma.PackageOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageInclude<ExtArgs> | null
+  /**
    * Filter, which Package to fetch.
    */
   where: Prisma.PackageWhereUniqueInput
@@ -1212,6 +1382,10 @@ export type PackageFindFirstArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Omit specific fields from the Package
    */
   omit?: Prisma.PackageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageInclude<ExtArgs> | null
   /**
    * Filter, which Package to fetch.
    */
@@ -1261,6 +1435,10 @@ export type PackageFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensions
    */
   omit?: Prisma.PackageOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageInclude<ExtArgs> | null
+  /**
    * Filter, which Package to fetch.
    */
   where?: Prisma.PackageWhereInput
@@ -1308,6 +1486,10 @@ export type PackageFindManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Omit specific fields from the Package
    */
   omit?: Prisma.PackageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageInclude<ExtArgs> | null
   /**
    * Filter, which Packages to fetch.
    */
@@ -1357,6 +1539,10 @@ export type PackageCreateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    */
   omit?: Prisma.PackageOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageInclude<ExtArgs> | null
+  /**
    * The data needed to create a Package.
    */
   data: Prisma.XOR<Prisma.PackageCreateInput, Prisma.PackageUncheckedCreateInput>
@@ -1404,6 +1590,10 @@ export type PackageUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    * Omit specific fields from the Package
    */
   omit?: Prisma.PackageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageInclude<ExtArgs> | null
   /**
    * The data needed to update a Package.
    */
@@ -1471,6 +1661,10 @@ export type PackageUpsertArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    */
   omit?: Prisma.PackageOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageInclude<ExtArgs> | null
+  /**
    * The filter to search for the Package to update in case it exists.
    */
   where: Prisma.PackageWhereUniqueInput
@@ -1497,6 +1691,10 @@ export type PackageDeleteArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    */
   omit?: Prisma.PackageOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageInclude<ExtArgs> | null
+  /**
    * Filter which Package to delete.
    */
   where: Prisma.PackageWhereUniqueInput
@@ -1517,6 +1715,30 @@ export type PackageDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
 }
 
 /**
+ * Package.days
+ */
+export type Package$daysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PackageDay
+   */
+  select?: Prisma.PackageDaySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PackageDay
+   */
+  omit?: Prisma.PackageDayOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageDayInclude<ExtArgs> | null
+  where?: Prisma.PackageDayWhereInput
+  orderBy?: Prisma.PackageDayOrderByWithRelationInput | Prisma.PackageDayOrderByWithRelationInput[]
+  cursor?: Prisma.PackageDayWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PackageDayScalarFieldEnum | Prisma.PackageDayScalarFieldEnum[]
+}
+
+/**
  * Package without action
  */
 export type PackageDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1528,4 +1750,8 @@ export type PackageDefaultArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Omit specific fields from the Package
    */
   omit?: Prisma.PackageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageInclude<ExtArgs> | null
 }

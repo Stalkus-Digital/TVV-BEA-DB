@@ -437,7 +437,11 @@ export const ModelName = {
   MediaAsset: 'MediaAsset',
   MarketingCampaign: 'MarketingCampaign',
   PageAnalytics: 'PageAnalytics',
-  WebhookEvent: 'WebhookEvent'
+  WebhookEvent: 'WebhookEvent',
+  Guide: 'Guide',
+  FerryRoute: 'FerryRoute',
+  FerrySchedule: 'FerrySchedule',
+  Review: 'Review'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -453,7 +457,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "loginHistory" | "passwordReset" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "notification" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent"
+    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "loginHistory" | "passwordReset" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "notification" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent" | "guide" | "ferryRoute" | "ferrySchedule" | "review"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4453,6 +4457,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Guide: {
+      payload: Prisma.$GuidePayload<ExtArgs>
+      fields: Prisma.GuideFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GuideFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuidePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GuideFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuidePayload>
+        }
+        findFirst: {
+          args: Prisma.GuideFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuidePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GuideFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuidePayload>
+        }
+        findMany: {
+          args: Prisma.GuideFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuidePayload>[]
+        }
+        create: {
+          args: Prisma.GuideCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuidePayload>
+        }
+        createMany: {
+          args: Prisma.GuideCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GuideCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuidePayload>[]
+        }
+        delete: {
+          args: Prisma.GuideDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuidePayload>
+        }
+        update: {
+          args: Prisma.GuideUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuidePayload>
+        }
+        deleteMany: {
+          args: Prisma.GuideDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GuideUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GuideUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuidePayload>[]
+        }
+        upsert: {
+          args: Prisma.GuideUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuidePayload>
+        }
+        aggregate: {
+          args: Prisma.GuideAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGuide>
+        }
+        groupBy: {
+          args: Prisma.GuideGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuideGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GuideCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuideCountAggregateOutputType> | number
+        }
+      }
+    }
+    FerryRoute: {
+      payload: Prisma.$FerryRoutePayload<ExtArgs>
+      fields: Prisma.FerryRouteFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FerryRouteFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerryRoutePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FerryRouteFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerryRoutePayload>
+        }
+        findFirst: {
+          args: Prisma.FerryRouteFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerryRoutePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FerryRouteFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerryRoutePayload>
+        }
+        findMany: {
+          args: Prisma.FerryRouteFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerryRoutePayload>[]
+        }
+        create: {
+          args: Prisma.FerryRouteCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerryRoutePayload>
+        }
+        createMany: {
+          args: Prisma.FerryRouteCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FerryRouteCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerryRoutePayload>[]
+        }
+        delete: {
+          args: Prisma.FerryRouteDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerryRoutePayload>
+        }
+        update: {
+          args: Prisma.FerryRouteUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerryRoutePayload>
+        }
+        deleteMany: {
+          args: Prisma.FerryRouteDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FerryRouteUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FerryRouteUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerryRoutePayload>[]
+        }
+        upsert: {
+          args: Prisma.FerryRouteUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerryRoutePayload>
+        }
+        aggregate: {
+          args: Prisma.FerryRouteAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFerryRoute>
+        }
+        groupBy: {
+          args: Prisma.FerryRouteGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FerryRouteGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FerryRouteCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FerryRouteCountAggregateOutputType> | number
+        }
+      }
+    }
+    FerrySchedule: {
+      payload: Prisma.$FerrySchedulePayload<ExtArgs>
+      fields: Prisma.FerryScheduleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FerryScheduleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerrySchedulePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FerryScheduleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerrySchedulePayload>
+        }
+        findFirst: {
+          args: Prisma.FerryScheduleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerrySchedulePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FerryScheduleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerrySchedulePayload>
+        }
+        findMany: {
+          args: Prisma.FerryScheduleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerrySchedulePayload>[]
+        }
+        create: {
+          args: Prisma.FerryScheduleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerrySchedulePayload>
+        }
+        createMany: {
+          args: Prisma.FerryScheduleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FerryScheduleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerrySchedulePayload>[]
+        }
+        delete: {
+          args: Prisma.FerryScheduleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerrySchedulePayload>
+        }
+        update: {
+          args: Prisma.FerryScheduleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerrySchedulePayload>
+        }
+        deleteMany: {
+          args: Prisma.FerryScheduleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FerryScheduleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FerryScheduleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerrySchedulePayload>[]
+        }
+        upsert: {
+          args: Prisma.FerryScheduleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FerrySchedulePayload>
+        }
+        aggregate: {
+          args: Prisma.FerryScheduleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFerrySchedule>
+        }
+        groupBy: {
+          args: Prisma.FerryScheduleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FerryScheduleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FerryScheduleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FerryScheduleCountAggregateOutputType> | number
+        }
+      }
+    }
+    Review: {
+      payload: Prisma.$ReviewPayload<ExtArgs>
+      fields: Prisma.ReviewFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ReviewFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ReviewFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewPayload>
+        }
+        findFirst: {
+          args: Prisma.ReviewFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ReviewFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewPayload>
+        }
+        findMany: {
+          args: Prisma.ReviewFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewPayload>[]
+        }
+        create: {
+          args: Prisma.ReviewCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewPayload>
+        }
+        createMany: {
+          args: Prisma.ReviewCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ReviewCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewPayload>[]
+        }
+        delete: {
+          args: Prisma.ReviewDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewPayload>
+        }
+        update: {
+          args: Prisma.ReviewUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewPayload>
+        }
+        deleteMany: {
+          args: Prisma.ReviewDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ReviewUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ReviewUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewPayload>[]
+        }
+        upsert: {
+          args: Prisma.ReviewUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewPayload>
+        }
+        aggregate: {
+          args: Prisma.ReviewAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateReview>
+        }
+        groupBy: {
+          args: Prisma.ReviewGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReviewGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ReviewCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReviewCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -5301,6 +5601,59 @@ export const WebhookEventScalarFieldEnum = {
 export type WebhookEventScalarFieldEnum = (typeof WebhookEventScalarFieldEnum)[keyof typeof WebhookEventScalarFieldEnum]
 
 
+export const GuideScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  slug: 'slug',
+  status: 'status',
+  content: 'content',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GuideScalarFieldEnum = (typeof GuideScalarFieldEnum)[keyof typeof GuideScalarFieldEnum]
+
+
+export const FerryRouteScalarFieldEnum = {
+  id: 'id',
+  active: 'active',
+  fromId: 'fromId',
+  toId: 'toId',
+  vesselId: 'vesselId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FerryRouteScalarFieldEnum = (typeof FerryRouteScalarFieldEnum)[keyof typeof FerryRouteScalarFieldEnum]
+
+
+export const FerryScheduleScalarFieldEnum = {
+  id: 'id',
+  routeId: 'routeId',
+  active: 'active',
+  departure: 'departure',
+  arrival: 'arrival',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FerryScheduleScalarFieldEnum = (typeof FerryScheduleScalarFieldEnum)[keyof typeof FerryScheduleScalarFieldEnum]
+
+
+export const ReviewScalarFieldEnum = {
+  id: 'id',
+  targetId: 'targetId',
+  rating: 'rating',
+  comment: 'comment',
+  authorName: 'authorName',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -5595,6 +5948,10 @@ export type GlobalOmitConfig = {
   marketingCampaign?: Prisma.MarketingCampaignOmit
   pageAnalytics?: Prisma.PageAnalyticsOmit
   webhookEvent?: Prisma.WebhookEventOmit
+  guide?: Prisma.GuideOmit
+  ferryRoute?: Prisma.FerryRouteOmit
+  ferrySchedule?: Prisma.FerryScheduleOmit
+  review?: Prisma.ReviewOmit
 }
 
 /* Types for Logging */

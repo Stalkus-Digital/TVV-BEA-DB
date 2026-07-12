@@ -42,7 +42,7 @@ export function LeadCreateDialog({ open, onClose, onCreated }: LeadCreateDialogP
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-border p-6 overflow-y-auto max-h-[90vh]">
+      <div className="relative w-full max-w-md bg-white rounded-lg shadow-lg border border-border p-6 overflow-y-auto max-h-[90vh]">
         <div className="mb-4">
           <h2 className="text-lg font-semibold">Create New Lead</h2>
         </div>

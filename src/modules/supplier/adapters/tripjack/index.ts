@@ -198,13 +198,9 @@ export class TripJackAdapter extends BaseSupplierAdapter {
     if (decoded.prefix === HOTEL_REFERENCE_PREFIX) {
       tripjackRequest.hotelId = decoded.id;
     } else {
-      // ✅ CF-3 FIX: Use bookingId from a prior Review call if provided.
-      // SupplierService.reviewAndBook() passes this after calling /fms/v1/review.
-      // Never send resultIndex to the OMS book endpoint — TripJack will reject it.
       if ((request as any).reviewedBookingId) {
         tripjackRequest.bookingId = (request as any).reviewedBookingId;
       } else {
-        // Defensive fallback — should never reach here if called via reviewAndBook()
         return err(new ValidationError(
           "Flight booking requires a prior Review step. Use reviewAndBook() instead of book() directly."
         ));
@@ -216,7 +212,6 @@ export class TripJackAdapter extends BaseSupplierAdapter {
 
     const bookingId = result.value.bookingId;
     if (!bookingId) {
-      // ✅ CF-3b FIX: Fail loudly instead of generating a mock reference
       return err(new InternalError(
         "TripJack booking succeeded but returned no bookingId. This indicates a supplier-side error."
       ));
@@ -242,6 +237,14 @@ export class TripJackAdapter extends BaseSupplierAdapter {
       timestamp: new Date().toISOString(),
       rawResponse: result.value,
     });
+  }
+
+  async getSeatMap(request: any): Promise<Result<any, AppError>> {
+    return this.client.getSeatMap(request);
+  }
+
+  async getSsrOptions(request: any): Promise<Result<any, AppError>> {
+    return this.client.getSsrOptions(request);
   }
 
   // sync() intentionally not overridden — same as before this sprint.

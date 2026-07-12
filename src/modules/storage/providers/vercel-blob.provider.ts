@@ -38,7 +38,6 @@ export class VercelBlobProvider implements StorageProvider {
       return ok({
         url: result.url,
         key: result.pathname,
-        // PutBlobResult has no `size` field — the input buffer's own length is authoritative, no round-trip needed.
         size: input.body.length,
         contentType: result.contentType,
         uploadedAt: new Date().toISOString(),

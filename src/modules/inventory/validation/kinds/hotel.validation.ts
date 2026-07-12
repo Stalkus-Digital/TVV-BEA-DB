@@ -8,9 +8,13 @@ export function validateHotelDetails(input: unknown): Result<HotelDetails, Valid
   }
   const { starRating, address, latitude, longitude } = input as Record<string, unknown>;
 
-  if (typeof starRating !== "number" || starRating < 1 || starRating > 5) {
+  let parsedStarRating = typeof starRating === "string" ? Number(starRating) : starRating;
+  if (parsedStarRating === undefined || parsedStarRating === null || parsedStarRating === 0 || Number.isNaN(parsedStarRating)) parsedStarRating = 3; // fallback to 3 stars
+
+  if (typeof parsedStarRating !== "number" || parsedStarRating < 1 || parsedStarRating > 5) {
     return err(new ValidationError("starRating must be a number between 1 and 5"));
   }
+  
   if (typeof address !== "string" || address.trim().length === 0) {
     return err(new ValidationError("address is required"));
   }
@@ -22,7 +26,7 @@ export function validateHotelDetails(input: unknown): Result<HotelDetails, Valid
   }
 
   return ok({
-    starRating,
+    starRating: parsedStarRating as number,
     address,
     ...(latitude !== undefined ? { latitude: latitude as number } : {}),
     ...(longitude !== undefined ? { longitude: longitude as number } : {}),

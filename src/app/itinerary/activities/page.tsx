@@ -189,7 +189,7 @@ export default function ActivitiesPage() {
               setIsSearchMode(!isSearchMode);
               setSearchResults(null);
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold rounded-md shadow-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-800 font-semibold rounded-md shadow-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
           >
             <Search className="h-4 w-4" />
             {isSearchMode ? "Back to Managed Activities" : "Live API Search"}
@@ -205,22 +205,22 @@ export default function ActivitiesPage() {
 
       {isSearchMode ? (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-slate-900 border border-border rounded-xl shadow-sm p-5">
+          <div className="bg-white border border-border rounded-xl shadow-sm p-5">
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
               <Compass className="h-5 w-5 text-primary" />
               Live Activity Search
             </h2>
             <form onSubmit={handleLiveSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">City Code</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">City Code</label>
                 <div className="relative">
-                  <input required type="text" value={searchParams.city} onChange={e => setSearchParams({ ...searchParams, city: e.target.value.toUpperCase() })} className="w-full bg-white border border-slate-300 dark:border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm font-bold uppercase" />
+                  <input required type="text" value={searchParams.city} onChange={e => setSearchParams({ ...searchParams, city: e.target.value.toUpperCase() })} className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm font-bold uppercase" />
                   <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Date</label>
-                <input required type="date" value={searchParams.date} onChange={e => setSearchParams({ ...searchParams, date: e.target.value })} className="w-full bg-white border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm" />
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Date</label>
+                <input required type="date" value={searchParams.date} onChange={e => setSearchParams({ ...searchParams, date: e.target.value })} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm" />
               </div>
               <button type="submit" disabled={isSearchingLive} className="w-full py-2 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-sm disabled:opacity-50">
                 {isSearchingLive ? "Searching..." : "Search"}
@@ -237,7 +237,7 @@ export default function ActivitiesPage() {
                 {searchResults.map(activity => {
                   const isSaved = activities.some(a => a.id === activity.id);
                   return (
-                    <div key={activity.id} className="bg-white dark:bg-slate-900 border border-border rounded-xl p-5 shadow-sm flex flex-col justify-between gap-4">
+                    <div key={activity.id} className="bg-white border border-border rounded-xl p-5 shadow-sm flex flex-col justify-between gap-4">
                       <div>
                         <h4 className="font-bold text-foreground text-lg leading-tight mb-2">{activity.name}</h4>
                         <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
@@ -247,7 +247,7 @@ export default function ActivitiesPage() {
                           <Clock className="h-3 w-3" /> {activity.duration}
                         </p>
                       </div>
-                      <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-4">
+                      <div className="flex items-center justify-between border-t border-slate-100 pt-4">
                         <div>
                           <p className="text-xs text-muted-foreground">Adult Rate</p>
                           <p className="text-xl font-black text-primary">₹{activity.adultPrice.toLocaleString()}</p>
@@ -404,8 +404,8 @@ export default function ActivitiesPage() {
       {/* Add Activity Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col border border-border">
-            <div className="flex items-center justify-between p-4 border-b border-border bg-slate-50/50 dark:bg-slate-800/50">
+          <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col border border-border">
+            <div className="flex items-center justify-between p-4 border-b border-border bg-slate-50/50">
               <h2 className="text-lg font-bold text-foreground">Add New Activity</h2>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -417,20 +417,20 @@ export default function ActivitiesPage() {
 
             <form onSubmit={handleAdd} className="p-5 flex flex-col gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Activity Name *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Activity Name *</label>
                 <input
                   required
                   type="text"
                   value={newActivity.name}
                   onChange={(e) => setNewActivity({ ...newActivity, name: e.target.value })}
                   placeholder="e.g. Snorkelling at North Bay"
-                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Location *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Location *</label>
                   <div className="relative">
                     <input
                       required
@@ -438,13 +438,13 @@ export default function ActivitiesPage() {
                       value={newActivity.location}
                       onChange={(e) => setNewActivity({ ...newActivity, location: e.target.value })}
                       placeholder="e.g. Havelock Island"
-                      className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                      className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
                     />
                     <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Duration</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Duration</label>
                   <div className="relative">
                     <input
                       required
@@ -452,7 +452,7 @@ export default function ActivitiesPage() {
                       value={newActivity.duration}
                       onChange={(e) => setNewActivity({ ...newActivity, duration: e.target.value })}
                       placeholder="e.g. 2 Hours"
-                      className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                      className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
                     />
                     <Clock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                   </div>
@@ -461,35 +461,35 @@ export default function ActivitiesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Adult Price (₹)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Adult Price (₹)</label>
                   <input
                     required
                     type="number"
                     min="0"
                     value={newActivity.adultPrice}
                     onChange={(e) => setNewActivity({ ...newActivity, adultPrice: Number(e.target.value) })}
-                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Child Price (₹)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Child Price (₹)</label>
                   <input
                     required
                     type="number"
                     min="0"
                     value={newActivity.childPrice}
                     onChange={(e) => setNewActivity({ ...newActivity, childPrice: Number(e.target.value) })}
-                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Status</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Status</label>
                 <select
                   value={newActivity.status}
                   onChange={(e) => setNewActivity({ ...newActivity, status: e.target.value as "ACTIVE" | "INACTIVE" })}
-                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
                 >
                   <option value="ACTIVE">Active</option>
                   <option value="INACTIVE">Inactive</option>
@@ -500,7 +500,7 @@ export default function ActivitiesPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-2.5 text-sm font-semibold border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  className="flex-1 py-2.5 text-sm font-semibold border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                 >
                   Cancel
                 </button>
@@ -526,7 +526,7 @@ export default function ActivitiesPage() {
       {confirmDeleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setConfirmDeleteId(null)} aria-label="Cancel" />
-          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white shadow-xl p-6 space-y-4">
             <h3 className="font-semibold text-foreground">Remove Activity</h3>
             <p className="text-sm text-muted-foreground">Are you sure you want to delete this activity? This action cannot be undone.</p>
             <div className="flex justify-end gap-2">

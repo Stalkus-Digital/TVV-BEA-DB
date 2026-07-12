@@ -308,6 +308,7 @@ export type PackageItemWhereInput = {
   position?: Prisma.IntFilter<"PackageItem"> | number
   createdAt?: Prisma.DateTimeFilter<"PackageItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PackageItem"> | Date | string
+  packageDay?: Prisma.XOR<Prisma.PackageDayScalarRelationFilter, Prisma.PackageDayWhereInput>
 }
 
 export type PackageItemOrderByWithRelationInput = {
@@ -328,6 +329,7 @@ export type PackageItemOrderByWithRelationInput = {
   position?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  packageDay?: Prisma.PackageDayOrderByWithRelationInput
 }
 
 export type PackageItemWhereUniqueInput = Prisma.AtLeast<{
@@ -351,6 +353,7 @@ export type PackageItemWhereUniqueInput = Prisma.AtLeast<{
   position?: Prisma.IntFilter<"PackageItem"> | number
   createdAt?: Prisma.DateTimeFilter<"PackageItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PackageItem"> | Date | string
+  packageDay?: Prisma.XOR<Prisma.PackageDayScalarRelationFilter, Prisma.PackageDayWhereInput>
 }, "id">
 
 export type PackageItemOrderByWithAggregationInput = {
@@ -403,7 +406,6 @@ export type PackageItemScalarWhereWithAggregatesInput = {
 
 export type PackageItemCreateInput = {
   id?: string
-  packageDayId: string
   kind: string
   resolutionMode: string
   inventoryItemId?: string | null
@@ -417,8 +419,9 @@ export type PackageItemCreateInput = {
   pricingMode: string
   addonPrice?: number | null
   position: number
-  createdAt: Date | string
-  updatedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  packageDay: Prisma.PackageDayCreateNestedOneWithoutItemsInput
 }
 
 export type PackageItemUncheckedCreateInput = {
@@ -437,13 +440,12 @@ export type PackageItemUncheckedCreateInput = {
   pricingMode: string
   addonPrice?: number | null
   position: number
-  createdAt: Date | string
-  updatedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type PackageItemUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  packageDayId?: Prisma.StringFieldUpdateOperationsInput | string
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   resolutionMode?: Prisma.StringFieldUpdateOperationsInput | string
   inventoryItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -459,6 +461,7 @@ export type PackageItemUpdateInput = {
   position?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  packageDay?: Prisma.PackageDayUpdateOneRequiredWithoutItemsNestedInput
 }
 
 export type PackageItemUncheckedUpdateInput = {
@@ -497,13 +500,12 @@ export type PackageItemCreateManyInput = {
   pricingMode: string
   addonPrice?: number | null
   position: number
-  createdAt: Date | string
-  updatedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type PackageItemUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  packageDayId?: Prisma.StringFieldUpdateOperationsInput | string
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   resolutionMode?: Prisma.StringFieldUpdateOperationsInput | string
   inventoryItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -539,6 +541,16 @@ export type PackageItemUncheckedUpdateManyInput = {
   position?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type PackageItemListRelationFilter = {
+  every?: Prisma.PackageItemWhereInput
+  some?: Prisma.PackageItemWhereInput
+  none?: Prisma.PackageItemWhereInput
+}
+
+export type PackageItemOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type PackageItemCountOrderByAggregateInput = {
@@ -607,6 +619,48 @@ export type PackageItemSumOrderByAggregateInput = {
   position?: Prisma.SortOrder
 }
 
+export type PackageItemCreateNestedManyWithoutPackageDayInput = {
+  create?: Prisma.XOR<Prisma.PackageItemCreateWithoutPackageDayInput, Prisma.PackageItemUncheckedCreateWithoutPackageDayInput> | Prisma.PackageItemCreateWithoutPackageDayInput[] | Prisma.PackageItemUncheckedCreateWithoutPackageDayInput[]
+  connectOrCreate?: Prisma.PackageItemCreateOrConnectWithoutPackageDayInput | Prisma.PackageItemCreateOrConnectWithoutPackageDayInput[]
+  createMany?: Prisma.PackageItemCreateManyPackageDayInputEnvelope
+  connect?: Prisma.PackageItemWhereUniqueInput | Prisma.PackageItemWhereUniqueInput[]
+}
+
+export type PackageItemUncheckedCreateNestedManyWithoutPackageDayInput = {
+  create?: Prisma.XOR<Prisma.PackageItemCreateWithoutPackageDayInput, Prisma.PackageItemUncheckedCreateWithoutPackageDayInput> | Prisma.PackageItemCreateWithoutPackageDayInput[] | Prisma.PackageItemUncheckedCreateWithoutPackageDayInput[]
+  connectOrCreate?: Prisma.PackageItemCreateOrConnectWithoutPackageDayInput | Prisma.PackageItemCreateOrConnectWithoutPackageDayInput[]
+  createMany?: Prisma.PackageItemCreateManyPackageDayInputEnvelope
+  connect?: Prisma.PackageItemWhereUniqueInput | Prisma.PackageItemWhereUniqueInput[]
+}
+
+export type PackageItemUpdateManyWithoutPackageDayNestedInput = {
+  create?: Prisma.XOR<Prisma.PackageItemCreateWithoutPackageDayInput, Prisma.PackageItemUncheckedCreateWithoutPackageDayInput> | Prisma.PackageItemCreateWithoutPackageDayInput[] | Prisma.PackageItemUncheckedCreateWithoutPackageDayInput[]
+  connectOrCreate?: Prisma.PackageItemCreateOrConnectWithoutPackageDayInput | Prisma.PackageItemCreateOrConnectWithoutPackageDayInput[]
+  upsert?: Prisma.PackageItemUpsertWithWhereUniqueWithoutPackageDayInput | Prisma.PackageItemUpsertWithWhereUniqueWithoutPackageDayInput[]
+  createMany?: Prisma.PackageItemCreateManyPackageDayInputEnvelope
+  set?: Prisma.PackageItemWhereUniqueInput | Prisma.PackageItemWhereUniqueInput[]
+  disconnect?: Prisma.PackageItemWhereUniqueInput | Prisma.PackageItemWhereUniqueInput[]
+  delete?: Prisma.PackageItemWhereUniqueInput | Prisma.PackageItemWhereUniqueInput[]
+  connect?: Prisma.PackageItemWhereUniqueInput | Prisma.PackageItemWhereUniqueInput[]
+  update?: Prisma.PackageItemUpdateWithWhereUniqueWithoutPackageDayInput | Prisma.PackageItemUpdateWithWhereUniqueWithoutPackageDayInput[]
+  updateMany?: Prisma.PackageItemUpdateManyWithWhereWithoutPackageDayInput | Prisma.PackageItemUpdateManyWithWhereWithoutPackageDayInput[]
+  deleteMany?: Prisma.PackageItemScalarWhereInput | Prisma.PackageItemScalarWhereInput[]
+}
+
+export type PackageItemUncheckedUpdateManyWithoutPackageDayNestedInput = {
+  create?: Prisma.XOR<Prisma.PackageItemCreateWithoutPackageDayInput, Prisma.PackageItemUncheckedCreateWithoutPackageDayInput> | Prisma.PackageItemCreateWithoutPackageDayInput[] | Prisma.PackageItemUncheckedCreateWithoutPackageDayInput[]
+  connectOrCreate?: Prisma.PackageItemCreateOrConnectWithoutPackageDayInput | Prisma.PackageItemCreateOrConnectWithoutPackageDayInput[]
+  upsert?: Prisma.PackageItemUpsertWithWhereUniqueWithoutPackageDayInput | Prisma.PackageItemUpsertWithWhereUniqueWithoutPackageDayInput[]
+  createMany?: Prisma.PackageItemCreateManyPackageDayInputEnvelope
+  set?: Prisma.PackageItemWhereUniqueInput | Prisma.PackageItemWhereUniqueInput[]
+  disconnect?: Prisma.PackageItemWhereUniqueInput | Prisma.PackageItemWhereUniqueInput[]
+  delete?: Prisma.PackageItemWhereUniqueInput | Prisma.PackageItemWhereUniqueInput[]
+  connect?: Prisma.PackageItemWhereUniqueInput | Prisma.PackageItemWhereUniqueInput[]
+  update?: Prisma.PackageItemUpdateWithWhereUniqueWithoutPackageDayInput | Prisma.PackageItemUpdateWithWhereUniqueWithoutPackageDayInput[]
+  updateMany?: Prisma.PackageItemUpdateManyWithWhereWithoutPackageDayInput | Prisma.PackageItemUpdateManyWithWhereWithoutPackageDayInput[]
+  deleteMany?: Prisma.PackageItemScalarWhereInput | Prisma.PackageItemScalarWhereInput[]
+}
+
 export type PackageItemCreateimagesInput = {
   set: string[]
 }
@@ -614,6 +668,169 @@ export type PackageItemCreateimagesInput = {
 export type PackageItemUpdateimagesInput = {
   set?: string[]
   push?: string | string[]
+}
+
+export type PackageItemCreateWithoutPackageDayInput = {
+  id?: string
+  kind: string
+  resolutionMode: string
+  inventoryItemId?: string | null
+  destinationReferenceId?: string | null
+  slotCriteria?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  title: string
+  description?: string | null
+  timeOfDay?: string | null
+  notes?: string | null
+  images?: Prisma.PackageItemCreateimagesInput | string[]
+  pricingMode: string
+  addonPrice?: number | null
+  position: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type PackageItemUncheckedCreateWithoutPackageDayInput = {
+  id?: string
+  kind: string
+  resolutionMode: string
+  inventoryItemId?: string | null
+  destinationReferenceId?: string | null
+  slotCriteria?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  title: string
+  description?: string | null
+  timeOfDay?: string | null
+  notes?: string | null
+  images?: Prisma.PackageItemCreateimagesInput | string[]
+  pricingMode: string
+  addonPrice?: number | null
+  position: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type PackageItemCreateOrConnectWithoutPackageDayInput = {
+  where: Prisma.PackageItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.PackageItemCreateWithoutPackageDayInput, Prisma.PackageItemUncheckedCreateWithoutPackageDayInput>
+}
+
+export type PackageItemCreateManyPackageDayInputEnvelope = {
+  data: Prisma.PackageItemCreateManyPackageDayInput | Prisma.PackageItemCreateManyPackageDayInput[]
+  skipDuplicates?: boolean
+}
+
+export type PackageItemUpsertWithWhereUniqueWithoutPackageDayInput = {
+  where: Prisma.PackageItemWhereUniqueInput
+  update: Prisma.XOR<Prisma.PackageItemUpdateWithoutPackageDayInput, Prisma.PackageItemUncheckedUpdateWithoutPackageDayInput>
+  create: Prisma.XOR<Prisma.PackageItemCreateWithoutPackageDayInput, Prisma.PackageItemUncheckedCreateWithoutPackageDayInput>
+}
+
+export type PackageItemUpdateWithWhereUniqueWithoutPackageDayInput = {
+  where: Prisma.PackageItemWhereUniqueInput
+  data: Prisma.XOR<Prisma.PackageItemUpdateWithoutPackageDayInput, Prisma.PackageItemUncheckedUpdateWithoutPackageDayInput>
+}
+
+export type PackageItemUpdateManyWithWhereWithoutPackageDayInput = {
+  where: Prisma.PackageItemScalarWhereInput
+  data: Prisma.XOR<Prisma.PackageItemUpdateManyMutationInput, Prisma.PackageItemUncheckedUpdateManyWithoutPackageDayInput>
+}
+
+export type PackageItemScalarWhereInput = {
+  AND?: Prisma.PackageItemScalarWhereInput | Prisma.PackageItemScalarWhereInput[]
+  OR?: Prisma.PackageItemScalarWhereInput[]
+  NOT?: Prisma.PackageItemScalarWhereInput | Prisma.PackageItemScalarWhereInput[]
+  id?: Prisma.StringFilter<"PackageItem"> | string
+  packageDayId?: Prisma.StringFilter<"PackageItem"> | string
+  kind?: Prisma.StringFilter<"PackageItem"> | string
+  resolutionMode?: Prisma.StringFilter<"PackageItem"> | string
+  inventoryItemId?: Prisma.StringNullableFilter<"PackageItem"> | string | null
+  destinationReferenceId?: Prisma.StringNullableFilter<"PackageItem"> | string | null
+  slotCriteria?: Prisma.JsonNullableFilter<"PackageItem">
+  title?: Prisma.StringFilter<"PackageItem"> | string
+  description?: Prisma.StringNullableFilter<"PackageItem"> | string | null
+  timeOfDay?: Prisma.StringNullableFilter<"PackageItem"> | string | null
+  notes?: Prisma.StringNullableFilter<"PackageItem"> | string | null
+  images?: Prisma.StringNullableListFilter<"PackageItem">
+  pricingMode?: Prisma.StringFilter<"PackageItem"> | string
+  addonPrice?: Prisma.FloatNullableFilter<"PackageItem"> | number | null
+  position?: Prisma.IntFilter<"PackageItem"> | number
+  createdAt?: Prisma.DateTimeFilter<"PackageItem"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"PackageItem"> | Date | string
+}
+
+export type PackageItemCreateManyPackageDayInput = {
+  id?: string
+  kind: string
+  resolutionMode: string
+  inventoryItemId?: string | null
+  destinationReferenceId?: string | null
+  slotCriteria?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  title: string
+  description?: string | null
+  timeOfDay?: string | null
+  notes?: string | null
+  images?: Prisma.PackageItemCreateimagesInput | string[]
+  pricingMode: string
+  addonPrice?: number | null
+  position: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type PackageItemUpdateWithoutPackageDayInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
+  resolutionMode?: Prisma.StringFieldUpdateOperationsInput | string
+  inventoryItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  destinationReferenceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  slotCriteria?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timeOfDay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  images?: Prisma.PackageItemUpdateimagesInput | string[]
+  pricingMode?: Prisma.StringFieldUpdateOperationsInput | string
+  addonPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  position?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type PackageItemUncheckedUpdateWithoutPackageDayInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
+  resolutionMode?: Prisma.StringFieldUpdateOperationsInput | string
+  inventoryItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  destinationReferenceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  slotCriteria?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timeOfDay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  images?: Prisma.PackageItemUpdateimagesInput | string[]
+  pricingMode?: Prisma.StringFieldUpdateOperationsInput | string
+  addonPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  position?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type PackageItemUncheckedUpdateManyWithoutPackageDayInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
+  resolutionMode?: Prisma.StringFieldUpdateOperationsInput | string
+  inventoryItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  destinationReferenceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  slotCriteria?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timeOfDay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  images?: Prisma.PackageItemUpdateimagesInput | string[]
+  pricingMode?: Prisma.StringFieldUpdateOperationsInput | string
+  addonPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  position?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -636,6 +853,7 @@ export type PackageItemSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   position?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  packageDay?: boolean | Prisma.PackageDayDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["packageItem"]>
 
 export type PackageItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -656,6 +874,7 @@ export type PackageItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   position?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  packageDay?: boolean | Prisma.PackageDayDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["packageItem"]>
 
 export type PackageItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -676,6 +895,7 @@ export type PackageItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   position?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  packageDay?: boolean | Prisma.PackageDayDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["packageItem"]>
 
 export type PackageItemSelectScalar = {
@@ -699,10 +919,21 @@ export type PackageItemSelectScalar = {
 }
 
 export type PackageItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "packageDayId" | "kind" | "resolutionMode" | "inventoryItemId" | "destinationReferenceId" | "slotCriteria" | "title" | "description" | "timeOfDay" | "notes" | "images" | "pricingMode" | "addonPrice" | "position" | "createdAt" | "updatedAt", ExtArgs["result"]["packageItem"]>
+export type PackageItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  packageDay?: boolean | Prisma.PackageDayDefaultArgs<ExtArgs>
+}
+export type PackageItemIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  packageDay?: boolean | Prisma.PackageDayDefaultArgs<ExtArgs>
+}
+export type PackageItemIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  packageDay?: boolean | Prisma.PackageDayDefaultArgs<ExtArgs>
+}
 
 export type $PackageItemPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PackageItem"
-  objects: {}
+  objects: {
+    packageDay: Prisma.$PackageDayPayload<ExtArgs>
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     packageDayId: string
@@ -1115,6 +1346,7 @@ readonly fields: PackageItemFieldRefs;
  */
 export interface Prisma__PackageItemClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  packageDay<T extends Prisma.PackageDayDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PackageDayDefaultArgs<ExtArgs>>): Prisma.Prisma__PackageDayClient<runtime.Types.Result.GetResult<Prisma.$PackageDayPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1178,6 +1410,10 @@ export type PackageItemFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   omit?: Prisma.PackageItemOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageItemInclude<ExtArgs> | null
+  /**
    * Filter, which PackageItem to fetch.
    */
   where: Prisma.PackageItemWhereUniqueInput
@@ -1196,6 +1432,10 @@ export type PackageItemFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Exten
    */
   omit?: Prisma.PackageItemOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageItemInclude<ExtArgs> | null
+  /**
    * Filter, which PackageItem to fetch.
    */
   where: Prisma.PackageItemWhereUniqueInput
@@ -1213,6 +1453,10 @@ export type PackageItemFindFirstArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the PackageItem
    */
   omit?: Prisma.PackageItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageItemInclude<ExtArgs> | null
   /**
    * Filter, which PackageItem to fetch.
    */
@@ -1262,6 +1506,10 @@ export type PackageItemFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extens
    */
   omit?: Prisma.PackageItemOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageItemInclude<ExtArgs> | null
+  /**
    * Filter, which PackageItem to fetch.
    */
   where?: Prisma.PackageItemWhereInput
@@ -1309,6 +1557,10 @@ export type PackageItemFindManyArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Omit specific fields from the PackageItem
    */
   omit?: Prisma.PackageItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageItemInclude<ExtArgs> | null
   /**
    * Filter, which PackageItems to fetch.
    */
@@ -1358,6 +1610,10 @@ export type PackageItemCreateArgs<ExtArgs extends runtime.Types.Extensions.Inter
    */
   omit?: Prisma.PackageItemOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageItemInclude<ExtArgs> | null
+  /**
    * The data needed to create a PackageItem.
    */
   data: Prisma.XOR<Prisma.PackageItemCreateInput, Prisma.PackageItemUncheckedCreateInput>
@@ -1391,6 +1647,10 @@ export type PackageItemCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Ext
    */
   data: Prisma.PackageItemCreateManyInput | Prisma.PackageItemCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageItemIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1405,6 +1665,10 @@ export type PackageItemUpdateArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Omit specific fields from the PackageItem
    */
   omit?: Prisma.PackageItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageItemInclude<ExtArgs> | null
   /**
    * The data needed to update a PackageItem.
    */
@@ -1457,6 +1721,10 @@ export type PackageItemUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Ext
    * Limit how many PackageItems to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageItemIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1471,6 +1739,10 @@ export type PackageItemUpsertArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Omit specific fields from the PackageItem
    */
   omit?: Prisma.PackageItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageItemInclude<ExtArgs> | null
   /**
    * The filter to search for the PackageItem to update in case it exists.
    */
@@ -1497,6 +1769,10 @@ export type PackageItemDeleteArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Omit specific fields from the PackageItem
    */
   omit?: Prisma.PackageItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageItemInclude<ExtArgs> | null
   /**
    * Filter which PackageItem to delete.
    */
@@ -1529,4 +1805,8 @@ export type PackageItemDefaultArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Omit specific fields from the PackageItem
    */
   omit?: Prisma.PackageItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PackageItemInclude<ExtArgs> | null
 }

@@ -216,7 +216,7 @@ export function FaqManagementPage() {
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button type="button" className="absolute inset-0 bg-black/30" onClick={() => setShowAdd(false)} aria-label="Close" />
-          <div className="relative w-full max-w-lg rounded-xl border border-border bg-white dark:bg-slate-900 p-6 shadow-xl space-y-4">
+          <div className="relative w-full max-w-lg rounded-xl border border-border bg-white p-6 shadow-xl space-y-4">
             <h3 className="font-semibold">Add FAQ</h3>
             <label className="block text-sm">
               <span className="text-xs font-medium text-muted-foreground">Parent type</span>
@@ -285,7 +285,7 @@ export function FaqManagementPage() {
       {editingFaq && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button type="button" className="absolute inset-0 bg-black/30" onClick={() => setEditingFaq(null)} aria-label="Close" />
-          <div className="relative w-full max-w-lg rounded-xl border border-border bg-white dark:bg-slate-900 p-6 shadow-xl space-y-4">
+          <div className="relative w-full max-w-lg rounded-xl border border-border bg-white p-6 shadow-xl space-y-4">
             <h3 className="font-semibold">Edit FAQ</h3>
             <p className="text-xs text-muted-foreground">
               {editingFaq.parentType} — {editingFaq.parentName}
@@ -329,7 +329,7 @@ export function FaqManagementPage() {
       {faqToDelete && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setFaqToDelete(null)} aria-label="Cancel" />
-          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white shadow-xl p-6 space-y-4">
             <h3 className="font-semibold text-foreground">Remove FAQ</h3>
             <p className="text-sm text-muted-foreground">Are you sure you want to remove this FAQ?</p>
             <div className="flex justify-end gap-2">

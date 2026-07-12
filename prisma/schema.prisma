@@ -161,10 +161,11 @@ model Package {
   aiGeneratedFromId String?
   status            String
   currentVersionId  String?
-  seo               Json
-  faqs              Json
-  createdAt         DateTime
-  updatedAt         DateTime
+  seo               Json?
+  faqs              Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  days              PackageDay[]
 
   @@index([destinationId])
   @@index([status])
@@ -178,8 +179,11 @@ model PackageDay {
   title         String
   description   String?
   destinationId String?
-  createdAt     DateTime
-  updatedAt     DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  package       Package  @relation(fields: [packageId], references: [id])
+  items         PackageItem[]
 
   @@index([packageId])
   @@map("package_days")
@@ -201,8 +205,10 @@ model PackageItem {
   pricingMode            String
   addonPrice             Float?
   position               Int
-  createdAt              DateTime
-  updatedAt              DateTime
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  packageDay             PackageDay @relation(fields: [packageDayId], references: [id])
 
   @@index([packageDayId])
   @@index([inventoryItemId])
@@ -869,3 +875,57 @@ model WebhookEvent {
 
   @@map("webhook_events")
 }
+
+model Guide {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  status      String   @default("DRAFT")
+  content     String
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("guides")
+}
+
+model FerryRoute {
+  id          String   @id @default(uuid())
+  active      Boolean  @default(true)
+  fromId      String
+  toId        String
+  vesselId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  schedules   FerrySchedule[]
+
+  @@map("ferry_routes")
+}
+
+model FerrySchedule {
+  id          String   @id @default(uuid())
+  routeId     String
+  active      Boolean  @default(true)
+  departure   String
+  arrival     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  route       FerryRoute @relation(fields: [routeId], references: [id])
+
+  @@map("ferry_schedules")
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  targetId    String
+  rating      Int
+  comment     String?
+  authorName  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("reviews")
+}
+

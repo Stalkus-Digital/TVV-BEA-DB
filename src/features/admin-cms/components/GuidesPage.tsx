@@ -170,7 +170,7 @@ export function GuidesPage() {
       {guideToDelete && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setGuideToDelete(null)} aria-label="Cancel" />
-          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
+          <div className="relative w-full max-w-sm rounded-lg border border-border bg-white shadow-xl p-6 space-y-4">
             <h3 className="font-semibold text-foreground">Delete Guide</h3>
             <p className="text-sm text-muted-foreground">Are you sure you want to delete this guide?</p>
             <div className="flex justify-end gap-2">

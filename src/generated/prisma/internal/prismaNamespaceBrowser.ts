@@ -104,7 +104,11 @@ export const ModelName = {
   MediaAsset: 'MediaAsset',
   MarketingCampaign: 'MarketingCampaign',
   PageAnalytics: 'PageAnalytics',
-  WebhookEvent: 'WebhookEvent'
+  WebhookEvent: 'WebhookEvent',
+  Guide: 'Guide',
+  FerryRoute: 'FerryRoute',
+  FerrySchedule: 'FerrySchedule',
+  Review: 'Review'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -930,6 +934,59 @@ export const WebhookEventScalarFieldEnum = {
 } as const
 
 export type WebhookEventScalarFieldEnum = (typeof WebhookEventScalarFieldEnum)[keyof typeof WebhookEventScalarFieldEnum]
+
+
+export const GuideScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  slug: 'slug',
+  status: 'status',
+  content: 'content',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GuideScalarFieldEnum = (typeof GuideScalarFieldEnum)[keyof typeof GuideScalarFieldEnum]
+
+
+export const FerryRouteScalarFieldEnum = {
+  id: 'id',
+  active: 'active',
+  fromId: 'fromId',
+  toId: 'toId',
+  vesselId: 'vesselId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FerryRouteScalarFieldEnum = (typeof FerryRouteScalarFieldEnum)[keyof typeof FerryRouteScalarFieldEnum]
+
+
+export const FerryScheduleScalarFieldEnum = {
+  id: 'id',
+  routeId: 'routeId',
+  active: 'active',
+  departure: 'departure',
+  arrival: 'arrival',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FerryScheduleScalarFieldEnum = (typeof FerryScheduleScalarFieldEnum)[keyof typeof FerryScheduleScalarFieldEnum]
+
+
+export const ReviewScalarFieldEnum = {
+  id: 'id',
+  targetId: 'targetId',
+  rating: 'rating',
+  comment: 'comment',
+  authorName: 'authorName',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -119,7 +119,7 @@ export function SeoPagesPage() {
       {editing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button type="button" className="absolute inset-0 bg-black/30" onClick={() => setEditing(null)} aria-label="Close" />
-          <div className="relative w-full max-w-lg rounded-xl border border-border bg-white dark:bg-slate-900 p-6 shadow-xl space-y-4">
+          <div className="relative w-full max-w-lg rounded-xl border border-border bg-white p-6 shadow-xl space-y-4">
             <h3 className="font-semibold">Edit SEO — {editing.name}</h3>
             <Field label="Meta title" value={form.metaTitle ?? ""} onChange={(v) => setForm((f) => ({ ...f, metaTitle: v }))} />
             <Field label="Meta description" value={form.metaDescription ?? ""} onChange={(v) => setForm((f) => ({ ...f, metaDescription: v }))} multiline />

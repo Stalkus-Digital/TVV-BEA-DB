@@ -317,3 +317,23 @@ export type PageAnalytics = Prisma.PageAnalyticsModel
  * 
  */
 export type WebhookEvent = Prisma.WebhookEventModel
+/**
+ * Model Guide
+ * 
+ */
+export type Guide = Prisma.GuideModel
+/**
+ * Model FerryRoute
+ * 
+ */
+export type FerryRoute = Prisma.FerryRouteModel
+/**
+ * Model FerrySchedule
+ * 
+ */
+export type FerrySchedule = Prisma.FerryScheduleModel
+/**
+ * Model Review
+ * 
+ */
+export type Review = Prisma.ReviewModel

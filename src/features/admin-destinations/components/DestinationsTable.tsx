@@ -35,7 +35,7 @@ export function DestinationsTable({
     return <WidgetError message={errorMessage ?? "Failed to load destinations"} onRetry={onRetry} />;
   }
 
-  if (!data || data.items.length === 0) {
+  if (!data || !Array.isArray(data.items) || data.items.length === 0) {
     return <WidgetEmpty message="No destinations found. Add a destination or adjust your filters." />;
   }
 

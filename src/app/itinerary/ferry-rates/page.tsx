@@ -250,8 +250,8 @@ export default function FerryRatesPage() {
       {/* Add Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-xl shadow-2xl overflow-hidden flex flex-col border border-border">
-            <div className="flex items-center justify-between p-4 border-b border-border bg-slate-50/50 dark:bg-slate-800/50">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden flex flex-col border border-border">
+            <div className="flex items-center justify-between p-4 border-b border-border bg-slate-50/50">
               <h2 className="text-lg font-bold text-foreground">Add New Ferry Rate</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted">
                 <X className="h-5 w-5" />
@@ -260,12 +260,12 @@ export default function FerryRatesPage() {
             
             <form onSubmit={handleAdd} className="p-4 flex flex-col gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Route</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Route</label>
                 <select 
                   required
                   value={newRate.route} 
                   onChange={(e) => setNewRate({...newRate, route: e.target.value})}
-                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
                 >
                   <option value="Port Blair ➔ Havelock">Port Blair ➔ Havelock</option>
                   <option value="Havelock ➔ Port Blair">Havelock ➔ Port Blair</option>
@@ -278,67 +278,67 @@ export default function FerryRatesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Operator</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Operator</label>
                   <input 
                     required
                     type="text"
                     value={newRate.operator} 
                     onChange={(e) => setNewRate({...newRate, operator: e.target.value})}
                     placeholder="e.g. Makruzz"
-                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Class</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Class</label>
                   <input 
                     required
                     type="text"
                     value={newRate.class} 
                     onChange={(e) => setNewRate({...newRate, class: e.target.value})}
                     placeholder="e.g. Premium"
-                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Base Fare (₹)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Base Fare (₹)</label>
                   <input 
                     required
                     type="number"
                     min="0"
                     value={newRate.fare} 
                     onChange={(e) => setNewRate({...newRate, fare: Number(e.target.value)})}
-                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Surcharge (₹)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Surcharge (₹)</label>
                   <input 
                     required
                     type="number"
                     min="0"
                     value={newRate.surcharge} 
                     onChange={(e) => setNewRate({...newRate, surcharge: Number(e.target.value)})}
-                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
                   />
                 </div>
               </div>
               
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Total Cost (₹) - Auto Calculated</label>
-                <div className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-foreground">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Total Cost (₹) - Auto Calculated</label>
+                <div className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-foreground">
                   ₹{((Number(newRate.fare) || 0) + (Number(newRate.surcharge) || 0)).toLocaleString()}
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Status</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Status</label>
                 <select 
                   value={newRate.status} 
                   onChange={(e) => setNewRate({...newRate, status: e.target.value as "Active" | "Inactive"})}
-                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
@@ -349,7 +349,7 @@ export default function FerryRatesPage() {
                 <button 
                   type="button" 
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-2.5 text-sm font-semibold border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  className="flex-1 py-2.5 text-sm font-semibold border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                 >
                   Cancel
                 </button>

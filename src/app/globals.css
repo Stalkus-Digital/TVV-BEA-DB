@@ -45,9 +45,9 @@
     --card-foreground: #000000;
     --popover: #ffffff;
     --popover-foreground: #000000;
-    --primary: #ffffff;
+    --primary: #f8fafc;
     --primary-foreground: #000000;
-    --secondary: #f8fafc;
+    --secondary: #f1f5f9;
     --secondary-foreground: #000000;
     --muted: #f8fafc;
     --muted-foreground: #475569;
@@ -57,8 +57,37 @@
     --destructive-foreground: #ffffff;
     --border: #cbd5e1;
     --input: #cbd5e1;
-    --ring: #94a3b8;
+    --ring: #0f172a;
     --radius: 0.5rem;
+  }
+}
+
+@layer components {
+  /* Make buttons look professional globally */
+  button.bg-primary {
+    background-color: #f1f5f9;
+    color: #000000;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+  }
+  button.bg-primary:hover {
+    background-color: #e2e8f0;
+    border-color: #94a3b8;
+  }
+  
+  /* Secondary / outline buttons that just use border */
+  button.border {
+    background-color: #ffffff;
+    color: #000000;
+    font-weight: 500;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease-in-out;
+  }
+  button.border:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
   }
 }
 

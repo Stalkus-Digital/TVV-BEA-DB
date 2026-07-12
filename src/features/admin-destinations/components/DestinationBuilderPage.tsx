@@ -31,10 +31,9 @@ import { DestinationStatusBadge } from "./DestinationStatusBadge";
 const STEPS = [
   { id: 1, name: "Basic Info", icon: MapPin },
   { id: 2, name: "Geography", icon: Globe },
-  { id: 3, name: "Hierarchy", icon: Network },
-  { id: 4, name: "SEO", icon: Globe },
-  { id: 5, name: "Gallery", icon: ImageIcon },
-  { id: 6, name: "FAQ", icon: HelpCircle },
+  { id: 3, name: "SEO", icon: Globe },
+  { id: 4, name: "Gallery", icon: ImageIcon },
+  { id: 5, name: "FAQ", icon: HelpCircle },
 ];
 
 export function DestinationBuilderPage() {
@@ -106,7 +105,7 @@ export function DestinationBuilderPage() {
     nextStep();
   };
 
-  const canCreate = name.trim() && countryId;
+  const canCreate = name.trim().length > 0;
 
   // geoQuery removed, rely on individual queries in the steps
   const parentOptions =
@@ -211,16 +210,12 @@ export function DestinationBuilderPage() {
                 parentOptions={parentOptions}
               />
             )}
-            {currentStep === 3 && destinationId && <HierarchyStep destinationId={destinationId} />}
-            {currentStep === 3 && !destinationId && (
-              <p className="text-sm text-muted-foreground">Create the destination first to view hierarchy.</p>
-            )}
-            {currentStep === 4 && destinationId && <SeoBuilderStep destinationId={destinationId} />}
+            {currentStep === 3 && destinationId && <SeoBuilderStep destinationId={destinationId} />}
+            {currentStep === 3 && !destinationId && <p className="text-sm text-muted-foreground">Create the destination first.</p>}
+            {currentStep === 4 && destinationId && <GalleryBuilderStep destinationId={destinationId} />}
             {currentStep === 4 && !destinationId && <p className="text-sm text-muted-foreground">Create the destination first.</p>}
-            {currentStep === 5 && destinationId && <GalleryBuilderStep destinationId={destinationId} />}
+            {currentStep === 5 && destinationId && <FaqBuilderStep destinationId={destinationId} />}
             {currentStep === 5 && !destinationId && <p className="text-sm text-muted-foreground">Create the destination first.</p>}
-            {currentStep === 6 && destinationId && <FaqBuilderStep destinationId={destinationId} />}
-            {currentStep === 6 && !destinationId && <p className="text-sm text-muted-foreground">Create the destination first.</p>}
           </div>
         </div>
 
@@ -442,7 +437,7 @@ function GeographyStep({
     <div className="space-y-4 bg-card border border-border rounded-lg p-6">
       <div>
         <label className="block text-sm font-medium mb-1 flex justify-between items-center">
-          Country *
+          Country (Optional)
           {isLoading.countries && <span className="text-xs text-muted-foreground">Loading...</span>}
         </label>
         <select

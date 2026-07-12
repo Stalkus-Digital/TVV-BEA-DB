@@ -1,4 +1,8 @@
 export interface ActivityDetails {
-  durationMinutes: number;
-  category: string;
+  durationMinutes?: number;
+  duration?: string;
+  category?: string;
+  location?: string;
+  adultPrice?: number;
+  childPrice?: number;
 }

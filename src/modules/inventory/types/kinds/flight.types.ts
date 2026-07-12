@@ -8,4 +8,13 @@
 export interface FlightRouteDetails {
   originAirportCode: string;
   destinationAirportCode: string;
+  carrier?: string;
+  flightNo?: string;
+  origin?: string;
+  destination?: string;
+  departure?: string;
+  arrival?: string;
+  duration?: string;
+  fare?: number;
+  baggage?: string;
 }

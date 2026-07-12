@@ -101,3 +101,6 @@ export function getCustomerDocumentService(): CustomerDocumentService {
 export function getDashboardService(): DashboardService {
   return container.resolve(DASHBOARD_SERVICE_TOKEN);
 }
+export function getSembarkService(): SembarkService {
+  return container.resolve(SEMBARK_SERVICE_TOKEN);
+}

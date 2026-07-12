@@ -34,3 +34,7 @@ export async function updateInventoryItemHandler(
 export async function archiveInventoryItemHandler(id: string): Promise<Result<InventoryItem, AppError>> {
   return getInventoryService().archive(id);
 }
+
+export async function deleteInventoryItemHandler(id: string): Promise<Result<void, AppError>> {
+  return getInventoryService().delete(id);
+}

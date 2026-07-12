@@ -83,6 +83,7 @@ export class PackageService extends BaseService {
     const now = new Date().toISOString();
     return this.packages.create({
       ...value,
+      durationText: value.durationText ?? null,
       isTemplate: false,
       sourceTemplateId: null,
       aiGeneratedFromId: null,

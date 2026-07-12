@@ -54,6 +54,7 @@ export interface CreatePackageInput {
   sourceType: PackageSourceType;
   durationDays: number;
   durationNights: number;
+  durationText?: string | null;
   seo: PackageSeo;
 }
 
@@ -83,6 +84,9 @@ export function validateCreatePackage(input: unknown): Result<CreatePackageInput
   if (typeof body.durationNights !== "number" || body.durationNights < 0) {
     return err(new ValidationError("durationNights must be a non-negative number"));
   }
+  if (body.durationText !== undefined && body.durationText !== null && typeof body.durationText !== "string") {
+    return err(new ValidationError("durationText must be a string or null"));
+  }
 
   const seo = validateSeo(body.seo);
   if (!seo.ok) return seo;
@@ -95,12 +99,14 @@ export function validateCreatePackage(input: unknown): Result<CreatePackageInput
     sourceType: sourceType as PackageSourceType,
     durationDays: body.durationDays,
     durationNights: body.durationNights,
+    durationText: typeof body.durationText === "string" ? body.durationText : null,
     seo: seo.value,
   });
 }
 
 export interface UpdatePackageInput {
   title?: string;
+  durationText?: string | null;
   seo?: PackageSeo;
 }
 
@@ -112,6 +118,12 @@ export function validateUpdatePackage(input: unknown): Result<UpdatePackageInput
   if (body.title !== undefined) {
     if (!isNonEmptyString(body.title)) return err(new ValidationError("title must be a non-empty string"));
     output.title = body.title;
+  }
+  if (body.durationText !== undefined) {
+    if (body.durationText !== null && typeof body.durationText !== "string") {
+       return err(new ValidationError("durationText must be a string or null"));
+    }
+    output.durationText = body.durationText as string | null;
   }
   if (body.seo !== undefined) {
     const seo = validateSeo(body.seo);

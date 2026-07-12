@@ -45,8 +45,8 @@ export class PrismaInventoryRepository implements InventoryRepository {
   async findMany(params: PaginationParams = {}): Promise<Result<PaginatedResult<InventoryItem>, AppError>> {
     const { skip, take, page, pageSize } = paginationArgs(params);
     const [rows, total] = await Promise.all([
-      prisma.inventoryItem.findMany({ skip, take, orderBy: { createdAt: "desc" } }),
-      prisma.inventoryItem.count(),
+      prisma.inventoryItem.findMany({ where: { status: { not: "ARCHIVED" } }, skip, take, orderBy: { createdAt: "desc" } }),
+      prisma.inventoryItem.count({ where: { status: { not: "ARCHIVED" } } }),
     ]);
     return ok({ items: rows.map(toDomain), page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) });
   }
@@ -54,8 +54,8 @@ export class PrismaInventoryRepository implements InventoryRepository {
   async findByKind(kind: InventoryKind, params: PaginationParams = {}): Promise<Result<PaginatedResult<InventoryItem>, AppError>> {
     const { skip, take, page, pageSize } = paginationArgs(params);
     const [rows, total] = await Promise.all([
-      prisma.inventoryItem.findMany({ where: { kind }, skip, take, orderBy: { createdAt: "desc" } }),
-      prisma.inventoryItem.count({ where: { kind } }),
+      prisma.inventoryItem.findMany({ where: { kind, status: { not: "ARCHIVED" } }, skip, take, orderBy: { createdAt: "desc" } }),
+      prisma.inventoryItem.count({ where: { kind, status: { not: "ARCHIVED" } } }),
     ]);
     return ok({ items: rows.map(toDomain), page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) });
   }

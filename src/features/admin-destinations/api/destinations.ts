@@ -118,8 +118,8 @@ export async function removeDestinationGalleryImage(id: string, imageId: string)
 }
 
 export async function fetchDestinationCategories(): Promise<DestinationCategory[]> {
-  const result = await adminApiClient.get<DestinationCategory[]>(`${adminEndpoints.destinations}/categories`);
-  return result ?? [];
+  const result = await adminApiClient.get<PaginatedResult<DestinationCategory>>(`${adminEndpoints.destinations}/categories`);
+  return result?.items ?? [];
 }
 
 export async function createDestinationCategory(input: { name: string; slug: string; description?: string }): Promise<DestinationCategory> {

@@ -3,4 +3,6 @@ export interface HotelDetails {
   address: string;
   latitude?: number;
   longitude?: number;
+  rooms?: number;
+  avgRate?: number;
 }

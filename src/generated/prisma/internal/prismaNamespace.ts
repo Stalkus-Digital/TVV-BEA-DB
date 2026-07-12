@@ -4921,6 +4921,7 @@ export const PackageScalarFieldEnum = {
   sourceType: 'sourceType',
   durationDays: 'durationDays',
   durationNights: 'durationNights',
+  durationText: 'durationText',
   isTemplate: 'isTemplate',
   sourceTemplateId: 'sourceTemplateId',
   aiGeneratedFromId: 'aiGeneratedFromId',

@@ -257,7 +257,7 @@ export type DestinationGroupByOutputType = {
   id: string
   name: string
   slug: string
-  countryId: string
+  countryId: string | null
   stateId: string | null
   cityId: string | null
   regionId: string | null
@@ -303,7 +303,7 @@ export type DestinationWhereInput = {
   id?: Prisma.StringFilter<"Destination"> | string
   name?: Prisma.StringFilter<"Destination"> | string
   slug?: Prisma.StringFilter<"Destination"> | string
-  countryId?: Prisma.StringFilter<"Destination"> | string
+  countryId?: Prisma.StringNullableFilter<"Destination"> | string | null
   stateId?: Prisma.StringNullableFilter<"Destination"> | string | null
   cityId?: Prisma.StringNullableFilter<"Destination"> | string | null
   regionId?: Prisma.StringNullableFilter<"Destination"> | string | null
@@ -326,7 +326,7 @@ export type DestinationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
-  countryId?: Prisma.SortOrder
+  countryId?: Prisma.SortOrderInput | Prisma.SortOrder
   stateId?: Prisma.SortOrderInput | Prisma.SortOrder
   cityId?: Prisma.SortOrderInput | Prisma.SortOrder
   regionId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -352,7 +352,7 @@ export type DestinationWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.DestinationWhereInput[]
   NOT?: Prisma.DestinationWhereInput | Prisma.DestinationWhereInput[]
   name?: Prisma.StringFilter<"Destination"> | string
-  countryId?: Prisma.StringFilter<"Destination"> | string
+  countryId?: Prisma.StringNullableFilter<"Destination"> | string | null
   stateId?: Prisma.StringNullableFilter<"Destination"> | string | null
   cityId?: Prisma.StringNullableFilter<"Destination"> | string | null
   regionId?: Prisma.StringNullableFilter<"Destination"> | string | null
@@ -375,7 +375,7 @@ export type DestinationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
-  countryId?: Prisma.SortOrder
+  countryId?: Prisma.SortOrderInput | Prisma.SortOrder
   stateId?: Prisma.SortOrderInput | Prisma.SortOrder
   cityId?: Prisma.SortOrderInput | Prisma.SortOrder
   regionId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -406,7 +406,7 @@ export type DestinationScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Destination"> | string
   name?: Prisma.StringWithAggregatesFilter<"Destination"> | string
   slug?: Prisma.StringWithAggregatesFilter<"Destination"> | string
-  countryId?: Prisma.StringWithAggregatesFilter<"Destination"> | string
+  countryId?: Prisma.StringNullableWithAggregatesFilter<"Destination"> | string | null
   stateId?: Prisma.StringNullableWithAggregatesFilter<"Destination"> | string | null
   cityId?: Prisma.StringNullableWithAggregatesFilter<"Destination"> | string | null
   regionId?: Prisma.StringNullableWithAggregatesFilter<"Destination"> | string | null
@@ -429,7 +429,7 @@ export type DestinationCreateInput = {
   id?: string
   name: string
   slug: string
-  countryId: string
+  countryId?: string | null
   stateId?: string | null
   cityId?: string | null
   regionId?: string | null
@@ -452,7 +452,7 @@ export type DestinationUncheckedCreateInput = {
   id?: string
   name: string
   slug: string
-  countryId: string
+  countryId?: string | null
   stateId?: string | null
   cityId?: string | null
   regionId?: string | null
@@ -475,7 +475,7 @@ export type DestinationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
-  countryId?: Prisma.StringFieldUpdateOperationsInput | string
+  countryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   regionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -498,7 +498,7 @@ export type DestinationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
-  countryId?: Prisma.StringFieldUpdateOperationsInput | string
+  countryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   regionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -521,7 +521,7 @@ export type DestinationCreateManyInput = {
   id?: string
   name: string
   slug: string
-  countryId: string
+  countryId?: string | null
   stateId?: string | null
   cityId?: string | null
   regionId?: string | null
@@ -544,7 +544,7 @@ export type DestinationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
-  countryId?: Prisma.StringFieldUpdateOperationsInput | string
+  countryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   regionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -567,7 +567,7 @@ export type DestinationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
-  countryId?: Prisma.StringFieldUpdateOperationsInput | string
+  countryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   regionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -788,7 +788,7 @@ export type $DestinationPayload<ExtArgs extends runtime.Types.Extensions.Interna
     id: string
     name: string
     slug: string
-    countryId: string
+    countryId: string | null
     stateId: string | null
     cityId: string | null
     regionId: string | null

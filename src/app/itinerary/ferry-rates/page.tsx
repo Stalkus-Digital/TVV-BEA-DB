@@ -3,97 +3,118 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Ship, Plus, Search, Filter, ArrowUpDown, X, Loader2 } from "lucide-react";
+import { adminApiClient } from "@/lib/admin-api/client";
 
 interface FerryRate {
   id: string;
   route: string;
-  operator: string;
+  provider: string;
   class: string;
-  fare: number;
-  surcharge: number;
-  total: number;
-  status: "Active" | "Inactive";
+  basePrice: number;
+  markupPrice: number;
 }
 
 export default function FerryRatesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCustomRoute, setIsCustomRoute] = useState(false);
   const [newRate, setNewRate] = useState<Partial<FerryRate>>({
     route: "Port Blair ➔ Havelock",
-    operator: "Makruzz",
+    provider: "Makruzz",
     class: "Premium",
-    fare: 1000,
-    surcharge: 100,
-    status: "Active",
+    basePrice: 1000,
+    markupPrice: 100,
   });
+  const [editingRateId, setEditingRateId] = useState<string | null>(null);
 
   const { data: ratesResponse, isLoading } = useQuery({
     queryKey: ["ferry-rates"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/ferries");
-      if (!res.ok) throw new Error("Failed to fetch");
-      return res.json();
+      const res = await adminApiClient.get<any>("/api/admin/ferries");
+      return Array.isArray(res) ? res : res?.data || [];
     }
   });
 
   const createMutation = useMutation({
     mutationFn: async (rate: Partial<FerryRate>) => {
-      const res = await fetch("/api/admin/ferries", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(rate),
-      });
-      if (!res.ok) throw new Error("Failed to create");
-      return res.json();
+      return adminApiClient.post("/api/admin/ferries", rate);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ferry-rates"] });
       setIsModalOpen(false);
+      setEditingRateId(null);
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (rate: Partial<FerryRate> & { id: string }) => {
+      return adminApiClient.put("/api/admin/ferries", rate);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ferry-rates"] });
+      setIsModalOpen(false);
+      setEditingRateId(null);
     }
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/admin/ferries?id=${id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Failed to delete");
-      return res.json();
+      return adminApiClient.delete(`/api/admin/ferries?id=${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ferry-rates"] });
     }
   });
 
-  const rates: FerryRate[] = ratesResponse?.data ?? [];
+  const rates: FerryRate[] = Array.isArray(ratesResponse) ? ratesResponse : (ratesResponse?.data ?? []);
 
-  const filteredRates = rates.filter(r => 
-    r.operator.toLowerCase().includes(search.toLowerCase()) || 
+  const filteredRates = rates.filter(r =>
+    r.provider.toLowerCase().includes(search.toLowerCase()) ||
     r.route.toLowerCase().includes(search.toLowerCase()) ||
     r.class.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
-    const fare = Number(newRate.fare) || 0;
-    const surcharge = Number(newRate.surcharge) || 0;
-    createMutation.mutate({
+    const payload = {
       route: newRate.route || "",
-      operator: newRate.operator || "",
+      provider: newRate.provider || "",
       class: newRate.class || "",
-      fare,
-      surcharge,
-      total: fare + surcharge,
-      status: newRate.status as "Active" | "Inactive" || "Active",
-    });
+      basePrice: Number(newRate.basePrice) || 0,
+      markupPrice: Number(newRate.markupPrice) || 0,
+    };
+
+    if (editingRateId) {
+      updateMutation.mutate({ ...payload, id: editingRateId });
+    } else {
+      createMutation.mutate(payload);
+    }
   };
 
-  const operatorsCount = new Set(rates.filter(r => r.status === "Active").map(r => r.operator)).size;
+  const openAddModal = () => {
+    setEditingRateId(null);
+    setNewRate({
+      route: "Port Blair ➔ Havelock",
+      provider: "Makruzz",
+      class: "Premium",
+      basePrice: 1000,
+      markupPrice: 100,
+    });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (rate: FerryRate) => {
+    setEditingRateId(rate.id);
+    setNewRate(rate);
+    setIsModalOpen(true);
+  };
+
+  const operatorsCount = new Set(rates.map(r => r.provider)).size;
   const routesCount = new Set(rates.map(r => r.route)).size;
-  const premiumRates = rates.filter(r => r.class === "Premium" && r.status === "Active");
-  const avgPremium = premiumRates.length 
-    ? premiumRates.reduce((acc, r) => acc + r.total, 0) / premiumRates.length 
+  const premiumRates = rates.filter(r => r.class === "Premium");
+  const avgPremium = premiumRates.length
+    ? premiumRates.reduce((acc, r) => acc + r.basePrice + r.markupPrice, 0) / premiumRates.length
     : 0;
 
   return (
@@ -105,8 +126,8 @@ export default function FerryRatesPage() {
             Manage ferry ticket prices, fuel surcharges, and operator classes across island routes.
           </p>
         </div>
-        <button 
-          onClick={() => setIsModalOpen(true)}
+        <button
+          onClick={openAddModal}
           className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-md shadow-sm hover:bg-primary-hover transition-colors"
         >
           <Plus className="h-4 w-4" /> Add Ferry Rate
@@ -210,28 +231,26 @@ export default function FerryRatesPage() {
                       {rate.route}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-semibold text-foreground">{rate.operator}</div>
+                      <div className="font-semibold text-foreground">{rate.provider}</div>
                       <div className="text-muted-foreground text-xs">{rate.class} Class</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      ₹{rate.fare.toLocaleString()}
+                      ₹{rate.basePrice.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      ₹{rate.surcharge.toLocaleString()}
+                      ₹{rate.markupPrice.toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap font-bold text-primary">
-                      ₹{rate.total.toLocaleString()}
+                    <td className="px-6 py-4 whitespace-nowrap font-bold text-slate-900">
+                      ₹{(rate.basePrice + rate.markupPrice).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                        rate.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
-                      }`}>
-                        {rate.status}
+                      <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700">
+                        Active
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right whitespace-nowrap">
-                      <button className="text-primary hover:underline font-medium mr-3">Edit</button>
-                      <button 
+                      <button onClick={() => openEditModal(rate)} className="text-blue-500 hover:underline font-medium mr-3">Edit</button>
+                      <button
                         onClick={() => deleteMutation.mutate(rate.id)}
                         disabled={deleteMutation.isPending}
                         className="text-muted-foreground hover:text-destructive font-medium disabled:opacity-50"
@@ -252,51 +271,82 @@ export default function FerryRatesPage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
           <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden flex flex-col border border-border">
             <div className="flex items-center justify-between p-4 border-b border-border bg-slate-50/50">
-              <h2 className="text-lg font-bold text-foreground">Add New Ferry Rate</h2>
+              <h2 className="text-lg font-bold text-foreground">{editingRateId ? "Edit Ferry Rate" : "Add New Ferry Rate"}</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleAdd} className="p-4 flex flex-col gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Route</label>
-                <select 
-                  required
-                  value={newRate.route} 
-                  onChange={(e) => setNewRate({...newRate, route: e.target.value})}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
-                >
-                  <option value="Port Blair ➔ Havelock">Port Blair ➔ Havelock</option>
-                  <option value="Havelock ➔ Port Blair">Havelock ➔ Port Blair</option>
-                  <option value="Havelock ➔ Neil Island">Havelock ➔ Neil Island</option>
-                  <option value="Neil Island ➔ Havelock">Neil Island ➔ Havelock</option>
-                  <option value="Neil Island ➔ Port Blair">Neil Island ➔ Port Blair</option>
-                  <option value="Port Blair ➔ Neil Island">Port Blair ➔ Neil Island</option>
-                </select>
+                {!isCustomRoute ? (
+                  <select
+                    required
+                    value={newRate.route}
+                    onChange={(e) => {
+                      if (e.target.value === "custom") {
+                        setIsCustomRoute(true);
+                        setNewRate({ ...newRate, route: "" });
+                      } else {
+                        setNewRate({ ...newRate, route: e.target.value });
+                      }
+                    }}
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-slate-900"
+                  >
+                    <option value="Port Blair ➔ Havelock">Port Blair ➔ Havelock</option>
+                    <option value="Havelock ➔ Port Blair">Havelock ➔ Port Blair</option>
+                    <option value="Havelock ➔ Neil Island">Havelock ➔ Neil Island</option>
+                    <option value="Neil Island ➔ Havelock">Neil Island ➔ Havelock</option>
+                    <option value="Neil Island ➔ Port Blair">Neil Island ➔ Port Blair</option>
+                    <option value="Port Blair ➔ Neil Island">Port Blair ➔ Neil Island</option>
+                    <option value="custom" className="font-semibold text-primary">+ Custom Route</option>
+                  </select>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      required
+                      type="text"
+                      value={newRate.route}
+                      onChange={(e) => setNewRate({ ...newRate, route: e.target.value })}
+                      placeholder="e.g. Port Blair ➔ Rangat"
+                      className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-slate-900"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCustomRoute(false);
+                        setNewRate({ ...newRate, route: "Port Blair ➔ Havelock" });
+                      }}
+                      className="px-3 py-2 text-xs font-semibold border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors shrink-0"
+                    >
+                      Back to List
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Operator</label>
-                  <input 
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Operator (Provider)</label>
+                  <input
                     required
                     type="text"
-                    value={newRate.operator} 
-                    onChange={(e) => setNewRate({...newRate, operator: e.target.value})}
+                    value={newRate.provider}
+                    onChange={(e) => setNewRate({ ...newRate, provider: e.target.value })}
                     placeholder="e.g. Makruzz"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-slate-900"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">Class</label>
-                  <input 
+                  <input
                     required
                     type="text"
-                    value={newRate.class} 
-                    onChange={(e) => setNewRate({...newRate, class: e.target.value})}
+                    value={newRate.class}
+                    onChange={(e) => setNewRate({ ...newRate, class: e.target.value })}
                     placeholder="e.g. Premium"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-slate-900"
                   />
                 </div>
               </div>
@@ -304,61 +354,49 @@ export default function FerryRatesPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">Base Fare (₹)</label>
-                  <input 
+                  <input
                     required
                     type="number"
                     min="0"
-                    value={newRate.fare} 
-                    onChange={(e) => setNewRate({...newRate, fare: Number(e.target.value)})}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                    value={newRate.basePrice}
+                    onChange={(e) => setNewRate({ ...newRate, basePrice: Number(e.target.value) })}
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-slate-900"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Surcharge (₹)</label>
-                  <input 
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Surcharge (Markup) (₹)</label>
+                  <input
                     required
                     type="number"
                     min="0"
-                    value={newRate.surcharge} 
-                    onChange={(e) => setNewRate({...newRate, surcharge: Number(e.target.value)})}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
+                    value={newRate.markupPrice}
+                    onChange={(e) => setNewRate({ ...newRate, markupPrice: Number(e.target.value) })}
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-slate-900"
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Total Cost (₹) - Auto Calculated</label>
-                <div className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-foreground">
-                  ₹{((Number(newRate.fare) || 0) + (Number(newRate.surcharge) || 0)).toLocaleString()}
+                <div className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-900">
+                  ₹{((Number(newRate.basePrice) || 0) + (Number(newRate.markupPrice) || 0)).toLocaleString()}
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Status</label>
-                <select 
-                  value={newRate.status} 
-                  onChange={(e) => setNewRate({...newRate, status: e.target.value as "Active" | "Inactive"})}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-              </div>
-
               <div className="pt-3 flex gap-3 mt-1">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsModalOpen(false)}
                   className="flex-1 py-2.5 text-sm font-semibold border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
-                  disabled={createMutation.isPending}
+                  disabled={createMutation.isPending || updateMutation.isPending}
                   className="flex-1 py-2.5 text-sm font-bold bg-primary text-primary-foreground rounded-lg hover:bg-primary-hover transition-colors shadow-sm disabled:opacity-50"
                 >
-                  {createMutation.isPending ? "Saving..." : "Add Rate"}
+                  {createMutation.isPending || updateMutation.isPending ? "Saving..." : editingRateId ? "Update Rate" : "Add Rate"}
                 </button>
               </div>
             </form>

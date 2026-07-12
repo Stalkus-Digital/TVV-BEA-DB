@@ -54,8 +54,9 @@ export function PackageBuilderPage() {
   const createMutation = useCreatePackageMutation();
 
   const [title, setTitle] = useState("");
-  const [durationDays, setDurationDays] = useState(5);
-  const [durationNights, setDurationNights] = useState(4);
+  const [durationDays, setDurationDays] = useState(1);
+  const [durationNights, setDurationNights] = useState(0);
+  const [durationText, setDurationText] = useState("");
   const [destinationId, setDestinationId] = useState("");
   const [sourceType, setSourceType] = useState<PackageSourceType>(PackageSourceType.MANUAL);
 
@@ -68,6 +69,7 @@ export function PackageBuilderPage() {
       setTitle(packageQuery.data.title);
       setDurationDays(packageQuery.data.durationDays);
       setDurationNights(packageQuery.data.durationNights);
+      setDurationText(packageQuery.data.durationText ?? "");
       setDestinationId(packageQuery.data.destinationId);
     }
   }, [packageQuery.data]);
@@ -78,10 +80,14 @@ export function PackageBuilderPage() {
   const handleCreate = async () => {
     const created = await createMutation.mutateAsync({
       title,
-      destinationId,
+      code: "", // Derived
+      slug: "", // Derived
+      destinationId: destinationId || "",
+      sourceType,
       durationDays,
       durationNights,
-      sourceType,
+      durationText: durationText.trim() ? durationText.trim() : null,
+      seo: {},
     });
     setPackageId(created.id);
     router.replace(`/packages/new?id=${created.id}`);
@@ -143,10 +149,12 @@ export function PackageBuilderPage() {
                 title={title}
                 durationDays={durationDays}
                 durationNights={durationNights}
+                durationText={durationText}
                 sourceType={sourceType}
                 onTitleChange={setTitle}
                 onDurationDaysChange={setDurationDays}
                 onDurationNightsChange={setDurationNights}
+                onDurationTextChange={setDurationText}
                 onSourceTypeChange={setSourceType}
                 packageId={packageId}
               />
@@ -203,7 +211,7 @@ export function PackageBuilderPage() {
                 {createMutation.isPending ? "Creating…" : "Create & continue"}
               </button>
             )}
-            {currentStep < STEPS.length && (
+            {currentStep < STEPS.length && (packageId || currentStep < 2) && (
               <button type="button" onClick={nextStep} className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md">
                 Next
               </button>
@@ -219,20 +227,24 @@ function BasicInfoStep({
   title,
   durationDays,
   durationNights,
+  durationText,
   sourceType,
   onTitleChange,
   onDurationDaysChange,
   onDurationNightsChange,
+  onDurationTextChange,
   onSourceTypeChange,
   packageId,
 }: {
   title: string;
   durationDays: number;
   durationNights: number;
+  durationText: string;
   sourceType: PackageSourceType;
   onTitleChange: (v: string) => void;
   onDurationDaysChange: (v: number) => void;
   onDurationNightsChange: (v: number) => void;
+  onDurationTextChange: (v: string) => void;
   onSourceTypeChange: (v: PackageSourceType) => void;
   packageId: string | null;
 }) {
@@ -263,7 +275,7 @@ function BasicInfoStep({
           <option value="SUPPLIER">Other Supplier</option>
         </select>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">Duration (days)</label>
           <input
@@ -284,6 +296,17 @@ function BasicInfoStep({
             onChange={(e) => onDurationNightsChange(Number(e.target.value))}
             disabled={Boolean(packageId)}
             className="w-full px-3 py-2 border border-border rounded-md text-sm disabled:opacity-60"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Custom Display (e.g. 5D/6N)</label>
+          <input
+            type="text"
+            value={durationText}
+            onChange={(e) => onDurationTextChange(e.target.value)}
+            disabled={Boolean(packageId)}
+            className="w-full px-3 py-2 border border-border rounded-md text-sm disabled:opacity-60"
+            placeholder="5D/6N"
           />
         </div>
       </div>

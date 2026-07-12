@@ -121,7 +121,7 @@ model Destination {
   id                  String   @id @default(uuid())
   name                String
   slug                String   @unique
-  countryId           String
+  countryId           String?
   stateId             String?
   cityId              String?
   regionId            String?
@@ -156,6 +156,7 @@ model Package {
   sourceType        String
   durationDays      Int
   durationNights    Int
+  durationText      String?
   isTemplate        Boolean  @default(false)
   sourceTemplateId  String?
   aiGeneratedFromId String?

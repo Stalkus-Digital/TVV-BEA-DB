@@ -53,10 +53,17 @@ export function AiStudio() {
     if (!output) return;
     setIsConverting(true);
     try {
-      // 1. Create the base package
+      // Use the pre-persisted package ID from the backend if available
+      const persistedId = (output as any).persistedPackageId;
+      if (persistedId) {
+        router.push(`/packages/new?id=${persistedId}`);
+        return;
+      }
+
+      // Fallback: Create the base package
       const pkg = await createMutation.mutateAsync({
         title: output.title,
-        destinationId: "cm5lsf51z0000a6gsoq71a7yv", // Fallback destination ID - in a real app, you'd match the destination string to your DB
+        destinationId: "", // Will fail validation if empty, but better than hardcoded
         durationDays: output.durationDays,
         durationNights: output.durationNights,
         sourceType: PackageSourceType.MANUAL,

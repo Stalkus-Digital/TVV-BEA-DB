@@ -6,14 +6,22 @@ export function validateActivityDetails(input: unknown): Result<ActivityDetails,
   if (typeof input !== "object" || input === null) {
     return err(new ValidationError("Activity details must be an object"));
   }
-  const { durationMinutes, category } = input as Record<string, unknown>;
+  const { durationMinutes, category, duration, location, adultPrice, childPrice } = input as Record<string, unknown>;
 
-  if (typeof durationMinutes !== "number" || durationMinutes <= 0) {
+  if (durationMinutes !== undefined && (typeof durationMinutes !== "number" || durationMinutes <= 0)) {
     return err(new ValidationError("durationMinutes must be a positive number"));
   }
-  if (typeof category !== "string" || category.trim().length === 0) {
-    return err(new ValidationError("category is required"));
+  if (category !== undefined && typeof category !== "string") {
+    return err(new ValidationError("category must be a string"));
   }
+  const parsedCategory = category ? (category as string).trim() : "";
 
-  return ok({ durationMinutes, category });
+  return ok({ 
+    ...(durationMinutes !== undefined ? { durationMinutes: durationMinutes as number } : {}),
+    category: parsedCategory,
+    ...(duration !== undefined ? { duration: String(duration) } : {}),
+    ...(location !== undefined ? { location: String(location) } : {}),
+    ...(adultPrice !== undefined ? { adultPrice: typeof adultPrice === "string" ? Number(adultPrice) : (adultPrice as number) } : {}),
+    ...(childPrice !== undefined ? { childPrice: typeof childPrice === "string" ? Number(childPrice) : (childPrice as number) } : {}),
+  });
 }

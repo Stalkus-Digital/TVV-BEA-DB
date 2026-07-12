@@ -43,7 +43,7 @@ export interface Destination {
   id: string;
   name: string;
   slug: string;
-  countryId: string;
+  countryId: string | null;
   stateId: string | null;
   cityId: string | null;
   regionId: string | null;

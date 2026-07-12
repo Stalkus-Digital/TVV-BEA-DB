@@ -45,6 +45,7 @@ export type PackageMinAggregateOutputType = {
   sourceType: string | null
   durationDays: number | null
   durationNights: number | null
+  durationText: string | null
   isTemplate: boolean | null
   sourceTemplateId: string | null
   aiGeneratedFromId: string | null
@@ -63,6 +64,7 @@ export type PackageMaxAggregateOutputType = {
   sourceType: string | null
   durationDays: number | null
   durationNights: number | null
+  durationText: string | null
   isTemplate: boolean | null
   sourceTemplateId: string | null
   aiGeneratedFromId: string | null
@@ -81,6 +83,7 @@ export type PackageCountAggregateOutputType = {
   sourceType: number
   durationDays: number
   durationNights: number
+  durationText: number
   isTemplate: number
   sourceTemplateId: number
   aiGeneratedFromId: number
@@ -113,6 +116,7 @@ export type PackageMinAggregateInputType = {
   sourceType?: true
   durationDays?: true
   durationNights?: true
+  durationText?: true
   isTemplate?: true
   sourceTemplateId?: true
   aiGeneratedFromId?: true
@@ -131,6 +135,7 @@ export type PackageMaxAggregateInputType = {
   sourceType?: true
   durationDays?: true
   durationNights?: true
+  durationText?: true
   isTemplate?: true
   sourceTemplateId?: true
   aiGeneratedFromId?: true
@@ -149,6 +154,7 @@ export type PackageCountAggregateInputType = {
   sourceType?: true
   durationDays?: true
   durationNights?: true
+  durationText?: true
   isTemplate?: true
   sourceTemplateId?: true
   aiGeneratedFromId?: true
@@ -256,6 +262,7 @@ export type PackageGroupByOutputType = {
   sourceType: string
   durationDays: number
   durationNights: number
+  durationText: string | null
   isTemplate: boolean
   sourceTemplateId: string | null
   aiGeneratedFromId: string | null
@@ -299,6 +306,7 @@ export type PackageWhereInput = {
   sourceType?: Prisma.StringFilter<"Package"> | string
   durationDays?: Prisma.IntFilter<"Package"> | number
   durationNights?: Prisma.IntFilter<"Package"> | number
+  durationText?: Prisma.StringNullableFilter<"Package"> | string | null
   isTemplate?: Prisma.BoolFilter<"Package"> | boolean
   sourceTemplateId?: Prisma.StringNullableFilter<"Package"> | string | null
   aiGeneratedFromId?: Prisma.StringNullableFilter<"Package"> | string | null
@@ -320,6 +328,7 @@ export type PackageOrderByWithRelationInput = {
   sourceType?: Prisma.SortOrder
   durationDays?: Prisma.SortOrder
   durationNights?: Prisma.SortOrder
+  durationText?: Prisma.SortOrderInput | Prisma.SortOrder
   isTemplate?: Prisma.SortOrder
   sourceTemplateId?: Prisma.SortOrderInput | Prisma.SortOrder
   aiGeneratedFromId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -344,6 +353,7 @@ export type PackageWhereUniqueInput = Prisma.AtLeast<{
   sourceType?: Prisma.StringFilter<"Package"> | string
   durationDays?: Prisma.IntFilter<"Package"> | number
   durationNights?: Prisma.IntFilter<"Package"> | number
+  durationText?: Prisma.StringNullableFilter<"Package"> | string | null
   isTemplate?: Prisma.BoolFilter<"Package"> | boolean
   sourceTemplateId?: Prisma.StringNullableFilter<"Package"> | string | null
   aiGeneratedFromId?: Prisma.StringNullableFilter<"Package"> | string | null
@@ -365,6 +375,7 @@ export type PackageOrderByWithAggregationInput = {
   sourceType?: Prisma.SortOrder
   durationDays?: Prisma.SortOrder
   durationNights?: Prisma.SortOrder
+  durationText?: Prisma.SortOrderInput | Prisma.SortOrder
   isTemplate?: Prisma.SortOrder
   sourceTemplateId?: Prisma.SortOrderInput | Prisma.SortOrder
   aiGeneratedFromId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -393,6 +404,7 @@ export type PackageScalarWhereWithAggregatesInput = {
   sourceType?: Prisma.StringWithAggregatesFilter<"Package"> | string
   durationDays?: Prisma.IntWithAggregatesFilter<"Package"> | number
   durationNights?: Prisma.IntWithAggregatesFilter<"Package"> | number
+  durationText?: Prisma.StringNullableWithAggregatesFilter<"Package"> | string | null
   isTemplate?: Prisma.BoolWithAggregatesFilter<"Package"> | boolean
   sourceTemplateId?: Prisma.StringNullableWithAggregatesFilter<"Package"> | string | null
   aiGeneratedFromId?: Prisma.StringNullableWithAggregatesFilter<"Package"> | string | null
@@ -413,6 +425,7 @@ export type PackageCreateInput = {
   sourceType: string
   durationDays: number
   durationNights: number
+  durationText?: string | null
   isTemplate?: boolean
   sourceTemplateId?: string | null
   aiGeneratedFromId?: string | null
@@ -434,6 +447,7 @@ export type PackageUncheckedCreateInput = {
   sourceType: string
   durationDays: number
   durationNights: number
+  durationText?: string | null
   isTemplate?: boolean
   sourceTemplateId?: string | null
   aiGeneratedFromId?: string | null
@@ -455,6 +469,7 @@ export type PackageUpdateInput = {
   sourceType?: Prisma.StringFieldUpdateOperationsInput | string
   durationDays?: Prisma.IntFieldUpdateOperationsInput | number
   durationNights?: Prisma.IntFieldUpdateOperationsInput | number
+  durationText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isTemplate?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sourceTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -476,6 +491,7 @@ export type PackageUncheckedUpdateInput = {
   sourceType?: Prisma.StringFieldUpdateOperationsInput | string
   durationDays?: Prisma.IntFieldUpdateOperationsInput | number
   durationNights?: Prisma.IntFieldUpdateOperationsInput | number
+  durationText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isTemplate?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sourceTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -497,6 +513,7 @@ export type PackageCreateManyInput = {
   sourceType: string
   durationDays: number
   durationNights: number
+  durationText?: string | null
   isTemplate?: boolean
   sourceTemplateId?: string | null
   aiGeneratedFromId?: string | null
@@ -517,6 +534,7 @@ export type PackageUpdateManyMutationInput = {
   sourceType?: Prisma.StringFieldUpdateOperationsInput | string
   durationDays?: Prisma.IntFieldUpdateOperationsInput | number
   durationNights?: Prisma.IntFieldUpdateOperationsInput | number
+  durationText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isTemplate?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sourceTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -537,6 +555,7 @@ export type PackageUncheckedUpdateManyInput = {
   sourceType?: Prisma.StringFieldUpdateOperationsInput | string
   durationDays?: Prisma.IntFieldUpdateOperationsInput | number
   durationNights?: Prisma.IntFieldUpdateOperationsInput | number
+  durationText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isTemplate?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sourceTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -557,6 +576,7 @@ export type PackageCountOrderByAggregateInput = {
   sourceType?: Prisma.SortOrder
   durationDays?: Prisma.SortOrder
   durationNights?: Prisma.SortOrder
+  durationText?: Prisma.SortOrder
   isTemplate?: Prisma.SortOrder
   sourceTemplateId?: Prisma.SortOrder
   aiGeneratedFromId?: Prisma.SortOrder
@@ -582,6 +602,7 @@ export type PackageMaxOrderByAggregateInput = {
   sourceType?: Prisma.SortOrder
   durationDays?: Prisma.SortOrder
   durationNights?: Prisma.SortOrder
+  durationText?: Prisma.SortOrder
   isTemplate?: Prisma.SortOrder
   sourceTemplateId?: Prisma.SortOrder
   aiGeneratedFromId?: Prisma.SortOrder
@@ -600,6 +621,7 @@ export type PackageMinOrderByAggregateInput = {
   sourceType?: Prisma.SortOrder
   durationDays?: Prisma.SortOrder
   durationNights?: Prisma.SortOrder
+  durationText?: Prisma.SortOrder
   isTemplate?: Prisma.SortOrder
   sourceTemplateId?: Prisma.SortOrder
   aiGeneratedFromId?: Prisma.SortOrder
@@ -650,6 +672,7 @@ export type PackageCreateWithoutDaysInput = {
   sourceType: string
   durationDays: number
   durationNights: number
+  durationText?: string | null
   isTemplate?: boolean
   sourceTemplateId?: string | null
   aiGeneratedFromId?: string | null
@@ -670,6 +693,7 @@ export type PackageUncheckedCreateWithoutDaysInput = {
   sourceType: string
   durationDays: number
   durationNights: number
+  durationText?: string | null
   isTemplate?: boolean
   sourceTemplateId?: string | null
   aiGeneratedFromId?: string | null
@@ -706,6 +730,7 @@ export type PackageUpdateWithoutDaysInput = {
   sourceType?: Prisma.StringFieldUpdateOperationsInput | string
   durationDays?: Prisma.IntFieldUpdateOperationsInput | number
   durationNights?: Prisma.IntFieldUpdateOperationsInput | number
+  durationText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isTemplate?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sourceTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -726,6 +751,7 @@ export type PackageUncheckedUpdateWithoutDaysInput = {
   sourceType?: Prisma.StringFieldUpdateOperationsInput | string
   durationDays?: Prisma.IntFieldUpdateOperationsInput | number
   durationNights?: Prisma.IntFieldUpdateOperationsInput | number
+  durationText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isTemplate?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sourceTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -777,6 +803,7 @@ export type PackageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   sourceType?: boolean
   durationDays?: boolean
   durationNights?: boolean
+  durationText?: boolean
   isTemplate?: boolean
   sourceTemplateId?: boolean
   aiGeneratedFromId?: boolean
@@ -799,6 +826,7 @@ export type PackageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   sourceType?: boolean
   durationDays?: boolean
   durationNights?: boolean
+  durationText?: boolean
   isTemplate?: boolean
   sourceTemplateId?: boolean
   aiGeneratedFromId?: boolean
@@ -819,6 +847,7 @@ export type PackageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   sourceType?: boolean
   durationDays?: boolean
   durationNights?: boolean
+  durationText?: boolean
   isTemplate?: boolean
   sourceTemplateId?: boolean
   aiGeneratedFromId?: boolean
@@ -839,6 +868,7 @@ export type PackageSelectScalar = {
   sourceType?: boolean
   durationDays?: boolean
   durationNights?: boolean
+  durationText?: boolean
   isTemplate?: boolean
   sourceTemplateId?: boolean
   aiGeneratedFromId?: boolean
@@ -850,7 +880,7 @@ export type PackageSelectScalar = {
   updatedAt?: boolean
 }
 
-export type PackageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "code" | "slug" | "destinationId" | "sourceType" | "durationDays" | "durationNights" | "isTemplate" | "sourceTemplateId" | "aiGeneratedFromId" | "status" | "currentVersionId" | "seo" | "faqs" | "createdAt" | "updatedAt", ExtArgs["result"]["package"]>
+export type PackageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "code" | "slug" | "destinationId" | "sourceType" | "durationDays" | "durationNights" | "durationText" | "isTemplate" | "sourceTemplateId" | "aiGeneratedFromId" | "status" | "currentVersionId" | "seo" | "faqs" | "createdAt" | "updatedAt", ExtArgs["result"]["package"]>
 export type PackageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   days?: boolean | Prisma.Package$daysArgs<ExtArgs>
   _count?: boolean | Prisma.PackageCountOutputTypeDefaultArgs<ExtArgs>
@@ -872,6 +902,7 @@ export type $PackagePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     sourceType: string
     durationDays: number
     durationNights: number
+    durationText: string | null
     isTemplate: boolean
     sourceTemplateId: string | null
     aiGeneratedFromId: string | null
@@ -1313,6 +1344,7 @@ export interface PackageFieldRefs {
   readonly sourceType: Prisma.FieldRef<"Package", 'String'>
   readonly durationDays: Prisma.FieldRef<"Package", 'Int'>
   readonly durationNights: Prisma.FieldRef<"Package", 'Int'>
+  readonly durationText: Prisma.FieldRef<"Package", 'String'>
   readonly isTemplate: Prisma.FieldRef<"Package", 'Boolean'>
   readonly sourceTemplateId: Prisma.FieldRef<"Package", 'String'>
   readonly aiGeneratedFromId: Prisma.FieldRef<"Package", 'String'>

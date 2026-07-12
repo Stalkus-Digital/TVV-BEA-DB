@@ -149,7 +149,7 @@ export class DestinationService extends BaseService {
     } else {
       const byState = destination.stateId
         ? await this.repository.findByFilter({ stateId: destination.stateId, pageSize: limit + 1 })
-        : await this.repository.findByFilter({ countryId: destination.countryId, pageSize: limit + 1 });
+        : await this.repository.findByFilter({ countryId: destination.countryId ?? undefined, pageSize: limit + 1 });
       if (isErr(byState)) return byState;
       candidates = byState.value.items;
     }

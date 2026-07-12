@@ -25,12 +25,35 @@ export function LandingPageEditor({ onCancel }: LandingPageEditorProps) {
   const [selectedPackages, setSelectedPackages] = useState<string[]>([]);
   const [faqSection, setFaqSection] = useState<{ question: string; answer: string }[]>([]);
   
+  const [draggedFaqIndex, setDraggedFaqIndex] = useState<number | null>(null);
+  const [draggedPkgId, setDraggedPkgId] = useState<string | null>(null);
+  
   const [isSaving, setIsSaving] = useState(false);
 
   function togglePackage(id: string) {
     setSelectedPackages((prev) =>
       prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
     );
+  }
+
+  function handlePackageDragStart(id: string) {
+    setDraggedPkgId(id);
+  }
+
+  function handlePackageDragOver(e: React.DragEvent, id: string) {
+    e.preventDefault();
+    if (!draggedPkgId || draggedPkgId === id) return;
+    const items = [...selectedPackages];
+    const draggedIdx = items.indexOf(draggedPkgId);
+    const targetIdx = items.indexOf(id);
+    if (draggedIdx === -1 || targetIdx === -1) return;
+    items.splice(draggedIdx, 1);
+    items.splice(targetIdx, 0, draggedPkgId);
+    setSelectedPackages(items);
+  }
+
+  function handlePackageDragEnd() {
+    setDraggedPkgId(null);
   }
 
   function addFaq() {
@@ -45,6 +68,41 @@ export function LandingPageEditor({ onCancel }: LandingPageEditorProps) {
 
   function removeFaq(index: number) {
     setFaqSection(faqSection.filter((_, i) => i !== index));
+  }
+
+  function handleFaqDragStart(index: number) {
+    setDraggedFaqIndex(index);
+  }
+
+  function handleFaqDragOver(e: React.DragEvent, index: number) {
+    e.preventDefault();
+    if (draggedFaqIndex === null || draggedFaqIndex === index) return;
+    const newFaqs = [...faqSection];
+    const draggedItem = newFaqs[draggedFaqIndex];
+    newFaqs.splice(draggedFaqIndex, 1);
+    newFaqs.splice(index, 0, draggedItem);
+    setDraggedFaqIndex(index);
+    setFaqSection(newFaqs);
+  }
+
+  function handleFaqDragEnd() {
+    setDraggedFaqIndex(null);
+  }
+
+  async function handleImageDrop(e: React.DragEvent) {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    
+    // For now, since there's no dedicated media upload endpoint, 
+    // we use a FileReader to base64 encode it so it shows instantly in the preview/HTML.
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      if (ev.target?.result) {
+        setHeroImage(ev.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -335,8 +393,18 @@ export function LandingPageEditor({ onCancel }: LandingPageEditorProps) {
               <textarea className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" rows={2} value={heroSubheadline} onChange={(e) => setHeroSubheadline(e.target.value)} placeholder="Supporting Hero Text" />
             </div>
             <div className="col-span-2">
-              <label className="block text-sm text-muted-foreground mb-1">Background Image URL</label>
-              <input className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" value={heroImage} onChange={(e) => setHeroImage(e.target.value)} placeholder="https://example.com/image.jpg" />
+              <label className="block text-sm text-muted-foreground mb-1">Background Image</label>
+              <div 
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleImageDrop}
+                className="w-full bg-background border-2 border-dashed border-border rounded-md px-3 py-6 text-center text-sm text-muted-foreground hover:border-primary/50 hover:bg-slate-50 transition-colors"
+              >
+                <div className="mb-2">Drag and drop an image here to upload, or paste a URL below.</div>
+                <input className="w-full bg-transparent border border-input rounded-md px-3 py-2 text-sm text-foreground" value={heroImage} onChange={(e) => setHeroImage(e.target.value)} placeholder="https://example.com/image.jpg" />
+                {heroImage && heroImage.startsWith("data:image") && (
+                  <div className="mt-2 text-xs text-primary font-medium">Local image selected and encoded.</div>
+                )}
+              </div>
             </div>
             <div className="col-span-2">
               <label className="block text-sm text-muted-foreground mb-1">Trust Badges (comma-separated)</label>
@@ -347,27 +415,57 @@ export function LandingPageEditor({ onCancel }: LandingPageEditorProps) {
 
         <div className="pt-4 border-t border-border">
           <h3 className="font-semibold mb-3">Dynamic Package Selector</h3>
-          <p className="text-sm text-muted-foreground mb-3">Select packages to map into this landing page layout.</p>
-          <div className="bg-background border border-input rounded-md p-3 max-h-48 overflow-y-auto space-y-2">
+          <p className="text-sm text-muted-foreground mb-3">Select packages to map into this landing page layout. Drag selected items to reorder them.</p>
+          <div className="bg-background border border-input rounded-md p-3 max-h-64 overflow-y-auto space-y-2">
             {packagesQuery.isLoading ? (
               <p className="text-sm text-muted-foreground text-center">Loading packages...</p>
             ) : packagesQuery.data?.items.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center">No packages available.</p>
             ) : (
-              packagesQuery.data?.items.map((pkg) => (
-                <label key={pkg.id} className="flex items-center gap-3 p-2 hover:bg-muted rounded-md cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="rounded border-input text-primary focus:ring-primary"
-                    checked={selectedPackages.includes(pkg.id)}
-                    onChange={() => togglePackage(pkg.id)}
-                  />
-                  <div>
-                    <p className="text-sm font-medium">{pkg.title}</p>
-                    <p className="text-xs text-muted-foreground">{pkg.destinationId} • {pkg.durationDays} Days</p>
-                  </div>
-                </label>
-              ))
+              <>
+                {/* Render Selected Items First so they can be dragged to reorder */}
+                {selectedPackages.map(id => {
+                  const pkg = packagesQuery.data?.items.find(p => p.id === id);
+                  if (!pkg) return null;
+                  return (
+                    <label 
+                      key={pkg.id} 
+                      draggable
+                      onDragStart={() => handlePackageDragStart(pkg.id)}
+                      onDragOver={(e) => handlePackageDragOver(e, pkg.id)}
+                      onDragEnd={handlePackageDragEnd}
+                      className={`flex items-center gap-3 p-2 rounded-md cursor-grab active:cursor-grabbing border ${draggedPkgId === pkg.id ? 'opacity-50 border-primary' : 'border-border bg-slate-50'}`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="rounded border-input text-primary focus:ring-primary"
+                        checked={true}
+                        onChange={() => togglePackage(pkg.id)}
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{pkg.title}</p>
+                        <p className="text-xs text-muted-foreground">{pkg.destinationId} • {pkg.durationDays} Days</p>
+                      </div>
+                      <div className="text-muted-foreground/50">☰</div>
+                    </label>
+                  );
+                })}
+                {/* Render Unselected Items Below */}
+                {packagesQuery.data?.items.filter(p => !selectedPackages.includes(p.id)).map((pkg) => (
+                  <label key={pkg.id} className="flex items-center gap-3 p-2 hover:bg-muted rounded-md cursor-pointer border border-transparent">
+                    <input
+                      type="checkbox"
+                      className="rounded border-input text-primary focus:ring-primary"
+                      checked={false}
+                      onChange={() => togglePackage(pkg.id)}
+                    />
+                    <div>
+                      <p className="text-sm font-medium">{pkg.title}</p>
+                      <p className="text-xs text-muted-foreground">{pkg.destinationId} • {pkg.durationDays} Days</p>
+                    </div>
+                  </label>
+                ))}
+              </>
             )}
           </div>
         </div>
@@ -384,7 +482,17 @@ export function LandingPageEditor({ onCancel }: LandingPageEditorProps) {
               <p className="text-sm text-muted-foreground text-center py-4 bg-background rounded-md border border-input">No FAQs added yet.</p>
             ) : (
               faqSection.map((faq, index) => (
-                <div key={index} className="flex gap-3 items-start bg-background p-3 rounded-md border border-input">
+                <div 
+                  key={index} 
+                  draggable
+                  onDragStart={() => handleFaqDragStart(index)}
+                  onDragOver={(e) => handleFaqDragOver(e, index)}
+                  onDragEnd={handleFaqDragEnd}
+                  className={`flex gap-3 items-start bg-background p-3 rounded-md border cursor-grab active:cursor-grabbing ${draggedFaqIndex === index ? 'opacity-50 border-primary shadow-sm' : 'border-input'}`}
+                >
+                  <div className="pt-2 cursor-grab active:cursor-grabbing text-muted-foreground/50">
+                    ☰
+                  </div>
                   <div className="flex-1 space-y-3">
                     <input className="w-full bg-transparent border-b border-border px-1 py-1 text-sm font-medium focus:outline-none focus:border-primary" placeholder="Question?" value={faq.question} onChange={(e) => updateFaq(index, "question", e.target.value)} />
                     <textarea className="w-full bg-transparent border-none px-1 py-1 text-sm resize-none focus:outline-none text-muted-foreground" rows={2} placeholder="Answer text..." value={faq.answer} onChange={(e) => updateFaq(index, "answer", e.target.value)} />

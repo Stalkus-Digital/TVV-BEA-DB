@@ -46,13 +46,14 @@ export function validateCreateInventoryItem(input: unknown): Result<CreateInvent
   if (destinationId !== undefined && destinationId !== null && typeof destinationId !== "string") {
     return err(new ValidationError("destinationId must be a string or null"));
   }
+  const parsedDestinationId = typeof destinationId === "string" && destinationId.trim() === "" ? null : destinationId;
 
   const validatedDetails = detailValidators[kind as InventoryKind](details);
   if (isErr(validatedDetails)) return validatedDetails;
 
   return ok({
     kind: kind as InventoryKind,
-    destinationId: (destinationId as string | null | undefined) ?? null,
+    destinationId: (parsedDestinationId as string | null | undefined) ?? null,
     title,
     details: validatedDetails.value,
   });

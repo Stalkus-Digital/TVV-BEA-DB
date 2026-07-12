@@ -2,6 +2,7 @@ import { err, isErr, ok, type PaginatedResult, type Result } from "@/shared/type
 import { BaseService, type ServiceContext } from "@/shared/services";
 import { ConflictError, NotFoundError, type AppError } from "@/shared/errors";
 import { getQuoteService } from "@/modules/quote";
+import { getSembarkService } from "@/modules/customer";
 import { BookingStatus } from "../types/booking-status";
 import { PaymentStatus, type BookingPayment } from "../types/booking-payment";
 import type { Booking } from "../types/booking";
@@ -159,7 +160,15 @@ export class BookingService extends BaseService {
     await this.timelineService.record(bookingId, "CREATED", now, `Created from quote ${quote.value.quoteNumber}`);
     await this.statusHistoryService.record(bookingId, null, BookingStatus.DRAFT);
 
-    return this.getById(bookingId);
+    // Phase 3: Push Booking to Sembark asynchronously
+    const finalBooking = await this.getById(bookingId);
+    if (!isErr(finalBooking)) {
+      getSembarkService().pushBooking(finalBooking.value).catch((err: any) => {
+        this.logger.error("Failed to push booking to Sembark asynchronously", { err, bookingId });
+      });
+    }
+
+    return finalBooking;
   }
 
   async confirm(id: string): Promise<Result<Booking, AppError>> {

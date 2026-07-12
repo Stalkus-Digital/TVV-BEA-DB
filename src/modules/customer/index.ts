@@ -12,4 +12,5 @@ export {
   getEnquiryService,
   getCustomerDocumentService,
   getDashboardService,
+  getSembarkService,
 } from "./module";

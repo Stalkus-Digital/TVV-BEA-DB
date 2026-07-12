@@ -44,7 +44,7 @@ function validateSeo(input: unknown): Result<DestinationSeo, ValidationError> {
 export interface CreateDestinationInput {
   name: string;
   slug: string;
-  countryId: string;
+  countryId: string | null;
   stateId: string | null;
   cityId: string | null;
   regionId: string | null;
@@ -61,7 +61,9 @@ export function validateCreateDestination(input: unknown): Result<CreateDestinat
   const body = input as Record<string, unknown>;
 
   if (!isNonEmptyString(body.name)) return err(new ValidationError("name is required"));
-  if (!isNonEmptyString(body.countryId)) return err(new ValidationError("countryId is required"));
+  
+  const countryId = validateOptionalString(body.countryId, "countryId");
+  if (!countryId.ok) return countryId;
 
   const slugSource = isNonEmptyString(body.slug) ? (body.slug as string) : (body.name as string);
   const slug = slugify(slugSource);
@@ -94,7 +96,7 @@ export function validateCreateDestination(input: unknown): Result<CreateDestinat
   return ok({
     name: body.name as string,
     slug,
-    countryId: body.countryId as string,
+    countryId: countryId.value,
     stateId: stateId.value,
     cityId: cityId.value,
     regionId: regionId.value,

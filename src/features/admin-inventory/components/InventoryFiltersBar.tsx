@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, RefreshCw, Search } from "lucide-react";
+
+import { useState, useRef } from "react";
+import { Plus, RefreshCw, Search, Upload, Loader2 } from "lucide-react";
 import { INVENTORY_KINDS, INVENTORY_KIND_LABELS, InventoryStatus, INVENTORY_STATUS_LABELS } from "../constants";
 import type { InventoryListFilters } from "../types";
 
@@ -24,6 +26,40 @@ export function InventoryFiltersBar({
   onRefresh,
   isRefreshing,
 }: InventoryFiltersBarProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/inventory/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.error || "Upload failed");
+      }
+      
+      alert(`Upload complete!\nSuccessful: ${result.successful}\nFailed: ${result.failed}\n${result.errors.length > 0 ? "Errors:\n" + result.errors.slice(0, 5).join('\n') + (result.errors.length > 5 ? '\n...' : '') : ''}`);
+      onRefresh();
+    } catch (err: any) {
+      alert("Error uploading file: " + err.message);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <div className="flex flex-1 flex-wrap items-center gap-2">
@@ -107,6 +143,22 @@ export function InventoryFiltersBar({
         >
           <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
           Refresh
+        </button>
+        <input
+          type="file"
+          accept=".xlsx, .xls, .csv"
+          className="hidden"
+          ref={fileInputRef}
+          onChange={handleFileUpload}
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-border rounded-md hover:bg-muted disabled:opacity-50"
+        >
+          {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          {isUploading ? "Uploading..." : "Upload Excel"}
         </button>
         <Link
           href="/inventory/new"

@@ -16,7 +16,7 @@ interface Flight {
   departure: string;
   arrival: string;
   duration: string;
-  fare: number;
+  fare: number | string;
   baggage: string;
 }
 
@@ -25,10 +25,15 @@ interface Flight {
 export default function FlightsPage() {
   const queryClient = useQueryClient();
   const [isSearchMode, setIsSearchMode] = useState(false);
+  const [isManualMode, setIsManualMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [alertState, setAlertState] = useState({ isOpen: false, message: "" });
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<Flight[] | null>(null);
+  const [manualFlight, setManualFlight] = useState<Partial<Flight>>({
+    carrier: "", flightNo: "", origin: "", destination: "", departure: "", arrival: "", duration: "", fare: "", baggage: "15 KG"
+  });
+  const [editingFlightId, setEditingFlightId] = useState<string | null>(null);
 
   const { data: savedFlightsData, isLoading: isLoadingSaved } = useQuery({
     queryKey: ["admin", "inventory", "FLIGHT"],
@@ -66,7 +71,7 @@ export default function FlightsPage() {
           departure: flight.departure,
           arrival: flight.arrival,
           duration: flight.duration,
-          fare: flight.fare,
+          fare: Number(flight.fare) || 0,
           baggage: flight.baggage,
         }
       };
@@ -80,6 +85,29 @@ export default function FlightsPage() {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       return adminApiClient.delete(`${adminEndpoints.inventory}/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "inventory", "FLIGHT"] });
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (flight: Flight & { id: string }) => {
+      const payload = {
+        title: `${flight.carrier} ${flight.flightNo}`,
+        details: {
+          carrier: flight.carrier,
+          flightNo: flight.flightNo,
+          origin: flight.origin,
+          destination: flight.destination,
+          departure: flight.departure,
+          arrival: flight.arrival,
+          duration: flight.duration,
+          fare: Number(flight.fare) || 0,
+          baggage: flight.baggage,
+        }
+      };
+      return adminApiClient.patch(`${adminEndpoints.inventory}/${flight.id}`, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "inventory", "FLIGHT"] });
@@ -118,9 +146,9 @@ export default function FlightsPage() {
           flightNo: `${res.airlineCode}-${res.flightNumber}`,
           origin: res.origin,
           destination: res.destination,
-          departure: res.departureTime ? new Date(res.departureTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--',
-          arrival: res.arrivalTime ? new Date(res.arrivalTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--',
-          duration: `${Math.floor((res.durationMinutes || 0)/60)}h ${(res.durationMinutes || 0)%60}m`,
+          departure: res.departureTime ? new Date(res.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--',
+          arrival: res.arrivalTime ? new Date(res.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--',
+          duration: `${Math.floor((res.durationMinutes || 0) / 60)}h ${(res.durationMinutes || 0) % 60}m`,
           fare: res.price,
           baggage: res.baggageAllowance || "15 KG",
         }));
@@ -139,6 +167,28 @@ export default function FlightsPage() {
     if (!savedFlights.find(f => f.flightNo === flight.flightNo && f.departure === flight.departure)) {
       await saveMutation.mutateAsync(flight);
     }
+  };
+
+  const handleManualSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualFlight.carrier || !manualFlight.flightNo) return;
+
+    if (editingFlightId) {
+      await updateMutation.mutateAsync({ ...manualFlight, id: editingFlightId } as Flight & { id: string });
+    } else {
+      await saveFlight(manualFlight as Flight);
+    }
+
+    setIsManualMode(false);
+    setEditingFlightId(null);
+    setManualFlight({ carrier: "", flightNo: "", origin: "", destination: "", departure: "", arrival: "", duration: "", fare: "", baggage: "15 KG" });
+  };
+
+  const handleEditFlight = (flight: Flight) => {
+    setManualFlight(flight);
+    setEditingFlightId(flight.id);
+    setIsManualMode(true);
+    setIsSearchMode(false);
   };
 
   const removeFlight = async (id: string) => {
@@ -161,19 +211,105 @@ export default function FlightsPage() {
             Search live flights via TripJack API and add them to your managed itineraries.
           </p>
         </div>
-        <button 
-          onClick={() => {
-            setIsSearchMode(!isSearchMode);
-            setSearchResults(null);
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-md shadow-sm hover:bg-primary-hover transition-colors"
-        >
-          {isSearchMode ? <ArrowRight className="h-4 w-4" /> : <Search className="h-4 w-4" />}
-          {isSearchMode ? "Back to Saved Flights" : "Search New Flights"}
-        </button>
+        <div className="flex items-center gap-2">
+          {(!isSearchMode && !isManualMode) ? (
+            <>
+              <button
+                onClick={() => {
+                  setIsManualMode(true);
+                  setIsSearchMode(false);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-md shadow-sm hover:bg-slate-200 transition-colors"
+              >
+                <Plus className="h-4 w-4" /> Add Manual
+              </button>
+              <button
+                onClick={() => {
+                  setIsSearchMode(true);
+                  setIsManualMode(false);
+                  setSearchResults(null);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-md shadow-sm hover:bg-primary-hover transition-colors"
+              >
+                <Search className="h-4 w-4" /> Search TripJack
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => {
+                setIsSearchMode(false);
+                setIsManualMode(false);
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-md shadow-sm hover:bg-slate-200 transition-colors"
+            >
+              <ArrowRight className="h-4 w-4" /> Back to Saved
+            </button>
+          )}
+        </div>
       </div>
 
-      {isSearchMode ? (
+      {isManualMode ? (
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 max-w-2xl mx-auto mt-6">
+          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+            <Plus className="h-6 w-6 text-primary" />
+            {editingFlightId ? "Edit Flight" : "Add Manual Flight"}
+          </h2>
+          <form onSubmit={handleManualSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Carrier (Airline)</label>
+                <input required type="text" value={manualFlight.carrier} onChange={e => setManualFlight({ ...manualFlight, carrier: e.target.value })} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/50" placeholder="e.g. Indigo" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Flight Number</label>
+                <input required type="text" value={manualFlight.flightNo} onChange={e => setManualFlight({ ...manualFlight, flightNo: e.target.value })} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/50" placeholder="e.g. 6E-123" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Origin</label>
+                <input required type="text" value={manualFlight.origin} onChange={e => setManualFlight({ ...manualFlight, origin: e.target.value.toUpperCase() })} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/50 uppercase font-bold" placeholder="DEL" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Destination</label>
+                <input required type="text" value={manualFlight.destination} onChange={e => setManualFlight({ ...manualFlight, destination: e.target.value.toUpperCase() })} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/50 uppercase font-bold" placeholder="IXZ" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Departure Time</label>
+                <input required type="time" value={manualFlight.departure} onChange={e => setManualFlight({ ...manualFlight, departure: e.target.value })} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/50" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Arrival Time</label>
+                <input required type="time" value={manualFlight.arrival} onChange={e => setManualFlight({ ...manualFlight, arrival: e.target.value })} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/50" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Duration</label>
+                <input required type="text" value={manualFlight.duration} onChange={e => setManualFlight({ ...manualFlight, duration: e.target.value })} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/50" placeholder="e.g. 2h 30m" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Estimated Fare (₹)</label>
+                <input required type="number" min="0" value={manualFlight.fare} onChange={e => setManualFlight({ ...manualFlight, fare: e.target.value === "" ? "" : Number(e.target.value) })} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/50" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Baggage</label>
+                <input type="text" value={manualFlight.baggage} onChange={e => setManualFlight({ ...manualFlight, baggage: e.target.value })} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/50" />
+              </div>
+            </div>
+            <div className="pt-4 flex justify-end">
+              <button
+                type="submit" disabled={saveMutation.isPending || updateMutation.isPending}
+                className="px-6 py-2 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary-hover shadow-sm disabled:opacity-50"
+              >
+                {saveMutation.isPending || updateMutation.isPending ? "Saving..." : editingFlightId ? "Update Flight" : "Save Manual Flight"}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : isSearchMode ? (
         <div className="space-y-6">
           {/* Search Form */}
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
@@ -185,19 +321,19 @@ export default function FlightsPage() {
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Origin</label>
                 <div className="relative">
-                  <input 
-                    required type="text" value={searchParams.origin} onChange={e => setSearchParams({...searchParams, origin: e.target.value.toUpperCase()})}
+                  <input
+                    required type="text" value={searchParams.origin} onChange={e => setSearchParams({ ...searchParams, origin: e.target.value.toUpperCase() })}
                     className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/50 font-bold uppercase"
                   />
                   <Plane className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Destination</label>
                 <div className="relative">
-                  <input 
-                    required type="text" value={searchParams.destination} onChange={e => setSearchParams({...searchParams, destination: e.target.value.toUpperCase()})}
+                  <input
+                    required type="text" value={searchParams.destination} onChange={e => setSearchParams({ ...searchParams, destination: e.target.value.toUpperCase() })}
                     className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/50 font-bold uppercase"
                   />
                   <Plane className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground rotate-90" />
@@ -207,8 +343,8 @@ export default function FlightsPage() {
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Departure Date</label>
                 <div className="relative">
-                  <input 
-                    required type="date" value={searchParams.date} onChange={e => setSearchParams({...searchParams, date: e.target.value})}
+                  <input
+                    required type="date" value={searchParams.date} onChange={e => setSearchParams({ ...searchParams, date: e.target.value })}
                     className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/50"
                   />
                   <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -218,8 +354,8 @@ export default function FlightsPage() {
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Passengers / Class</label>
                 <div className="relative">
-                  <select 
-                    value={searchParams.class} onChange={e => setSearchParams({...searchParams, class: e.target.value})}
+                  <select
+                    value={searchParams.class} onChange={e => setSearchParams({ ...searchParams, class: e.target.value })}
                     className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/50 appearance-none"
                   >
                     <option value="Economy">1 PAX - Economy</option>
@@ -230,7 +366,7 @@ export default function FlightsPage() {
                 </div>
               </div>
 
-              <button 
+              <button
                 type="submit" disabled={isLoading}
                 className="w-full py-2 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-sm disabled:opacity-50"
               >
@@ -285,16 +421,15 @@ export default function FlightsPage() {
                             <Briefcase className="h-3 w-3" /> {flight.baggage}
                           </p>
                         </div>
-                        <button 
+                        <button
                           onClick={() => saveFlight(flight)}
                           disabled={isSaved || saveMutation.isPending}
-                          className={`px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors ${
-                            isSaved 
-                              ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
-                              : "bg-emerald-500 hover:bg-emerald-600 text-white"
-                          }`}
+                          className={`px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors ${isSaved
+                            ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
+                            : "bg-emerald-500 hover:bg-emerald-600 text-white"
+                            }`}
                         >
-                          {isSaved ? <span className="flex items-center gap-1"><Check className="h-4 w-4"/> Saved</span> : "Save Flight"}
+                          {isSaved ? <span className="flex items-center gap-1"><Check className="h-4 w-4" /> Saved</span> : "Save Flight"}
                         </button>
                       </div>
                     </div>
@@ -366,17 +501,25 @@ export default function FlightsPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-600">
                           {flight.baggage}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap font-black text-primary">
-                          ₹{flight.fare.toLocaleString()}
+                        <td className="px-6 py-4 whitespace-nowrap font-black text-black">
+                          ₹{Number(flight.fare).toLocaleString()}
                         </td>
                         <td className="px-6 py-4 text-right whitespace-nowrap">
-                          <button 
-                            onClick={() => removeFlight(flight.id)} 
-                            disabled={deleteMutation.isPending}
-                            className="text-red-500 hover:text-red-600 hover:underline font-medium text-xs flex items-center justify-end gap-1 ml-auto disabled:opacity-50"
-                          >
-                            <Trash2 className="h-3 w-3" /> Remove
-                          </button>
+                          <div className="flex items-center justify-end gap-3">
+                            <button
+                              onClick={() => handleEditFlight(flight)}
+                              className="text-blue-500 hover:text-blue-600 hover:underline font-medium text-xs flex items-center gap-1"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => removeFlight(flight.id)}
+                              disabled={deleteMutation.isPending}
+                              className="text-red-500 hover:text-red-600 hover:underline font-medium text-xs flex items-center gap-1 disabled:opacity-50"
+                            >
+                              <Trash2 className="h-3 w-3" /> Remove
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))

@@ -61,7 +61,9 @@ export async function fetchHomepageConfig(): Promise<HomepageConfig | null> {
   return body as HomepageConfig;
 }
 
-/** No CMS pages endpoint on Travel OS website API yet. */
-export async function fetchPageBySlug(_slug: string): Promise<CmsPagePayload | null> {
-  throw ApiError.notImplemented("CMS pages");
+/** Fetch CMS Page by slug from Travel OS website API */
+export async function fetchPageBySlug(slug: string): Promise<CmsPagePayload | null> {
+  const body = await apiClient.get<CmsPagePayload>(`/api/website/pages/${slug}`, { noAuth: true, treat404AsNull: true });
+  if (!body) return null;
+  return body;
 }

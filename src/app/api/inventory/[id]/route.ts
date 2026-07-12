@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { jsonError, jsonSuccess } from "@/api";
-import { archiveInventoryItemHandler, getInventoryItemHandler, updateInventoryItemHandler } from "@/modules/inventory";
+import { deleteInventoryItemHandler, getInventoryItemHandler, updateInventoryItemHandler } from "@/modules/inventory";
 import { isErr } from "@/shared/types";
 
 interface RouteParams {
@@ -24,7 +24,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
   const { id } = await params;
-  const result = await archiveInventoryItemHandler(id);
+  const result = await deleteInventoryItemHandler(id);
   if (isErr(result)) return jsonError(result.error);
   return jsonSuccess(result.value);
 }

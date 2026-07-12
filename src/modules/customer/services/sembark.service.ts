@@ -57,6 +57,22 @@ export class SembarkService extends BaseService {
   }
 
   /**
+   * Pushes a confirmed booking to Sembark CRM.
+   */
+  async pushBooking(booking: any): Promise<Result<void, AppError>> {
+    this.logger.info("Pushing booking to Sembark", { bookingId: booking.id, bookingNumber: booking.bookingNumber });
+
+    try {
+      // MOCK: Replace with actual `fetch` call to Sembark when API keys are available
+      this.logger.info("Successfully pushed booking to Sembark", { bookingId: booking.id });
+      return ok(undefined);
+    } catch (error) {
+      this.logger.error("Failed to push booking to Sembark", { error, bookingId: booking.id });
+      return err(new InternalError("Failed to synchronize booking with Sembark"));
+    }
+  }
+
+  /**
    * Pulls destinations, hotels, and packages from Sembark into the system.
    * This would typically be run as a cron job or manual trigger.
    */

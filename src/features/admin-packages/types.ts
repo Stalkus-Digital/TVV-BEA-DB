@@ -26,6 +26,7 @@ export interface Package {
   sourceType: PackageSourceType;
   durationDays: number;
   durationNights: number;
+  durationText: string | null;
   isTemplate: boolean;
   sourceTemplateId: string | null;
   aiGeneratedFromId: string | null;
@@ -185,6 +186,7 @@ export interface CreatePackageInput {
   destinationId: string;
   durationDays: number;
   durationNights: number;
+  durationText?: string | null;
   sourceType?: PackageSourceType;
   code?: string;
   slug?: string;

@@ -164,6 +164,7 @@ model Package {
   currentVersionId  String?
   seo               Json?
   faqs              Json?
+  content           Json?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   days              PackageDay[]

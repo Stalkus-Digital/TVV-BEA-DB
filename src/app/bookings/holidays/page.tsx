@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Luggage, Search, Filter, IndianRupee, Plus } from "lucide-react";
+import { Luggage, Search, Filter, IndianRupee, Plus, Eye, MoreVertical } from "lucide-react";
 import { useBookingsQueryState } from "@/features/admin-bookings/hooks/useBookingsQuery";
 import { BookingCreateDialog } from "@/features/admin-bookings/components/BookingCreateDialog";
 import { BookingDetailDrawer } from "@/features/admin-bookings/components/BookingDetailDrawer";
@@ -81,49 +81,61 @@ export default function HolidayBookingsPage() {
             <thead className="text-xs text-muted-foreground uppercase bg-slate-50/50 border-b border-border">
               <tr>
                 <th className="px-6 py-4 font-semibold">Booking ID</th>
-                <th className="px-6 py-4 font-semibold">Lead Traveler</th>
-                <th className="px-6 py-4 font-semibold">Package Itinerary</th>
-                <th className="px-6 py-4 font-semibold">Amount</th>
+                <th className="px-6 py-4 font-semibold">Contact Name</th>
+                <th className="px-6 py-4 font-semibold">Email</th>
+                <th className="px-6 py-4 font-semibold">Phone</th>
+                <th className="px-6 py-4 font-semibold">Total</th>
+                <th className="px-6 py-4 font-semibold">Guests</th>
+                <th className="px-6 py-4 font-semibold">Check-In</th>
+                <th className="px-6 py-4 font-semibold">Package</th>
+                <th className="px-6 py-4 font-semibold">Location</th>
                 <th className="px-6 py-4 font-semibold">Status</th>
-                <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                <th className="px-6 py-4 font-semibold text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
+                  <td colSpan={11} className="px-6 py-8 text-center text-muted-foreground">
                     Loading holiday bookings...
                   </td>
                 </tr>
               ) : holidayBookings.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
+                  <td colSpan={11} className="px-6 py-8 text-center text-muted-foreground">
                     No holiday bookings found.
                   </td>
                 </tr>
               ) : (
                 holidayBookings.map((booking) => {
-                  const leadTraveller = booking.travellers?.find((t) => t.isLeadTraveller);
-                  const packageItem = booking.items?.find((i) => i.kind === "PACKAGE");
+                  let websiteData: any = {};
+                  try {
+                    websiteData = booking.internalNotes ? JSON.parse(booking.internalNotes) : {};
+                  } catch {}
+
+                  const contactName = websiteData.contactName || booking.customerLabel || "—";
+                  const email = websiteData.email || "—";
+                  const phone = websiteData.phone || "—";
+                  const guests = websiteData.guests || websiteData.guestCount || "—";
+                  const total = booking.totalAmount || websiteData.total || 0;
+
                   return (
                     <tr key={booking.id} className="hover:bg-muted/50 transition-colors">
                       <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
                         {booking.bookingNumber}
                       </td>
-                      <td className="px-6 py-4 font-semibold text-foreground whitespace-nowrap">
-                        {leadTraveller?.fullName || "—"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-semibold text-slate-500 flex items-center gap-1.5">
-                          <Luggage className="h-3.5 w-3.5 text-muted-foreground" />
-                          {packageItem?.title || "Custom Holiday Itinerary"}
-                        </div>
-                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">{contactName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{phone}</td>
                       <td className="px-6 py-4 whitespace-nowrap font-bold text-foreground">
                         <div className="flex items-center">
-                          <IndianRupee className="h-3.5 w-3.5" /> {booking.totalAmount.toLocaleString()}
+                          <IndianRupee className="h-3.5 w-3.5" /> {total.toLocaleString()}
                         </div>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">{guests}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">{websiteData.checkIn || "—"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap max-w-[160px] truncate">{websiteData.packageName || booking.packageLabel || "—"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{websiteData.location || "—"}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${booking.status === 'CONFIRMED' ? 'bg-emerald-100 text-emerald-700' :
                           booking.status === 'CANCELLED' ? 'bg-rose-100 text-rose-700' :
@@ -132,25 +144,20 @@ export default function HolidayBookingsPage() {
                           {booking.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap flex gap-3 justify-end items-center">
+                      <td className="px-6 py-4 text-right whitespace-nowrap flex gap-3 justify-end items-center relative group">
                         <button
                           onClick={() => setSelectedId(booking.id)}
-                          className="text-blue-600 hover:underline font-semibold text-xs"
+                          className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-colors"
+                          title="View Details"
                         >
-                          Edit
+                          <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleVoucher(booking.id)}
-                          className="text-primary hover:underline font-semibold text-xs"
+                          onClick={() => setSelectedId(booking.id)}
+                          className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-colors"
+                          title="Update Status / Edit"
                         >
-                          Voucher
-                        </button>
-                        <button
-                          disabled={isDeleting === booking.id}
-                          onClick={() => handleDelete(booking.id)}
-                          className="text-muted-foreground hover:text-destructive font-semibold text-xs disabled:opacity-50"
-                        >
-                          {isDeleting === booking.id ? "Deleting..." : "Delete"}
+                          <MoreVertical className="h-4 w-4" />
                         </button>
                       </td>
                     </tr>

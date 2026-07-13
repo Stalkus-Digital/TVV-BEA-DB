@@ -7,6 +7,8 @@ import { InventoryDetailDrawer } from "./InventoryDetailDrawer";
 import { InventoryFiltersBar } from "./InventoryFiltersBar";
 import { InventoryTable } from "./InventoryTable";
 import { useInventoryQueryState } from "../hooks/useInventoryQuery";
+import { archiveInventoryItem } from "../api/inventory";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 import type { InventoryListFilters } from "../types";
 
 export function InventoryPage() {
@@ -19,10 +21,30 @@ export function InventoryPage() {
   });
   const [searchInput, setSearchInput] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(searchParams.get("selected"));
+  const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
   const debouncedSearch = useDebouncedValue(searchInput);
+  const queryClient = useQueryClient();
 
   const queryFilters: InventoryListFilters = { ...filters, search: debouncedSearch };
   const inventoryQuery = useInventoryQueryState(queryFilters);
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => archiveInventoryItem(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "inventory"] });
+    },
+  });
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this inventory item?")) {
+      setIsDeletingId(id);
+      try {
+        await deleteMutation.mutateAsync(id);
+      } finally {
+        setIsDeletingId(null);
+      }
+    }
+  };
 
   useEffect(() => {
     const selected = searchParams.get("selected");
@@ -60,6 +82,8 @@ export function InventoryPage() {
           errorMessage={inventoryQuery.error instanceof Error ? inventoryQuery.error.message : undefined}
           onRetry={() => void inventoryQuery.refetch()}
           onSelect={setSelectedId}
+          onDelete={handleDelete}
+          isDeleting={isDeletingId}
           page={filters.page ?? 1}
           onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
         />

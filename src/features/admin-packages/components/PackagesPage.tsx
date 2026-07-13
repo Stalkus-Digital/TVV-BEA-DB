@@ -7,7 +7,7 @@ import { archivePackage } from "../api/packages";
 import { useDebouncedValue } from "@/features/admin-enquiries/hooks/useDebouncedValue";
 import { PackageDetailDrawer } from "./PackageDetailDrawer";
 import { PackageFiltersBar } from "./PackageFiltersBar";
-import { PackagesTable } from "./PackagesTable";
+import { PackagesGrid } from "./PackagesGrid";
 import { usePackagesQueryState } from "../hooks/usePackagesQuery";
 import type { PackageListFilters } from "../types";
 
@@ -37,8 +37,7 @@ export function PackagesPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => archivePackage(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "packages", "list"] });
-      queryClient.invalidateQueries({ queryKey: ["admin", "packages", "all"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "packages"] });
     },
   });
 
@@ -80,8 +79,8 @@ export function PackagesPage() {
         />
       </div>
 
-      <div className="flex-1 bg-card border-t border-border">
-        <PackagesTable
+      <div className="flex-1 bg-slate-50/50 border-t border-border">
+        <PackagesGrid
           data={packagesQuery.data}
           isLoading={packagesQuery.isLoading}
           isError={packagesQuery.isError}

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     contentType: file.type,
     fileName,
     category: formData.get("category"),
-    ownerId: formData.get("ownerId"),
+    ownerId: formData.get("ownerId") || context?.userId || "system",
   });
   if (isErr(result)) return jsonError(result.error);
   return jsonSuccess(result.value, { status: 201 });

@@ -90,7 +90,24 @@ function LeadCard({ lead, onSelect }: { lead: Enquiry; onSelect: (id: string) =>
             <Phone className="h-3 w-3" /> {lead.phone}
           </div>
         )}
-        <div>{ENQUIRY_TYPE_LABELS[lead.type]}</div>
+        
+        {(() => {
+          let extra: any = {};
+          try { extra = lead.message ? JSON.parse(lead.message) : {}; } catch {}
+          
+          if (extra.guestCount || extra.total) {
+            return (
+              <div className="bg-slate-50 p-2 rounded border border-border mt-2 space-y-1">
+                {extra.guestCount && <div><strong>Guests:</strong> {extra.guestCount}</div>}
+                {extra.total && <div><strong>Total:</strong> {extra.total}</div>}
+                {extra.startDate && <div><strong>Start:</strong> {extra.startDate}</div>}
+                {extra.location && <div><strong>Location:</strong> {extra.location}</div>}
+              </div>
+            );
+          }
+          return null;
+        })()}
+
         <div className="text-primary font-medium bg-primary/5 rounded px-2 py-1 w-fit truncate">
           {enquiryContextLabel(lead)}
         </div>

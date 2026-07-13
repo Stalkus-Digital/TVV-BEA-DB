@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Search, Filter, IndianRupee, Plus } from "lucide-react";
+import { Calendar, Search, Filter, IndianRupee, Plus, Eye, MoreVertical } from "lucide-react";
 import { useBookingsQueryState } from "@/features/admin-bookings/hooks/useBookingsQuery";
 import { BookingCreateDialog } from "@/features/admin-bookings/components/BookingCreateDialog";
 import { BookingDetailDrawer } from "@/features/admin-bookings/components/BookingDetailDrawer";
@@ -81,12 +81,16 @@ export default function ActivityBookingsPage() {
             <thead className="text-xs text-muted-foreground uppercase bg-slate-50/50 border-b border-border">
               <tr>
                 <th className="px-6 py-4 font-semibold">Booking ID</th>
-                <th className="px-6 py-4 font-semibold">Customer</th>
+                <th className="px-6 py-4 font-semibold">Name</th>
+                <th className="px-6 py-4 font-semibold">Email</th>
+                <th className="px-6 py-4 font-semibold">Phone</th>
+                <th className="px-6 py-4 font-semibold">Guest Count</th>
+                <th className="px-6 py-4 font-semibold">Total</th>
+                <th className="px-6 py-4 font-semibold">Start Date</th>
                 <th className="px-6 py-4 font-semibold">Activity</th>
-                <th className="px-6 py-4 font-semibold">Tickets (Pax)</th>
-                <th className="px-6 py-4 font-semibold">Amount</th>
+                <th className="px-6 py-4 font-semibold">Location</th>
                 <th className="px-6 py-4 font-semibold">Status</th>
-                <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                <th className="px-6 py-4 font-semibold text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -104,30 +108,34 @@ export default function ActivityBookingsPage() {
                 </tr>
               ) : (
                 activityBookings.map((booking) => {
-                  const leadTraveller = booking.travellers?.find((t) => t.isLeadTraveller);
-                  const activityItem = booking.items?.find((i) => i.kind === "ACTIVITY");
+                  let websiteData: any = {};
+                  try {
+                    websiteData = booking.internalNotes ? JSON.parse(booking.internalNotes) : {};
+                  } catch {}
+
+                  const contactName = websiteData.contactName || booking.customerLabel || "—";
+                  const email = websiteData.email || "—";
+                  const phone = websiteData.phone || "—";
+                  const guests = websiteData.guests || websiteData.guestCount || "—";
+                  const total = booking.totalAmount || websiteData.total || 0;
+
                   return (
                     <tr key={booking.id} className="hover:bg-muted/50 transition-colors">
                       <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
                         {booking.bookingNumber}
                       </td>
-                      <td className="px-6 py-4 font-semibold text-foreground whitespace-nowrap">
-                        {leadTraveller?.fullName || "—"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-semibold text-foreground flex items-center gap-1.5 font-medium">
-                          <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                          {activityItem?.title || "Multiple Activities"}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {activityItem?.quantity || 0} Ticket{(activityItem?.quantity || 0) !== 1 ? 's' : ''}
-                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">{contactName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{phone}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{guests}</td>
                       <td className="px-6 py-4 whitespace-nowrap font-bold text-foreground">
                         <div className="flex items-center">
-                          <IndianRupee className="h-3.5 w-3.5" /> {booking.totalAmount.toLocaleString()}
+                          <IndianRupee className="h-3.5 w-3.5" /> {total.toLocaleString()}
                         </div>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">{websiteData.startDate || "—"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap max-w-[160px] truncate">{websiteData.activityName || "—"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{websiteData.location || "—"}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
                           booking.status === 'COMPLETED' ? 'bg-slate-100 text-slate-700' :
@@ -138,25 +146,20 @@ export default function ActivityBookingsPage() {
                           {booking.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap flex gap-3 justify-end items-center">
+                      <td className="px-6 py-4 text-right whitespace-nowrap flex gap-3 justify-end items-center relative group">
                         <button
                           onClick={() => setSelectedId(booking.id)}
-                          className="text-blue-600 hover:underline font-semibold text-xs"
+                          className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-colors"
+                          title="View Details"
                         >
-                          Edit
+                          <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleVoucher(booking.id)}
-                          className="text-primary hover:underline font-semibold text-xs"
+                          onClick={() => setSelectedId(booking.id)}
+                          className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-colors"
+                          title="Update Status / Edit"
                         >
-                          Voucher
-                        </button>
-                        <button
-                          disabled={isDeleting === booking.id}
-                          onClick={() => handleDelete(booking.id)}
-                          className="text-muted-foreground hover:text-destructive font-semibold text-xs disabled:opacity-50"
-                        >
-                          {isDeleting === booking.id ? "Deleting..." : "Delete"}
+                          <MoreVertical className="h-4 w-4" />
                         </button>
                       </td>
                     </tr>

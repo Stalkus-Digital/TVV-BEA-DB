@@ -4929,6 +4929,7 @@ export const PackageScalarFieldEnum = {
   currentVersionId: 'currentVersionId',
   seo: 'seo',
   faqs: 'faqs',
+  content: 'content',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -20,7 +20,7 @@ export function formatDate(value: string): string {
 
 export function flattenFaqs(destinations: Destination[], packages: Package[]): FaqListItem[] {
   const destinationFaqs = destinations.flatMap((destination) =>
-    destination.faqs.map((faq) => ({
+    (destination.faqs || []).map((faq) => ({
       ...faq,
       parentType: "destination" as const,
       parentId: destination.id,
@@ -30,7 +30,7 @@ export function flattenFaqs(destinations: Destination[], packages: Package[]): F
   );
 
   const packageFaqs = packages.flatMap((pkg) =>
-    pkg.faqs.map((faq) => ({
+    (pkg.faqs || []).map((faq) => ({
       ...faq,
       parentType: "package" as const,
       parentId: pkg.id,
@@ -70,10 +70,10 @@ export function buildDashboardStats(
   destinations: Destination[],
   packages: Package[]
 ): CmsDashboardStats {
-  const destinationFaqCount = destinations.reduce((sum, item) => sum + item.faqs.length, 0);
-  const packageFaqCount = packages.reduce((sum, item) => sum + item.faqs.length, 0);
+  const destinationFaqCount = destinations.reduce((sum, item) => sum + (item.faqs?.length || 0), 0);
+  const packageFaqCount = packages.reduce((sum, item) => sum + (item.faqs?.length || 0), 0);
   const footerLinkCount =
-    navigation?.footer.columns.reduce((sum, column) => sum + column.links.length, 0) ?? 0;
+    navigation?.footer?.columns?.reduce((sum, column) => sum + (column.links?.length || 0), 0) ?? 0;
 
   return {
     featuredDestinationCount: homepage?.featuredDestinations.length ?? destinations.filter((d) => d.isFeatured).length,

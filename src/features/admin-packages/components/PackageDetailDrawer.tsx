@@ -74,7 +74,7 @@ export function PackageDetailDrawer({ packageId, destinations, onClose }: Packag
             <div className="flex items-center gap-2">
               <Link
                 href={`/packages/new?id=${packageId}`}
-                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                className="text-xs text-slate-600 hover:underline inline-flex items-center gap-1"
               >
                 Open builder <ExternalLink className="h-3 w-3" />
               </Link>
@@ -89,9 +89,8 @@ export function PackageDetailDrawer({ packageId, destinations, onClose }: Packag
                 key={item.id}
                 type="button"
                 onClick={() => setTab(item.id)}
-                className={`px-3 py-2 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
-                  tab === item.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
+                className={`px-3 py-2 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${tab === item.id ? "border-primary text-slate-600" : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 {item.label}
               </button>
@@ -162,9 +161,14 @@ function OverviewTab({
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3 className="text-xl font-semibold">{pkg.title}</h3>
-          <p className="text-sm text-muted-foreground font-mono mt-1">{pkg.code}</p>
+        <div className="flex gap-4">
+          {pkg.content?.images?.[0] && (
+            <img src={pkg.content.images[0]} alt={pkg.title} className="w-16 h-16 object-cover rounded-md" />
+          )}
+          <div>
+            <h3 className="text-xl font-semibold">{pkg.title}</h3>
+            <p className="text-sm text-muted-foreground font-mono mt-1">{pkg.code}</p>
+          </div>
         </div>
         <PackageStatusBadge status={pkg.status} />
       </div>
@@ -208,7 +212,7 @@ function OverviewTab({
             type="button"
             disabled={updateMutation.isPending || title === pkg.title}
             onClick={() => void updateMutation.mutateAsync({ title })}
-            className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md disabled:opacity-50"
+            className="px-4 py-2 text-sm bg-primary text-slate-600-foreground rounded-md disabled:opacity-50"
           >
             Save title
           </button>
@@ -497,7 +501,7 @@ function VersionsTab({
               <div>
                 <span className="font-medium">v{version.versionNumber}</span>
                 {version.id === currentVersionId && (
-                  <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Current</span>
+                  <span className="ml-2 text-xs bg-primary/10 text-slate-600 px-2 py-0.5 rounded-full">Current</span>
                 )}
                 <p className="text-muted-foreground text-xs mt-1">{formatPackageDate(version.publishedAt)}</p>
                 {version.changeNote && <p className="mt-1">{version.changeNote}</p>}

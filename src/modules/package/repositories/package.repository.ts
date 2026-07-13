@@ -33,8 +33,15 @@ export class PrismaPackageRepository extends PrismaStore<any> implements Package
 
   async findByFilter(filter: PackageListFilter): Promise<Result<PaginatedResult<Package>, AppError>> {
     let items = (await this.delegate.findMany());
+    
+    // By default, do not return ARCHIVED packages unless explicitly requested
+    if (filter.status) {
+      items = items.filter(( p: any ) => p.status === filter.status);
+    } else {
+      items = items.filter(( p: any ) => p.status !== 'ARCHIVED');
+    }
+    
     if (filter.destinationId) items = items.filter(( p: any ) => p.destinationId === filter.destinationId);
-    if (filter.status) items = items.filter(( p: any ) => p.status === filter.status);
     if (filter.sourceType) items = items.filter(( p: any ) => p.sourceType === filter.sourceType);
     if (filter.isTemplate !== undefined) items = items.filter(( p: any ) => p.isTemplate === filter.isTemplate);
 

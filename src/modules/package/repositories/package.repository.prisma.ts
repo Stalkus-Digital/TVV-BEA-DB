@@ -23,7 +23,13 @@ function toDomain(row: PrismaPackageRow): Package {
 function toWhere(filter: PackageListFilter): Prisma.PackageWhereInput {
   const where: Prisma.PackageWhereInput = {};
   if (filter.destinationId) where.destinationId = filter.destinationId;
-  if (filter.status) where.status = filter.status;
+  
+  if (filter.status) {
+    where.status = filter.status;
+  } else {
+    where.status = { not: "ARCHIVED" };
+  }
+
   if (filter.sourceType) where.sourceType = filter.sourceType;
   if (filter.isTemplate !== undefined) where.isTemplate = filter.isTemplate;
   return where;

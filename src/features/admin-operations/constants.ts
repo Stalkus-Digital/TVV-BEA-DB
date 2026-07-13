@@ -8,6 +8,7 @@ export const OPERATIONS_SECTIONS = [
   { href: "/operations/supplier-runtime", label: "Supplier Runtime", description: "Circuit breakers and dispatch metrics" },
   { href: "/operations/logs", label: "System Logs", description: "Captured application logs" },
   { href: "/operations/alerts", label: "Alerts", description: "Active system alerts" },
+  { href: "/settings/api-keys", label: "API Keys", description: "Manage external API keys" },
 ] as const;
 
 /** Preferred display order for health cards — modules not yet registered are shown separately. */

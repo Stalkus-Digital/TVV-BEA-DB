@@ -8,7 +8,7 @@ export function LandingPagesManager() {
   const [pages, setPages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState({ id: "", title: "", slug: "", heroSection: {}, packages: [], faqSection: {} });
+  const [form, setForm] = useState<any>({ id: "", title: "", slug: "", heroSection: { headline: "", subheadline: "", imageUrl: "" }, packages: [], faqSection: { faqs: [] } });
   const [pageToDelete, setPageToDelete] = useState<string | null>(null);
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export function LandingPagesManager() {
     <CmsPageShell title="Landing Pages Builder" description="Create and manage dynamic SEO destination landing pages.">
       <div className="mt-6 flex justify-end">
         {!isEditing && (
-          <button onClick={() => { setForm({ id: "", title: "", slug: "", heroSection: {}, packages: [], faqSection: {} }); setIsEditing(true); }} className="bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium text-sm">
+          <button onClick={() => { setForm({ id: "", title: "", slug: "", heroSection: { headline: "", subheadline: "", imageUrl: "" }, packages: [], faqSection: { faqs: [] } }); setIsEditing(true); }} className="bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium text-sm">
             + Create Landing Page
           </button>
         )}
@@ -66,17 +66,56 @@ export function LandingPagesManager() {
       <div className="mt-4 grid gap-4">
         {isEditing ? (
           <form onSubmit={savePage} className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
-            <div>
-              <label className="block text-xs font-medium mb-1">Title</label>
-              <input required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium mb-1">Title</label>
+                <input required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Slug</label>
+                <input required value={form.slug} onChange={e => setForm({ ...form, slug: e.target.value })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" />
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-medium mb-1">Slug</label>
-              <input required value={form.slug} onChange={e => setForm({ ...form, slug: e.target.value })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" />
+
+            <div className="border border-border rounded-lg p-4 space-y-4">
+              <h4 className="font-semibold text-sm">Hero Section</h4>
+              <div>
+                <label className="block text-xs font-medium mb-1">Headline</label>
+                <input value={form.heroSection?.headline || ""} onChange={e => setForm({ ...form, heroSection: { ...form.heroSection, headline: e.target.value } })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Subheadline</label>
+                <input value={form.heroSection?.subheadline || ""} onChange={e => setForm({ ...form, heroSection: { ...form.heroSection, subheadline: e.target.value } })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Image URL</label>
+                <input value={form.heroSection?.imageUrl || ""} onChange={e => setForm({ ...form, heroSection: { ...form.heroSection, imageUrl: e.target.value } })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" placeholder="https://..." />
+              </div>
             </div>
-            {/* Extended builder inputs (hero, packages, faqs) go here — simplified for MVP */}
-            <div className="p-4 bg-muted text-xs rounded border border-border">
-              <p>Use the visual block builder to construct the landing page layout.</p>
+
+            <div className="border border-border rounded-lg p-4 space-y-4">
+              <h4 className="font-semibold text-sm">Packages to Feature</h4>
+              <div>
+                <label className="block text-xs font-medium mb-1">Package Slugs (comma separated)</label>
+                <input value={form.packages?.join(", ") || ""} onChange={e => setForm({ ...form, packages: e.target.value.split(",").map(s => s.trim()).filter(Boolean) })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" placeholder="kerala-5n, andaman-honeymoon" />
+              </div>
+            </div>
+
+            <div className="border border-border rounded-lg p-4 space-y-4">
+              <h4 className="font-semibold text-sm">FAQs</h4>
+              <div>
+                <label className="block text-xs font-medium mb-1">Raw JSON Data</label>
+                <textarea 
+                  rows={4}
+                  value={JSON.stringify(form.faqSection, null, 2)} 
+                  onChange={e => {
+                    try {
+                      setForm({ ...form, faqSection: JSON.parse(e.target.value) });
+                    } catch (err) {}
+                  }} 
+                  className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm font-mono" 
+                />
+              </div>
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-md">Cancel</button>

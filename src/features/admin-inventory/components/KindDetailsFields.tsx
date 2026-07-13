@@ -15,24 +15,71 @@ export function KindDetailsFields({ kind, details, onChange, destinations, count
   if (kind === InventoryKind.HOTEL) {
     const d = details as Extract<InventoryItem, { kind: "HOTEL" }>["details"];
     return (
-      <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Star rating</label>
+            <input
+              type="number"
+              min={1}
+              max={5}
+              value={d.starRating}
+              onChange={(e) => onChange({ ...d, starRating: Number(e.target.value) })}
+              className="w-full px-3 py-2 border border-border rounded-md text-sm"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="block text-sm font-medium mb-1">Address</label>
+            <input
+              value={d.address}
+              onChange={(e) => onChange({ ...d, address: e.target.value })}
+              className="w-full px-3 py-2 border border-border rounded-md text-sm"
+            />
+          </div>
+        </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Star rating</label>
-          <input
-            type="number"
-            min={1}
-            max={5}
-            value={d.starRating}
-            onChange={(e) => onChange({ ...d, starRating: Number(e.target.value) })}
+          <label className="block text-sm font-medium mb-1">Short Description</label>
+          <textarea
+            value={d.shortDescription || ""}
+            onChange={(e) => onChange({ ...d, shortDescription: e.target.value })}
             className="w-full px-3 py-2 border border-border rounded-md text-sm"
+            rows={2}
           />
         </div>
-        <div className="col-span-2">
-          <label className="block text-sm font-medium mb-1">Address</label>
-          <input
-            value={d.address}
-            onChange={(e) => onChange({ ...d, address: e.target.value })}
+        <div>
+          <label className="block text-sm font-medium mb-1">Long Description</label>
+          <textarea
+            value={d.longDescription || ""}
+            onChange={(e) => onChange({ ...d, longDescription: e.target.value })}
             className="w-full px-3 py-2 border border-border rounded-md text-sm"
+            rows={4}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Points</label>
+          <textarea
+            value={d.points || ""}
+            onChange={(e) => onChange({ ...d, points: e.target.value })}
+            className="w-full px-3 py-2 border border-border rounded-md text-sm"
+            rows={2}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Policies</label>
+          <textarea
+            value={d.policies || ""}
+            onChange={(e) => onChange({ ...d, policies: e.target.value })}
+            className="w-full px-3 py-2 border border-border rounded-md text-sm"
+            rows={2}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Rules</label>
+          <textarea
+            value={d.rules || ""}
+            onChange={(e) => onChange({ ...d, rules: e.target.value })}
+            className="w-full px-3 py-2 border border-border rounded-md text-sm"
+            rows={2}
           />
         </div>
       </div>

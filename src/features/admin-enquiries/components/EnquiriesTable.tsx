@@ -51,7 +51,7 @@ export function EnquiriesTable({
             <tr>
               <th className="px-6 py-4 font-semibold">Client</th>
               <th className="px-6 py-4 font-semibold">Contact</th>
-              <th className="px-6 py-4 font-semibold">Type</th>
+              <th className="px-6 py-4 font-semibold">Details</th>
               <th className="px-6 py-4 font-semibold">Context</th>
               <th className="px-6 py-4 font-semibold">Assigned</th>
               <th className="px-6 py-4 font-semibold">Status</th>
@@ -124,7 +124,23 @@ function EnquiryRow({
           </div>
         )}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap">{ENQUIRY_TYPE_LABELS[enquiry.type]}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
+        {(() => {
+          let extra: any = {};
+          try { extra = enquiry.message ? JSON.parse(enquiry.message) : {}; } catch {}
+          
+          if (extra.guestCount || extra.total) {
+            return (
+              <div className="flex flex-col gap-0.5 text-xs">
+                {extra.guestCount && <span>Guests: {extra.guestCount}</span>}
+                {extra.total && <span>Total: {extra.total}</span>}
+                {extra.startDate && <span>Start: {extra.startDate}</span>}
+              </div>
+            );
+          }
+          return ENQUIRY_TYPE_LABELS[enquiry.type];
+        })()}
+      </td>
       <td className="px-6 py-4 whitespace-nowrap text-primary">{enquiryContextLabel(enquiry)}</td>
       <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">{assignedLabel}</td>
       <td className="px-6 py-4 whitespace-nowrap">

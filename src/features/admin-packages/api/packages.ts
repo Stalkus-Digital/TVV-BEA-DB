@@ -72,6 +72,12 @@ export async function createPackage(input: CreatePackageInput): Promise<Package>
   return result;
 }
 
+export async function createFullPackage(input: any): Promise<Package> {
+  const result = await adminApiClient.post<Package>(`${adminEndpoints.packages}/full`, input);
+  if (!result) throw new Error("Failed to save full package");
+  return result;
+}
+
 export async function updatePackage(id: string, input: UpdatePackageInput): Promise<Package> {
   const result = await adminApiClient.patch<Package>(packagePath(id), input);
   if (!result) throw new Error("Failed to update package");

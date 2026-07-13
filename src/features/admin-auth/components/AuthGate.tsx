@@ -11,6 +11,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { status, hydrated } = useAdminAuth();
   const isLoginRoute = pathname === "/login";
+  
+  const ADMIN_PREFIXES = ["/ai-studio", "/bookings", "/cms", "/crm", "/customers", "/destinations", "/inventory", "/itinerary", "/marketing", "/operations", "/packages", "/quotes", "/settings"];
+  const isRoot = pathname === "/";
+  const isPublicSlugRoute = !isRoot && !pathname.startsWith("/login") && !pathname.startsWith("/api") && !ADMIN_PREFIXES.some(p => pathname.startsWith(p));
+  const isPublicRoute = isLoginRoute || isPublicSlugRoute;
 
   useEffect(() => {
     if (!hydrated) return;
@@ -20,11 +25,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (!isLoginRoute && status === "anonymous") {
+    if (!isPublicRoute && status === "anonymous") {
       const next = encodeURIComponent(pathname);
       router.replace(`/login?next=${next}`);
     }
-  }, [hydrated, isLoginRoute, pathname, router, status]);
+  }, [hydrated, isLoginRoute, isPublicRoute, pathname, router, status]);
 
   if (!hydrated || status === "loading") {
     return (
@@ -34,7 +39,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (isLoginRoute) {
+  if (isPublicRoute) {
     return <>{children}</>;
   }
 

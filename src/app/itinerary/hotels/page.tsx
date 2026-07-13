@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Hotel, Plus, Search, Star, MapPin, X } from "lucide-react";
+import { Hotel, Plus, Search, Star, MapPin, X, EyeOff, Edit, ImageIcon } from "lucide-react";
 import { adminApiClient } from "@/lib/admin-api/client";
 import { adminEndpoints } from "@/lib/admin-api/endpoints";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertModal } from "@/components/layout/AlertModal";
 import { useDestinationsQuery } from "@/features/admin-quotes/hooks/useDestinationsQuery";
+import { InventoryDetailDrawer } from "@/features/admin-inventory/components/InventoryDetailDrawer";
+import Link from "next/link";
 
 interface HotelProperty {
   id: string;
@@ -15,13 +17,14 @@ interface HotelProperty {
   stars: number;
   rooms: number;
   avgRate: number;
-  status: "Active" | "Maintenance";
+  status: "ACTIVE" | "MAINTENANCE";
   destinationId?: string | null;
 }
 
 export default function HotelsPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingHotelId, setEditingHotelId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -43,7 +46,7 @@ export default function HotelsPage() {
     stars: 3,
     rooms: 10,
     avgRate: 5000,
-    status: "Active",
+    status: "ACTIVE",
     destinationId: null,
   });
 
@@ -133,7 +136,7 @@ export default function HotelsPage() {
       stars: Number(newHotel.stars) || 3,
       rooms: Number(newHotel.rooms) || 0,
       avgRate: Number(newHotel.avgRate) || 0,
-      status: newHotel.status as "Active" | "Maintenance" || "Active",
+      status: newHotel.status as "ACTIVE" | "MAINTENANCE" || "ACTIVE",
     };
 
     if (editingHotelId) {
@@ -152,7 +155,7 @@ export default function HotelsPage() {
       stars: 3,
       rooms: 10,
       avgRate: 5000,
-      status: "Active",
+      status: "ACTIVE",
     });
   };
 
@@ -164,7 +167,7 @@ export default function HotelsPage() {
       stars: 3,
       rooms: 10,
       avgRate: 5000,
-      status: "Active",
+      status: "ACTIVE",
       destinationId: null,
     });
     setIsModalOpen(true);
@@ -211,7 +214,7 @@ export default function HotelsPage() {
           stars: res.rating || 3,
           rooms: res.availableRooms || searchParams.rooms,
           avgRate: res.price || 0,
-          status: "Active"
+          status: "ACTIVE"
         }));
         setSearchResults(mapped);
       } else {
@@ -231,7 +234,7 @@ export default function HotelsPage() {
   };
 
   // Stats Calculations
-  const activeContracts = hotels.filter(h => h.status === "Active").length;
+  const activeContracts = hotels.filter(h => h.status === "ACTIVE").length;
   const totalRooms = hotels.reduce((acc, h) => acc + h.rooms, 0);
   const avgRoomRate = hotels.length
     ? hotels.reduce((acc, h) => acc + h.avgRate, 0) / hotels.length
@@ -257,12 +260,12 @@ export default function HotelsPage() {
             <Search className="h-4 w-4" />
             {isSearchMode ? "Back to Managed Hotels" : "Live API Search"}
           </button>
-          <button
-            onClick={openAddModal}
+          <Link
+            href="/inventory/hotels/new"
             className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-md shadow-sm hover:bg-primary-hover transition-colors"
           >
             <Plus className="h-4 w-4" /> Add Property
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -325,7 +328,7 @@ export default function HotelsPage() {
                       <div className="flex items-center justify-between border-t border-slate-200 pt-4">
                         <div>
                           <p className="text-xs text-muted-foreground">Nightly Rate from</p>
-                          <p className="text-xl font-black text-primary">₹{hotel.avgRate.toLocaleString()}</p>
+                          <p className="text-xl font-black text-primary">₹{(hotel.avgRate || 0).toLocaleString()}</p>
                         </div>
                         <button
                           onClick={() => saveLiveHotel(hotel)}
@@ -391,210 +394,88 @@ export default function HotelsPage() {
               </div>
             </div>
 
-            {/* Hotel Grid/List */}
-            <div className="overflow-x-auto bg-white">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold">Hotel ID</th>
-                    <th className="px-6 py-4 font-semibold">Property</th>
-                    <th className="px-6 py-4 font-semibold">Location</th>
-                    <th className="px-6 py-4 font-semibold">Rating</th>
-                    <th className="px-6 py-4 font-semibold">Total Rooms</th>
-                    <th className="px-6 py-4 font-semibold">Avg. Nightly Rate</th>
-                    <th className="px-6 py-4 font-semibold">Status</th>
-                    <th className="px-6 py-4 font-semibold text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {filteredHotels.length === 0 ? (
-                    <tr className="bg-white">
-                      <td colSpan={8} className="px-6 py-8 text-center text-slate-500">
-                        No properties found matching your search.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredHotels.map((hotel) => (
-                      <tr key={hotel.id} className="bg-white hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">
-                          {hotel.id}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="font-semibold text-slate-900 flex items-center gap-1.5">
-                            <Hotel className="h-4 w-4 text-slate-400" />
-                            {hotel.name}
+            {/* Hotel Grid */}
+            <div className="p-6 bg-slate-50/50">
+              {filteredHotels.length === 0 ? (
+                <div className="py-12 text-center text-slate-500 bg-white rounded-xl border border-slate-200">
+                  No properties found matching your search.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredHotels.map((hotel: any) => {
+                    const image = hotel.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800";
+                    
+                    return (
+                      <div key={hotel.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col transition-shadow hover:shadow-md">
+                        <div className="relative h-48 w-full bg-slate-100">
+                          <img src={image} alt={hotel.name} className="absolute inset-0 w-full h-full object-cover" />
+                        </div>
+                        <div className="p-5 flex flex-col flex-1">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <h3 className="font-bold text-lg text-slate-900 leading-tight line-clamp-2">{hotel.name}</h3>
+                            <div className="flex items-center gap-2 text-slate-600 shrink-0 mt-0.5">
+                              <button title={hotel.status === "Maintenance" ? "Maintenance" : "Hide"} className="hover:text-slate-900 transition-colors">
+                                <EyeOff className="h-4 w-4" />
+                              </button>
+                              <Link href={`/inventory/hotels/new?id=${hotel.id}`} className="hover:text-slate-900 transition-colors">
+                                <Edit className="h-4 w-4" />
+                              </Link>
+                            </div>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-slate-500 text-xs flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {hotel.location}
+                          
+                          <div className="flex items-center gap-1 mb-4 text-slate-500">
+                            <MapPin className="h-3.5 w-3.5" />
+                            <span className="text-sm line-clamp-1">{hotel.location}</span>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-0.5">
-                            {Array.from({ length: 5 }).map((_, idx) => (
-                              <Star key={idx} className={`h-3.5 w-3.5 ${idx < hotel.stars ? "text-amber-400 fill-amber-400" : "text-slate-300"}`} />
-                            ))}
+
+                          <div className="space-y-2.5 text-sm text-slate-600 mb-6 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-semibold text-slate-900">Rating:</span>
+                              <div className="flex items-center">
+                                {Array.from({ length: 5 }).map((_, idx) => (
+                                  <Star key={idx} className={`h-3.5 w-3.5 ${idx < hotel.stars ? "text-amber-400 fill-amber-400" : "text-slate-300"}`} />
+                                ))}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-semibold text-slate-900">Total Rooms:</span>
+                              <span>{hotel.rooms}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-semibold text-slate-900">Avg. Nightly Rate:</span>
+                              <span>₹{(hotel.avgRate || 0).toLocaleString()}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 pt-1">
+                              <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${hotel.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>
+                                {hotel.status}
+                              </span>
+                            </div>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-slate-600 font-medium">
-                          {hotel.rooms} Rooms
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap font-bold text-slate-600">
-                          ₹{hotel.avgRate.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${hotel.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                            }`}>
-                            {hotel.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right whitespace-nowrap">
-                          <button onClick={() => openEditModal(hotel)} className="text-blue-500 hover:underline font-medium mr-3">Edit</button>
-                          <button
-                            onClick={() => removeHotel(hotel.id)}
-                            className="text-slate-500 hover:text-red-600 font-medium transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+
+                          <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+                            <button 
+                              onClick={() => setSelectedId(hotel.id)}
+                              className="px-5 py-2 bg-slate-900 hover:bg-black text-white text-sm font-semibold rounded-lg transition-colors text-center"
+                            >
+                              View Detail
+                            </button>
+                            <button 
+                              onClick={() => removeHotel(hotel.id)}
+                              className="px-5 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Add Hotel Modal */}
-          {isModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-              <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col border border-slate-200">
-                <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
-                  <h2 className="text-lg font-bold text-slate-900">{editingHotelId ? "Edit Hotel Property" : "Add New Hotel Property"}</h2>
-                  <button
-                    onClick={() => setIsModalOpen(false)}
-                    className="text-slate-500 hover:text-slate-900 transition-colors p-1 rounded-md hover:bg-slate-200"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-
-                <form onSubmit={handleAdd} className="p-5 flex flex-col gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Property Name *</label>
-                    <input
-                      required
-                      type="text"
-                      value={newHotel.name}
-                      onChange={(e) => setNewHotel({ ...newHotel, name: e.target.value })}
-                      placeholder="e.g. Taj Exotica Resort & Spa"
-                      className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-slate-900"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Destination</label>
-                      <select
-                        value={newHotel.destinationId || ""}
-                        onChange={(e) => setNewHotel({ ...newHotel, destinationId: e.target.value || null })}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-slate-900"
-                      >
-                        <option value="">Select Destination</option>
-                        {destinationsQuery.data?.map((d) => (
-                          <option key={d.id} value={d.id}>{d.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Location / Address</label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                        <input
-                          required
-                          type="text"
-                          value={newHotel.location}
-                          onChange={(e) => setNewHotel({ ...newHotel, location: e.target.value })}
-                          className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-primary text-slate-900"
-                          placeholder="e.g. Swaraj Dweep"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Star Rating</label>
-                      <select
-                        value={newHotel.stars}
-                        onChange={(e) => setNewHotel({ ...newHotel, stars: Number(e.target.value) })}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-foreground"
-                      >
-                        {[1, 2, 3, 4, 5].map(s => (
-                          <option key={s} value={s}>{s} Stars</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Total Rooms Allotted</label>
-                      <input
-                        required
-                        type="number"
-                        min="1"
-                        value={newHotel.rooms || ""}
-                        onChange={(e) => setNewHotel({ ...newHotel, rooms: Number(e.target.value) })}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-slate-900"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Avg. Nightly Rate (₹)</label>
-                      <input
-                        required
-                        type="number"
-                        min="0"
-                        value={newHotel.avgRate || ""}
-                        onChange={(e) => setNewHotel({ ...newHotel, avgRate: Number(e.target.value) })}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-slate-900"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Status</label>
-                      <select
-                        value={newHotel.status}
-                        onChange={(e) => setNewHotel({ ...newHotel, status: e.target.value as "Active" | "Maintenance" })}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-slate-900"
-                      >
-                        <option value="Active">Active</option>
-                        <option value="Maintenance">Maintenance</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 flex gap-3 mt-2 border-t border-slate-200">
-                    <button
-                      type="button"
-                      onClick={() => setIsModalOpen(false)}
-                      className="flex-1 py-2.5 text-sm font-semibold border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={createMutation.isPending || updateMutation.isPending}
-                      className="flex-1 py-2.5 text-sm font-bold bg-primary text-primary-foreground rounded-lg hover:bg-primary-hover transition-colors shadow-sm flex justify-center items-center gap-2 disabled:opacity-50"
-                    >
-                      <Plus className="h-4 w-4" /> {createMutation.isPending || updateMutation.isPending ? "Saving..." : editingHotelId ? "Update Property" : "Save Property"}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
+          {/* Add Hotel Modal removed */}
         </>
       )}
 
@@ -602,6 +483,12 @@ export default function HotelsPage() {
         isOpen={alertState.isOpen}
         message={alertState.message}
         onClose={() => setAlertState({ isOpen: false, message: "" })}
+      />
+
+      <InventoryDetailDrawer
+        itemId={selectedId}
+        destinations={destinationsQuery.data || []}
+        onClose={() => setSelectedId(null)}
       />
 
       {/* Confirm delete dialog */}

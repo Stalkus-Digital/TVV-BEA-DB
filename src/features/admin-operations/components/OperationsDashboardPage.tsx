@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { Activity, ArrowRight, Bell, FileText, HardDrive, Radar, Server, Shield } from "lucide-react";
+import { Activity, ArrowRight, Bell, FileText, HardDrive, Radar, Server, Shield, KeySquare } from "lucide-react";
 import { OPERATIONS_SECTIONS } from "../constants";
 import { useSystemHealthQuery, useSystemMetricsQuery } from "../hooks/useOperationsQueries";
 import { OperationsPageShell } from "./OperationsPageShell";
@@ -15,6 +15,7 @@ const SECTION_ICONS: Record<string, LucideIcon> = {
   "/operations/supplier-runtime": Server,
   "/operations/logs": FileText,
   "/operations/alerts": Bell,
+  "/settings/api-keys": KeySquare,
 };
 
 export function OperationsDashboardPage() {

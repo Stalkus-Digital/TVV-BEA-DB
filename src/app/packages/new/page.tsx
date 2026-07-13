@@ -1,12 +1,12 @@
 import { Suspense } from "react";
-import { PackageBuilderPage } from "@/features/admin-packages/components/PackageBuilderPage";
+import { PackageSingleForm } from "@/features/admin-packages/components/PackageSingleForm";
 import { WidgetLoading } from "@/features/admin-dashboard/components/WidgetState";
 
-export default function NewPackagePage() {
+export default function Page() {
   return (
-    <div className="h-[calc(100vh-6rem)] -m-6">
+    <div className="w-full">
       <Suspense fallback={<WidgetLoading label="Loading builder…" />}>
-        <PackageBuilderPage />
+        <PackageSingleForm />
       </Suspense>
     </div>
   );

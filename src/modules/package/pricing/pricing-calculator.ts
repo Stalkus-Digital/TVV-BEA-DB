@@ -4,11 +4,11 @@ function applyAdjustment(amount: number, adjustment: PriceAdjustment): number {
   return adjustment.type === AdjustmentType.PERCENTAGE ? (amount * adjustment.value) / 100 : adjustment.value;
 }
 
-/** Picks the season whose date range contains the given date, if any. First match wins — no overlap-resolution priority is defined yet. */
 function resolveSeasonalAdjustment(pricing: PackagePricing, date: string | undefined): PriceAdjustment | null {
   if (!date) return null;
   const target = new Date(date).getTime();
-  const season = pricing.seasonalPricing.find((s) => {
+  const arr = Array.isArray(pricing.seasonalPricing) ? pricing.seasonalPricing : [];
+  const season = arr.find((s: any) => {
     const start = new Date(s.startDate).getTime();
     const end = new Date(s.endDate).getTime();
     return target >= start && target <= end;
@@ -17,8 +17,9 @@ function resolveSeasonalAdjustment(pricing: PackagePricing, date: string | undef
 }
 
 function resolveChildTotal(pricing: PackagePricing, adultUnitPrice: number, children: { age: number }[]): number {
+  const arr = Array.isArray(pricing.childPricing) ? pricing.childPricing : [];
   return children.reduce((sum, child) => {
-    const rule = pricing.childPricing.find((r) => child.age >= r.minAge && child.age <= r.maxAge);
+    const rule = arr.find((r: any) => child.age >= r.minAge && child.age <= r.maxAge);
     if (!rule) return sum + adultUnitPrice; // no matching band — priced as an adult, not silently free
     const childPrice = rule.priceType === "PERCENTAGE_OF_ADULT" ? (adultUnitPrice * rule.value) / 100 : rule.value;
     return sum + childPrice;
@@ -26,7 +27,8 @@ function resolveChildTotal(pricing: PackagePricing, adultUnitPrice: number, chil
 }
 
 function resolveGroupUnitPrice(pricing: PackagePricing, paxCount: number, fallback: number): number {
-  const rule = pricing.groupPricing.find((r) => paxCount >= r.minPax && (r.maxPax === null || paxCount <= r.maxPax));
+  const arr = Array.isArray(pricing.groupPricing) ? pricing.groupPricing : [];
+  const rule = arr.find((r: any) => paxCount >= r.minPax && (r.maxPax === null || paxCount <= r.maxPax));
   return rule?.pricePerPerson ?? fallback;
 }
 
@@ -45,8 +47,9 @@ export function computePrice(pricing: PackagePricing, request: PriceComputeReque
   // NOT also be pushed into lineItems, since every entry in that array gets
   // summed into `total` and "Adults × N" below already incorporates it;
   // pushing both double-counted the base price.
+  const occupancyPricing = Array.isArray(pricing.occupancyPricing) ? pricing.occupancyPricing : [];
   let adultUnitPrice =
-    pricing.occupancyPricing.find((o) => o.occupancyType === request.occupancy)?.pricePerPerson ?? pricing.basePrice;
+    occupancyPricing.find((o: any) => o.occupancyType === request.occupancy)?.pricePerPerson ?? pricing.basePrice;
   adultUnitPrice = resolveGroupUnitPrice(pricing, paxCount, adultUnitPrice);
 
   const seasonal = resolveSeasonalAdjustment(pricing, request.date);

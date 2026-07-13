@@ -31,6 +31,7 @@ export async function POST(
         ...restPkg,
         seo: restPkg.seo as any,
         faqs: restPkg.faqs as any,
+        content: restPkg.content as any,
         title: `${pkg.title} (Copy)`,
         slug: `${pkg.slug}-copy-${Date.now()}`,
         status: "DRAFT",

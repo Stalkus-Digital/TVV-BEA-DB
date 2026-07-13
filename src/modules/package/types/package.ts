@@ -72,6 +72,7 @@ export interface Package {
   faqs: PackageFaqEntry[];
   createdAt: string;
   updatedAt: string;
+  content?: any;
 }
 
 export type PackageTemplate = Package;

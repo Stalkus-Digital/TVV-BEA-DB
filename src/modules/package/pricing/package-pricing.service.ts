@@ -17,7 +17,29 @@ export class PackagePricingService extends BaseService {
   async getByPackage(packageId: string): Promise<Result<PackagePricing, AppError>> {
     const result = await this.repository.findByPackage(packageId);
     if (isErr(result)) return result;
-    if (!result.value) return err(new NotFoundError(`Pricing for package "${packageId}" not found`));
+    
+    // Instead of returning a 404 error, we return a default empty pricing object.
+    // This prevents the frontend from throwing a 404 error in the console when a 
+    // package hasn't had its pricing configured yet.
+    if (!result.value) {
+      return ok({
+        id: `default-${packageId}`,
+        packageId,
+        currency: "INR",
+        basePrice: 0,
+        markup: null,
+        discount: null,
+        tax: null,
+        occupancyPricing: [],
+        childPricing: [],
+        infantPricing: null,
+        groupPricing: [],
+        seasonalPricing: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+    }
+    
     return ok(result.value);
   }
 

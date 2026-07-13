@@ -16,6 +16,8 @@ interface InventoryTableProps {
   onSelect: (id: string) => void;
   page: number;
   onPageChange: (page: number) => void;
+  onDelete: (id: string) => void;
+  isDeleting?: string | null;
 }
 
 export function InventoryTable({
@@ -27,6 +29,8 @@ export function InventoryTable({
   onSelect,
   page,
   onPageChange,
+  onDelete,
+  isDeleting,
 }: InventoryTableProps) {
   if (isLoading && !data) {
     return <WidgetLoading label="Loading inventory…" />;
@@ -54,6 +58,7 @@ export function InventoryTable({
               <th className="text-right font-medium px-4 py-3">Price</th>
               <th className="text-left font-medium px-4 py-3">Availability</th>
               <th className="text-left font-medium px-4 py-3">Updated</th>
+              <th className="text-right font-medium px-4 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -73,6 +78,16 @@ export function InventoryTable({
                 <td className="px-4 py-3 text-right text-muted-foreground">{row.priceLabel}</td>
                 <td className="px-4 py-3 text-muted-foreground">{row.availabilityLabel}</td>
                 <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatInventoryDate(row.updatedAt)}</td>
+                <td className="px-4 py-3 text-right">
+                  <button
+                    type="button"
+                    disabled={isDeleting === row.id || row.status === "ARCHIVED"}
+                    onClick={(e) => { e.stopPropagation(); onDelete(row.id); }}
+                    className="text-red-500 hover:text-red-700 disabled:opacity-30 disabled:hover:text-red-500 transition-colors text-xs font-medium bg-red-50 px-2 py-1 rounded"
+                  >
+                    {isDeleting === row.id ? "Deleting..." : "Delete"}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

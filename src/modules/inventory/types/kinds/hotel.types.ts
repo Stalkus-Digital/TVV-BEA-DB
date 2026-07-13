@@ -5,4 +5,11 @@ export interface HotelDetails {
   longitude?: number;
   rooms?: number;
   avgRate?: number;
+  shortDescription?: string;
+  longDescription?: string;
+  points?: string;
+  policies?: string;
+  rules?: string;
+  bannerImage?: string | null;
+  images?: string[];
 }

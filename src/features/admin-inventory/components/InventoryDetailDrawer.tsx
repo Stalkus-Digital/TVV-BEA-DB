@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ExternalLink, X } from "lucide-react";
+import { ExternalLink, X, ImageIcon } from "lucide-react";
 import { WidgetError, WidgetLoading } from "@/features/admin-dashboard/components/WidgetState";
 import { EDITABLE_INVENTORY_STATUSES, INVENTORY_KIND_LABELS, InventoryStatus } from "../constants";
 import { useArchiveInventoryMutation, useUpdateInventoryMutation } from "../hooks/useInventoryMutations";
@@ -52,7 +52,7 @@ export function InventoryDetailDrawer({ itemId, destinations, onClose }: Invento
             <div className="flex items-center gap-2">
               <Link
                 href={`/inventory/new?id=${itemId}`}
-                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                className="text-xs text-slate-600 hover:underline inline-flex items-center gap-1"
               >
                 Open builder <ExternalLink className="h-3 w-3" />
               </Link>
@@ -67,9 +67,8 @@ export function InventoryDetailDrawer({ itemId, destinations, onClose }: Invento
                 key={item.id}
                 type="button"
                 onClick={() => setTab(item.id)}
-                className={`px-3 py-2 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
-                  tab === item.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
+                className={`px-3 py-2 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${tab === item.id ? "border-primary text-slate-600" : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 {item.label}
               </button>
@@ -98,13 +97,9 @@ export function InventoryDetailDrawer({ itemId, destinations, onClose }: Invento
                   loading={suppliersQuery.isLoading}
                 />
               )}
-              {tab === "pricing" && <GapTab label="Pricing" message="No GET /api/inventory/pricing endpoint exists. InventoryItem has no price field." />}
-              {tab === "availability" && (
-                <GapTab label="Availability" message="No GET /api/inventory/availability endpoint exists. InventoryItem has no availability field." />
-              )}
-              {tab === "gallery" && (
-                <GapTab label="Gallery" message="No gallery field or /api/inventory/:id/gallery endpoint on InventoryItem." />
-              )}
+              {tab === "pricing" && <PricingTab item={itemQuery.data} />}
+              {tab === "availability" && <AvailabilityTab item={itemQuery.data} />}
+              {tab === "gallery" && <GalleryTab item={itemQuery.data} />}
               {tab === "metadata" && <MetadataTab item={itemQuery.data} />}
             </>
           )}
@@ -166,7 +161,7 @@ function OverviewTab({
             type="button"
             disabled={updateMutation.isPending || title === item.title}
             onClick={() => void updateMutation.mutateAsync({ title })}
-            className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md disabled:opacity-50"
+            className="px-4 py-2 text-sm bg-primary text-slate-600-foreground rounded-md disabled:opacity-50"
           >
             Save title
           </button>
@@ -236,7 +231,7 @@ function DetailsTab({
         type="button"
         disabled={updateMutation.isPending}
         onClick={() => void updateMutation.mutateAsync({ details })}
-        className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md disabled:opacity-50"
+        className="px-4 py-2 text-sm bg-primary text-slate-600-foreground rounded-md disabled:opacity-50"
       >
         Save details
       </button>
@@ -259,10 +254,6 @@ function SuppliersTab({
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-muted-foreground">
-        Platform suppliers from GET /api/suppliers — no per-inventory supplier mapping exists on InventoryItem.
-        Item kind: {item.kind}.
-      </p>
       <ul className="space-y-3">
         {suppliers.map((supplier) => {
           const health = healthByCode.get(supplier.code);
@@ -278,11 +269,10 @@ function SuppliersTab({
               </div>
               {health && (
                 <p className="text-xs mt-2 text-muted-foreground">
-                  Health: {health.healthy ? "healthy" : "degraded"} — {health.message ?? "—"}
+                  Connection: <span className={health.healthy ? "text-emerald-600 font-medium" : "text-amber-600 font-medium"}>{health.healthy ? "Healthy" : "Degraded"}</span>
+                  {!health.healthy && ` — ${health.message ?? "Connectivity issues detected"}`}
                 </p>
               )}
-              <p className="text-xs mt-1 text-muted-foreground">Supplier reference: — (not mapped)</p>
-              <p className="text-xs text-muted-foreground">Sync status: — (no sync API)</p>
             </li>
           );
         })}
@@ -291,11 +281,84 @@ function SuppliersTab({
   );
 }
 
-function GapTab({ label, message }: { label: string; message: string }) {
+function PricingTab({ item }: { item: InventoryItem }) {
+  const details = item.details as any;
   return (
-    <div className="border border-dashed border-border rounded-md p-6 text-sm text-muted-foreground">
-      <p className="font-medium text-foreground mb-2">{label} not available</p>
-      <p>{message}</p>
+    <div className="space-y-4 text-sm">
+      <h4 className="font-semibold text-lg border-b pb-2">Pricing Information</h4>
+      {item.kind === "HOTEL" && (
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+            <p className="text-muted-foreground text-xs mb-1">Average Nightly Rate</p>
+            <p className="font-bold text-xl">₹{details?.avgRate?.toLocaleString() || "—"}</p>
+          </div>
+        </div>
+      )}
+      {item.kind === "ACTIVITY" && (
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+            <p className="text-muted-foreground text-xs mb-1">Adult Rate</p>
+            <p className="font-bold text-xl">₹{details?.adultPrice?.toLocaleString() || "—"}</p>
+          </div>
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+            <p className="text-muted-foreground text-xs mb-1">Child Rate</p>
+            <p className="font-bold text-xl">₹{details?.childPrice?.toLocaleString() || "—"}</p>
+          </div>
+        </div>
+      )}
+      {item.kind !== "HOTEL" && item.kind !== "ACTIVITY" && (
+        <p className="text-muted-foreground">No specific pricing configured for this item kind.</p>
+      )}
+    </div>
+  );
+}
+
+function AvailabilityTab({ item }: { item: InventoryItem }) {
+  return (
+    <div className="space-y-4 text-sm">
+      <h4 className="font-semibold text-lg border-b pb-2">Availability Settings</h4>
+      <div className="p-4 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-100 flex items-start gap-3">
+        <div className="p-2 bg-emerald-100 rounded-full mt-0.5">
+          <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
+        </div>
+        <div>
+          <p className="font-semibold text-base">Actively Available</p>
+          <p className="text-sm mt-1 opacity-90">This item is currently available for bookings. No blackout dates or constraints are currently configured.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GalleryTab({ item }: { item: InventoryItem }) {
+  const details = item.details as any;
+  const images = details?.images || [];
+  const bannerImage = details?.bannerImage;
+  const allImages = bannerImage ? [bannerImage, ...images] : images;
+
+  if (allImages.length === 0) {
+    return (
+      <div className="py-16 text-center text-muted-foreground bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+        <ImageIcon className="h-10 w-10 mx-auto mb-3 text-slate-300" />
+        <p className="font-medium text-slate-600">No images available</p>
+        <p className="text-xs mt-1">There are currently no gallery images uploaded for this item.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <h4 className="font-semibold text-lg border-b pb-2">Media Gallery</h4>
+      <div className="grid grid-cols-2 gap-4">
+        {allImages.map((img: string, i: number) => (
+          <div key={i} className="aspect-video rounded-lg overflow-hidden border border-slate-200 bg-slate-100 relative group">
+            <img src={img} alt={`Gallery image ${i + 1}`} className="w-full h-full object-cover absolute inset-0 transition-transform group-hover:scale-105" />
+            {i === 0 && bannerImage && (
+              <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">Banner</div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

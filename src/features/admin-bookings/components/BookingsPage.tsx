@@ -19,6 +19,7 @@ export function BookingsPage() {
   const [searchInput, setSearchInput] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"HOTEL" | "PACKAGE" | "ACTIVITY">("PACKAGE");
   const debouncedSearch = useDebouncedValue(searchInput);
 
   const queryFilters: BookingListFilters = { ...filters, search: debouncedSearch };
@@ -72,7 +73,23 @@ export function BookingsPage() {
         />
       </div>
 
-      <div className="flex-1 bg-card border-t border-border">
+      <div className="flex px-6 border-b border-border bg-card">
+        {(["HOTEL", "PACKAGE", "ACTIVITY"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === tab
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {tab === "HOTEL" ? "Hotel Bookings" : tab === "PACKAGE" ? "Holiday Bookings" : "Activity Bookings"}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex-1 bg-card">
         <BookingsTable
           data={bookingsQuery.data}
           isLoading={bookingsQuery.isLoading}
@@ -86,6 +103,7 @@ export function BookingsPage() {
           onDelete={handleDelete}
           onVoucher={handleVoucher}
           isDeleting={isDeleting}
+          activeTab={activeTab}
         />
       </div>
 

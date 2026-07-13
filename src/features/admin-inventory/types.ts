@@ -7,6 +7,13 @@ export interface HotelDetails {
   address: string;
   latitude?: number;
   longitude?: number;
+  shortDescription?: string;
+  longDescription?: string;
+  points?: string;
+  policies?: string;
+  rules?: string;
+  bannerImage?: string | null;
+  images?: string[];
 }
 
 export interface FlightRouteDetails {

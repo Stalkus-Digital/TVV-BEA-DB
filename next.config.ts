@@ -7,13 +7,6 @@ import type { NextConfig } from "next";
  * Edge runtime's bundler cannot resolve (verified: build failed with
  * "UnhandledSchemeError: node:crypto" before this flag was added).
  */
-// `nodeMiddleware` is a real, working experimental flag (confirmed via `next build`'s
-// own "Experiments (use with caution): ✓ nodeMiddleware" output) that this Next.js
-// version's TypeScript types haven't caught up to yet — hence the cast.
-const nextConfig: NextConfig = {
-  experimental: {
-    nodeMiddleware: true,
-  } as NextConfig["experimental"],
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

@@ -36,6 +36,7 @@ export interface Package {
   faqs: PackageFaqEntry[];
   createdAt: string;
   updatedAt: string;
+  content?: any;
 }
 
 export interface PackageDay {

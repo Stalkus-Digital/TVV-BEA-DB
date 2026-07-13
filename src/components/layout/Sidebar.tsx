@@ -31,7 +31,8 @@ import {
   Server,
   BarChart3,
   Bell,
-  TrendingUp
+  TrendingUp,
+  KeySquare
 } from "lucide-react";
 
 const navGroups = [
@@ -77,6 +78,7 @@ const navGroups = [
   //     { name: "Alerts", href: "/operations/alerts", icon: Bell },
   //   ]
   // },
+
   {
     title: "Marketing",
     links: [

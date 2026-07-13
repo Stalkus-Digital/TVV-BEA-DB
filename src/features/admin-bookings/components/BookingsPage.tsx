@@ -23,6 +23,31 @@ export function BookingsPage() {
 
   const queryFilters: BookingListFilters = { ...filters, search: debouncedSearch };
   const bookingsQuery = useBookingsQueryState(queryFilters);
+  const { deleteBooking } = require("../api/bookings");
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this booking?")) return;
+    setIsDeleting(id);
+    try {
+      await deleteBooking(id);
+      await bookingsQuery.refetch();
+    } catch (e: any) {
+      alert("Failed to delete booking: " + e.message);
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  const handleVoucher = async (id: string) => {
+    const { generateVoucher } = require("../api/bookings");
+    try {
+      const res = await generateVoucher(id);
+      alert(`Voucher ${res.voucherNumber} generated successfully!`);
+    } catch (e: any) {
+      alert("Failed to generate voucher: " + e.message);
+    }
+  };
 
   return (
     <div className="space-y-0 -m-6 flex flex-col min-h-[calc(100vh-6rem)]">
@@ -57,6 +82,10 @@ export function BookingsPage() {
           onSelect={setSelectedId}
           page={filters.page ?? 1}
           onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
+          onEdit={setSelectedId}
+          onDelete={handleDelete}
+          onVoucher={handleVoucher}
+          isDeleting={isDeleting}
         />
       </div>
 

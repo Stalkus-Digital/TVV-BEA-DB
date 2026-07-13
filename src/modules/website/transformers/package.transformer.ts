@@ -24,6 +24,7 @@ export function toPackageSummary(
   currency: string | null
 ): WebsitePackageSummaryDTO {
   return {
+    id: pkg.id,
     slug: pkg.slug,
     title: pkg.title,
     destinationName: destination?.name ?? "",

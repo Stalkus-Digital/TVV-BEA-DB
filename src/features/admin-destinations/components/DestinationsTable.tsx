@@ -15,6 +15,9 @@ interface DestinationsTableProps {
   onSelect: (id: string) => void;
   page: number;
   onPageChange: (page: number) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  isDeleting?: string | null;
 }
 
 export function DestinationsTable({
@@ -26,6 +29,9 @@ export function DestinationsTable({
   onSelect,
   page,
   onPageChange,
+  onEdit,
+  onDelete,
+  isDeleting,
 }: DestinationsTableProps) {
   if (isLoading && !data) {
     return <WidgetLoading label="Loading destinations…" />;
@@ -53,6 +59,7 @@ export function DestinationsTable({
               <th className="text-left font-medium px-4 py-3">Status</th>
               <th className="text-left font-medium px-4 py-3">Slug</th>
               <th className="text-left font-medium px-4 py-3">Updated</th>
+              <th className="text-right font-medium px-4 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -77,6 +84,21 @@ export function DestinationsTable({
                 </td>
                 <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{row.slug}</td>
                 <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatDestinationDate(row.updatedAt)}</td>
+                <td className="px-4 py-3 text-right whitespace-nowrap">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onEdit(row.id); }}
+                    className="text-blue-600 hover:underline font-medium mr-3"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    disabled={isDeleting === row.id}
+                    onClick={(e) => { e.stopPropagation(); onDelete(row.id); }}
+                    className="text-muted-foreground hover:text-destructive font-medium disabled:opacity-50"
+                  >
+                    {isDeleting === row.id ? "Deleting..." : "Delete"}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

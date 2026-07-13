@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { 
-  LayoutDashboard, 
-  PackageSearch, 
-  Users, 
+import {
+  LayoutDashboard,
+  PackageSearch,
+  Users,
   Contact,
   FileText,
-  Megaphone, 
-  Wand2, 
+  Megaphone,
+  Wand2,
   Settings,
   Ship,
   Plane,
@@ -65,18 +65,18 @@ const navGroups = [
       { name: "Activity Bookings", href: "/bookings/activities", icon: Calendar },
     ]
   },
-  {
-    title: "Operations",
-    links: [
-      { name: "Operations Center", href: "/operations", icon: Activity },
-      { name: "System Health", href: "/operations/health", icon: Settings },
-      { name: "Observability", href: "/operations/observability", icon: Radar },
-      { name: "Storage", href: "/operations/storage", icon: HardDrive },
-      { name: "Supplier Runtime", href: "/operations/supplier-runtime", icon: Server },
-      { name: "System Logs", href: "/operations/logs", icon: FileText },
-      { name: "Alerts", href: "/operations/alerts", icon: Bell },
-    ]
-  },
+  // {
+  //   title: "Operations",
+  //   links: [
+  //     { name: "Operations Center", href: "/operations", icon: Activity },
+  //     { name: "System Health", href: "/operations/health", icon: Settings },
+  //     { name: "Observability", href: "/operations/observability", icon: Radar },
+  //     { name: "Storage", href: "/operations/storage", icon: HardDrive },
+  //     { name: "Supplier Runtime", href: "/operations/supplier-runtime", icon: Server },
+  //     { name: "System Logs", href: "/operations/logs", icon: FileText },
+  //     { name: "Alerts", href: "/operations/alerts", icon: Bell },
+  //   ]
+  // },
   {
     title: "Marketing",
     links: [
@@ -112,7 +112,7 @@ export function Sidebar() {
           <span className="text-primary">The</span> Vacation Voice
         </div>
       </div>
-      
+
       <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
         {navGroups.map((group, i) => (
           <div key={i}>
@@ -123,8 +123,8 @@ export function Sidebar() {
               {group.links.map((link, j) => {
                 const Icon = link.icon;
                 return (
-                  <Link 
-                    key={j} 
+                  <Link
+                    key={j}
                     href={link.href}
                     className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-foreground hover:bg-muted transition-colors"
                   >
@@ -137,9 +137,9 @@ export function Sidebar() {
           </div>
         ))}
       </div>
-      
+
       <div className="p-4 border-t border-border shrink-0">
-        <Link 
+        <Link
           href="/operations"
           className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >

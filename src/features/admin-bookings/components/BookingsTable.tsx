@@ -14,6 +14,10 @@ interface BookingsTableProps {
   onSelect: (id: string) => void;
   page: number;
   onPageChange: (page: number) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  onVoucher: (id: string) => void;
+  isDeleting?: string | null;
 }
 
 export function BookingsTable({
@@ -25,6 +29,10 @@ export function BookingsTable({
   onSelect,
   page,
   onPageChange,
+  onEdit,
+  onDelete,
+  onVoucher,
+  isDeleting,
 }: BookingsTableProps) {
   if (isLoading) return <WidgetLoading label="Loading bookings…" />;
   if (isError) return <WidgetError message={errorMessage ?? "Failed to load bookings"} onRetry={onRetry} />;
@@ -44,6 +52,7 @@ export function BookingsTable({
               <th className="px-6 py-4 font-semibold">Amount paid</th>
               <th className="px-6 py-4 font-semibold">Payment</th>
               <th className="px-6 py-4 font-semibold">Created</th>
+              <th className="px-6 py-4 font-semibold text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -71,6 +80,27 @@ export function BookingsTable({
                   <PaymentStatusBadge status={booking.paymentStatus} />
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">{formatBookingDate(booking.createdAt)}</td>
+                <td className="px-6 py-4 text-right whitespace-nowrap flex gap-3 justify-end items-center">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onEdit(booking.id); }}
+                    className="text-blue-600 hover:underline font-medium"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onVoucher(booking.id); }}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Voucher
+                  </button>
+                  <button
+                    disabled={isDeleting === booking.id}
+                    onClick={(e) => { e.stopPropagation(); onDelete(booking.id); }}
+                    className="text-muted-foreground hover:text-destructive font-medium disabled:opacity-50"
+                  >
+                    {isDeleting === booking.id ? "Deleting..." : "Delete"}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

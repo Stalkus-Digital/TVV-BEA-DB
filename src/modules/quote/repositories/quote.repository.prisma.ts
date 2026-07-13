@@ -1,5 +1,5 @@
 import { err, ok, type PaginatedResult, type PaginationParams, type Result } from "@/shared/types";
-import { NotFoundError, type AppError } from "@/shared/errors";
+import { NotFoundError, ConflictError, type AppError } from "@/shared/errors";
 import { prisma } from "@/shared/database/prisma-client";
 import type { Prisma, Quote as PrismaQuoteRow } from "@/generated/prisma/client";
 import type { Quote } from "../types/quote";
@@ -64,16 +64,23 @@ export class PrismaQuoteRepository implements QuoteRepository {
   }
 
   async create(data: Omit<Quote, "id">): Promise<Result<Quote, AppError>> {
-    const row = await prisma.quote.create({
-      data: {
-        ...data,
-        travelerDetails: data.travelerDetails as object,
-        adjustments: data.adjustments as unknown as object,
-        validFrom: new Date(data.validFrom),
-        validTo: new Date(data.validTo),
-      },
-    });
-    return ok(toDomain(row));
+    try {
+      const row = await prisma.quote.create({
+        data: {
+          ...data,
+          travelerDetails: data.travelerDetails as object,
+          adjustments: data.adjustments as unknown as object,
+          validFrom: new Date(data.validFrom),
+          validTo: new Date(data.validTo),
+        },
+      });
+      return ok(toDomain(row));
+    } catch (e: any) {
+      if (e?.code === "P2002") {
+        return err(new ConflictError(`Quote number ${data.quoteNumber} already exists`));
+      }
+      throw e; // Let it bubble to a 500 if it's a real DB outage
+    }
   }
 
   async update(id: string, data: Partial<Omit<Quote, "id">>): Promise<Result<Quote, AppError>> {

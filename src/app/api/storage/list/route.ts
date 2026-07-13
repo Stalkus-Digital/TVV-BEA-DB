@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/shared/database/prisma-client";
 import { jsonSuccess, jsonError } from "@/api/http";
+import "@/modules/storage";
 
 export async function GET(request: Request) {
   try {

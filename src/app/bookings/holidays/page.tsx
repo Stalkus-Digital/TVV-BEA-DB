@@ -4,11 +4,39 @@ import { useState } from "react";
 import { Luggage, Search, Filter, IndianRupee, Plus } from "lucide-react";
 import { useBookingsQueryState } from "@/features/admin-bookings/hooks/useBookingsQuery";
 import { BookingCreateDialog } from "@/features/admin-bookings/components/BookingCreateDialog";
+import { BookingDetailDrawer } from "@/features/admin-bookings/components/BookingDetailDrawer";
 
 export default function HolidayBookingsPage() {
   const [search, setSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
-  const { data, isLoading, refetch } = useBookingsQueryState({ search, hasItemKind: "HOLIDAY_OR_PACKAGE" });
+  const { data, users, bundle, isLoading, refetch } = useBookingsQueryState({ search, hasItemKind: "HOLIDAY_OR_PACKAGE" });
+  
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this booking?")) return;
+    const { deleteBooking } = require("@/features/admin-bookings/api/bookings");
+    setIsDeleting(id);
+    try {
+      await deleteBooking(id);
+      await refetch();
+    } catch (e: any) {
+      alert("Failed to delete booking: " + e.message);
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  const handleVoucher = async (id: string) => {
+    const { generateVoucher } = require("@/features/admin-bookings/api/bookings");
+    try {
+      const res = await generateVoucher(id);
+      alert(`Voucher ${res.voucherNumber} generated successfully!`);
+    } catch (e: any) {
+      alert("Failed to generate voucher: " + e.message);
+    }
+  };
 
   const holidayBookings = data?.items ?? [];
 
@@ -39,7 +67,7 @@ export default function HolidayBookingsPage() {
             <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-border rounded-md hover:bg-muted transition-colors">
               <Filter className="h-4 w-4" /> Filters
             </button>
-            <button 
+            <button
               onClick={() => setCreateOpen(true)}
               className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary-hover transition-colors"
             >
@@ -86,7 +114,7 @@ export default function HolidayBookingsPage() {
                         {leadTraveller?.fullName || "—"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-semibold text-primary flex items-center gap-1.5">
+                        <div className="font-semibold text-slate-500 flex items-center gap-1.5">
                           <Luggage className="h-3.5 w-3.5 text-muted-foreground" />
                           {packageItem?.title || "Custom Holiday Itinerary"}
                         </div>
@@ -97,17 +125,33 @@ export default function HolidayBookingsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
-                          booking.status === 'CONFIRMED' ? 'bg-emerald-100 text-emerald-700' :
+                        <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${booking.status === 'CONFIRMED' ? 'bg-emerald-100 text-emerald-700' :
                           booking.status === 'CANCELLED' ? 'bg-rose-100 text-rose-700' :
-                          'bg-amber-100 text-amber-700'
-                        }`}>
+                            'bg-amber-100 text-amber-700'
+                          }`}>
                           {booking.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap">
-                        <button className="text-primary hover:underline font-semibold text-xs mr-3">Itinerary</button>
-                        <button className="text-muted-foreground hover:text-foreground font-semibold text-xs">Voucher</button>
+                      <td className="px-6 py-4 text-right whitespace-nowrap flex gap-3 justify-end items-center">
+                        <button
+                          onClick={() => setSelectedId(booking.id)}
+                          className="text-blue-600 hover:underline font-semibold text-xs"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleVoucher(booking.id)}
+                          className="text-primary hover:underline font-semibold text-xs"
+                        >
+                          Voucher
+                        </button>
+                        <button
+                          disabled={isDeleting === booking.id}
+                          onClick={() => handleDelete(booking.id)}
+                          className="text-muted-foreground hover:text-destructive font-semibold text-xs disabled:opacity-50"
+                        >
+                          {isDeleting === booking.id ? "Deleting..." : "Delete"}
+                        </button>
                       </td>
                     </tr>
                   );
@@ -122,6 +166,13 @@ export default function HolidayBookingsPage() {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreated={() => void refetch()}
+      />
+
+      <BookingDetailDrawer
+        bookingId={selectedId}
+        users={users ?? []}
+        bundle={bundle}
+        onClose={() => setSelectedId(null)}
       />
     </div>
   );

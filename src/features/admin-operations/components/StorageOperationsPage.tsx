@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAdminAuth } from "@/features/admin-auth/store/session";
 import { adminQueryKeys } from "@/shared/lib/query-client";
+import { adminApiClient } from "@/lib/admin-api/client";
+import { isErr } from "@/shared/types";
 import {
   BACKEND_GAPS,
   PRIVATE_STORAGE_CATEGORIES,
@@ -34,10 +36,10 @@ export function StorageOperationsPage() {
   const uploadsQuery = useQuery({
     queryKey: adminQueryKeys.operations.storageUploads,
     queryFn: async () => {
-      const res = await fetch("/api/storage/list");
-      if (!res.ok) throw new Error("Failed to fetch storage list");
-      const data = await res.json();
-      const items = (data.data?.items || data.items || []);
+      const res = await adminApiClient.get<{ items: any[] }>("/api/storage/list");
+      if (isErr(res)) throw new Error(res.error.message || "Failed to fetch storage list");
+      const data = res.value;
+      const items = (data?.items || []);
       return items.map((item: any) => ({
         ...item,
         uploadedAt: item.uploadedAt || item.createdAt || new Date().toISOString(),

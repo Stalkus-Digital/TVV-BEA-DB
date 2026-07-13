@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { deleteQuote } from "../api/quotes";
 import { useDebouncedValue } from "@/features/admin-enquiries/hooks/useDebouncedValue";
 import { QuoteCreateDialog } from "./QuoteCreateDialog";
 import { QuoteDetailDrawer } from "./QuoteDetailDrawer";
@@ -11,6 +13,7 @@ import { useQuotesQueryState } from "../hooks/useQuotesQuery";
 import type { QuoteListFilters } from "../types";
 
 export function QuotesPage() {
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const [filters, setFilters] = useState<QuoteListFilters>({
     page: 1,
@@ -20,6 +23,7 @@ export function QuotesPage() {
   });
   const [searchInput, setSearchInput] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(searchParams.get("selected"));
+  const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const debouncedSearch = useDebouncedValue(searchInput);
 
@@ -30,6 +34,28 @@ export function QuotesPage() {
     const selected = searchParams.get("selected");
     if (selected) setSelectedId(selected);
   }, [searchParams]);
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteQuote(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "quotes"] });
+    },
+  });
+
+  const handleEdit = (id: string) => {
+    setSelectedId(id); // Quotes use the Drawer for editing
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this quote?")) {
+      setIsDeletingId(id);
+      try {
+        await deleteMutation.mutateAsync(id);
+      } finally {
+        setIsDeletingId(null);
+      }
+    }
+  };
 
   return (
     <div className="space-y-0 -m-6 flex flex-col min-h-[calc(100vh-6rem)]">
@@ -63,6 +89,9 @@ export function QuotesPage() {
           errorMessage={quotesQuery.error instanceof Error ? quotesQuery.error.message : undefined}
           onRetry={() => void quotesQuery.refetch()}
           onSelect={setSelectedId}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          isDeleting={isDeletingId}
           page={filters.page ?? 1}
           onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
         />

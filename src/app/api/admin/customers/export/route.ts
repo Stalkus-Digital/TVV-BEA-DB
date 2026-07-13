@@ -1,23 +1,27 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/shared/database/prisma-client";
+import { getCustomerProfileService } from "@/modules/customer";
+import { getUserHandler } from "@/modules/auth";
+import { isErr } from "@/shared/types";
 
 export async function GET() {
   try {
-    const customers = await prisma.user.findMany({
-      select: {
-        id: true,
-        fullName: true,
-        email: true,
-        createdAt: true,
-      },
-    });
+    const profilesResult = await getCustomerProfileService().listCustomers();
+    if (isErr(profilesResult)) {
+      return NextResponse.json({ error: profilesResult.error.message }, { status: 500 });
+    }
+    
+    const users = [];
+    for (const p of profilesResult.value) {
+      const user = await getUserHandler(p.id); 
+      if (!isErr(user)) users.push(user.value);
+    }
 
     const headers = ["ID", "Full Name", "Email", "Joined Date"];
-    const rows = customers.map((c) => [
+    const rows = users.map((c) => [
       c.id,
       c.fullName || "",
       c.email,
-      c.createdAt.toISOString(),
+      new Date(c.createdAt).toISOString(),
     ]);
 
     const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");

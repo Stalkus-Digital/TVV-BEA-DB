@@ -165,8 +165,11 @@ export function buildLandingPages(
     });
   }
 
+  const seenUrls = new Set<string>();
   for (const route of staticRoutes) {
     if (route.url === "/" || route.url.startsWith("/packages") || route.url.startsWith("/destinations")) continue;
+    if (seenUrls.has(route.url)) continue;
+    seenUrls.add(route.url);
     rows.push({
       id: `static-${route.url}`,
       type: "static",

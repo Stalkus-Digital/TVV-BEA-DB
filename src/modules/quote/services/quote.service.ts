@@ -2,8 +2,9 @@ import { err, isErr, ok, type PaginatedResult, type Result } from "@/shared/type
 import { BaseService, type ServiceContext } from "@/shared/services";
 import { ConflictError, NotFoundError, type AppError } from "@/shared/errors";
 import { getDestinationService } from "@/modules/destination";
-import { getPackageService } from "@/modules/package";
+import { getPackageService, getPackagePricingService } from "@/modules/package";
 import { QuoteStatus, type Quote } from "../types/quote";
+import { QuoteItemKind } from "../types/quote-item";
 import type { BookingHandoffPayload } from "../types/quote-conversion";
 import type { QuotePdfData } from "../types/quote-pdf";
 import type { QuotePriceResult } from "../types/quote-pricing";
@@ -68,40 +69,93 @@ export class QuoteService extends BaseService {
     const destination = await getDestinationService().getById(value.destinationId);
     if (isErr(destination)) return destination;
 
+    let packageBasePrice = 0;
+    let packageTitle = "Package";
     if (value.packageId) {
       const pkg = await getPackageService().getById(value.packageId);
       if (isErr(pkg)) return pkg;
+      packageTitle = pkg.value.title;
+
+      const pricing = await getPackagePricingService().getByPackage(value.packageId);
+      if (!isErr(pricing)) {
+        packageBasePrice = pricing.value.basePrice;
+      }
     }
 
     const countResult = await this.quotes.countAll();
     if (isErr(countResult)) return countResult;
-    const quoteNumber = generateQuoteNumber(countResult.value + 1);
+    
+    let sequence = countResult.value + 1;
+    let quoteNumber = generateQuoteNumber(sequence);
+    
+    // Ensure we don't collide with existing numbers (e.g. if older quotes were deleted)
+    while (true) {
+      const existing = await this.quotes.findByNumber(quoteNumber);
+      if (isErr(existing)) return existing as Result<any, AppError>;
+      if (!existing.value) break;
+      sequence++;
+      quoteNumber = generateQuoteNumber(sequence);
+    }
 
     const now = new Date().toISOString();
-    this.logger.info("Creating quote", { quoteNumber, destinationId: value.destinationId });
-    return this.quotes.create({
-      quoteNumber,
-      title: value.title,
-      status: QuoteStatus.DRAFT,
-      destinationId: value.destinationId,
-      packageId: value.packageId,
-      travelerDetails: value.travelerDetails,
-      currency: value.currency,
-      adjustments: value.adjustments,
-      currentVersionId: null,
-      validFrom: value.validFrom ?? now,
-      validTo: value.validTo ?? addDays(now, DEFAULT_VALIDITY_DAYS),
-      internalNotes: value.internalNotes,
-      customerNotes: value.customerNotes,
-      approvedAt: null,
-      rejectedAt: null,
-      rejectionReason: null,
-      convertedAt: null,
-      convertedBookingId: null,
-      customerId,
-      createdAt: now,
-      updatedAt: now,
-    });
+    
+    // We attempt creation in a loop to guarantee a unique quote number even under high concurrency
+    // or if a previous check missed a newly inserted row.
+    while (true) {
+      this.logger.info("Creating quote", { quoteNumber, destinationId: value.destinationId });
+      const created = await this.quotes.create({
+        quoteNumber,
+        title: value.title,
+        status: QuoteStatus.DRAFT,
+        destinationId: value.destinationId,
+        packageId: value.packageId,
+        travelerDetails: value.travelerDetails,
+        currency: value.currency,
+        adjustments: value.adjustments,
+        currentVersionId: null,
+        validFrom: value.validFrom ?? now,
+        validTo: value.validTo ?? addDays(now, DEFAULT_VALIDITY_DAYS),
+        internalNotes: value.internalNotes,
+        customerNotes: value.customerNotes,
+        approvedAt: null,
+        rejectedAt: null,
+        rejectionReason: null,
+        convertedAt: null,
+        convertedBookingId: null,
+        customerId,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      if (isErr(created)) {
+        if (created.error.name === "ConflictError") {
+          // Collision! Increment sequence and try again
+          sequence++;
+          quoteNumber = generateQuoteNumber(sequence);
+          continue;
+        }
+        return created;
+      }
+
+      // If created from a package with a base price, add it as the first line item
+      if (value.packageId && packageBasePrice > 0) {
+        await this.items.create({
+          quoteId: created.value.id,
+          kind: QuoteItemKind.PACKAGE,
+          packageId: value.packageId,
+          inventoryItemId: null,
+          title: packageTitle,
+          description: "Base package price",
+          quantity: 1,
+          unitPrice: packageBasePrice,
+          position: 1,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+
+      return created;
+    }
   }
 
   async update(id: string, input: unknown): Promise<Result<Quote, AppError>> {
@@ -206,33 +260,56 @@ export class QuoteService extends BaseService {
 
     const countResult = await this.quotes.countAll();
     if (isErr(countResult)) return countResult;
-    const quoteNumber = generateQuoteNumber(countResult.value + 1);
+    
+    let sequence = countResult.value + 1;
+    let quoteNumber = generateQuoteNumber(sequence);
+    
+    while (true) {
+      const existing = await this.quotes.findByNumber(quoteNumber);
+      if (isErr(existing)) return existing as Result<any, AppError>;
+      if (!existing.value) break;
+      sequence++;
+      quoteNumber = generateQuoteNumber(sequence);
+    }
 
     const now = new Date().toISOString();
-    const created = await this.quotes.create({
-      quoteNumber,
-      title: `${source.value.title} (Copy)`,
-      status: QuoteStatus.DRAFT,
-      destinationId: source.value.destinationId,
-      packageId: source.value.packageId,
-      travelerDetails: source.value.travelerDetails,
-      currency: source.value.currency,
-      adjustments: source.value.adjustments,
-      currentVersionId: null,
-      validFrom: now,
-      validTo: addDays(now, DEFAULT_VALIDITY_DAYS),
-      internalNotes: source.value.internalNotes,
-      customerNotes: null,
-      approvedAt: null,
-      rejectedAt: null,
-      rejectionReason: null,
-      convertedAt: null,
-      convertedBookingId: null,
-      customerId: source.value.customerId,
-      createdAt: now,
-      updatedAt: now,
-    });
-    if (isErr(created)) return created;
+    
+    let created;
+    while (true) {
+      created = await this.quotes.create({
+        quoteNumber,
+        title: `${source.value.title} (Copy)`,
+        status: QuoteStatus.DRAFT,
+        destinationId: source.value.destinationId,
+        packageId: source.value.packageId,
+        travelerDetails: source.value.travelerDetails,
+        currency: source.value.currency,
+        adjustments: source.value.adjustments,
+        currentVersionId: null,
+        validFrom: now,
+        validTo: addDays(now, DEFAULT_VALIDITY_DAYS),
+        internalNotes: source.value.internalNotes,
+        customerNotes: null,
+        approvedAt: null,
+        rejectedAt: null,
+        rejectionReason: null,
+        convertedAt: null,
+        convertedBookingId: null,
+        customerId: source.value.customerId,
+        createdAt: now,
+        updatedAt: now,
+      });
+      
+      if (isErr(created)) {
+        if (created.error.name === "ConflictError") {
+          sequence++;
+          quoteNumber = generateQuoteNumber(sequence);
+          continue;
+        }
+        return created;
+      }
+      break;
+    }
 
     for (const item of itemsResult.value) {
       const itemNow = new Date().toISOString();

@@ -65,6 +65,10 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
   return result;
 }
 
+export async function deleteBooking(id: string): Promise<void> {
+  await adminApiClient.delete(bookingPath(id));
+}
+
 export async function updateBooking(id: string, input: { internalNotes?: string | null }): Promise<Booking> {
   const result = await adminApiClient.patch<Booking>(bookingPath(id), input);
   if (!result) throw new Error("Failed to update booking");

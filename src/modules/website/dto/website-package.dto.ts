@@ -8,6 +8,7 @@ import type { WebsiteDestinationSummaryDTO } from "./website-destination.dto";
  * aiGeneratedFromId, isTemplate, raw pricing rules/markup/tax) never appear.
  */
 export interface WebsitePackageSummaryDTO {
+  id: string;
   slug: string;
   title: string;
   destinationName: string;

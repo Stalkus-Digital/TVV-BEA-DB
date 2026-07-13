@@ -44,6 +44,7 @@ export function DestinationBuilderPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const destinationQuery = useDestinationQuery(destinationId);
   const createMutation = useCreateDestinationMutation();
+  const updateMutation = useUpdateDestinationMutation(destinationId ?? "");
   const parentOptionsQuery = useQuery({
     queryKey: adminQueryKeys.destinations.all,
     queryFn: () => fetchAllDestinations(),
@@ -103,6 +104,15 @@ export function DestinationBuilderPage() {
     setDestinationId(created.id);
     router.replace(`/destinations/new?id=${created.id}`);
     nextStep();
+  };
+
+  const handleUpdate = async () => {
+    if (!destinationId) return;
+    await updateMutation.mutateAsync({
+      name,
+      categoryIds,
+      description: description || null,
+    });
   };
 
   const canCreate = name.trim().length > 0;
@@ -232,16 +242,40 @@ export function DestinationBuilderPage() {
             {!destinationId && currentStep <= 2 && (
               <button
                 type="button"
-                disabled={createMutation.isPending || !canCreate}
+                disabled={createMutation.isPending || !canCreate || !countryId}
                 onClick={() => void handleCreate()}
                 className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md disabled:opacity-50"
               >
                 {createMutation.isPending ? "Creating…" : "Create & continue"}
               </button>
             )}
+            {destinationId && currentStep <= 2 && (
+              <button
+                type="button"
+                disabled={updateMutation.isPending}
+                onClick={() => void handleUpdate()}
+                className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md disabled:opacity-50"
+              >
+                {updateMutation.isPending ? "Saving…" : "Save changes"}
+              </button>
+            )}
             {currentStep < STEPS.length && (
-              <button type="button" onClick={nextStep} className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md">
+              <button 
+                type="button" 
+                onClick={nextStep} 
+                disabled={!destinationId && currentStep >= 2}
+                className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md disabled:opacity-50"
+              >
                 Next
+              </button>
+            )}
+            {currentStep === STEPS.length && (
+              <button 
+                type="button" 
+                onClick={() => router.push("/destinations")}
+                className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md"
+              >
+                Finish
               </button>
             )}
           </div>
@@ -646,7 +680,18 @@ function GalleryBuilderStep({ destinationId }: { destinationId: string }) {
       >
         Add image
       </button>
-      <p className="text-sm text-muted-foreground">{destinationQuery.data?.gallery.length ?? 0} images in gallery.</p>
+
+      {destinationQuery.data?.gallery && destinationQuery.data.gallery.length > 0 && (
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {destinationQuery.data.gallery.map((img) => (
+            <div key={img.id} className="relative aspect-video bg-muted rounded-md overflow-hidden border border-border">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={img.url} alt="Gallery image" className="object-cover w-full h-full" />
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="text-sm text-muted-foreground mt-4">{destinationQuery.data?.gallery.length ?? 0} images in gallery.</p>
     </div>
   );
 }
@@ -682,7 +727,18 @@ function FaqBuilderStep({ destinationId }: { destinationId: string }) {
       >
         Add FAQ
       </button>
-      <p className="text-sm text-muted-foreground">{destinationQuery.data?.faqs.length ?? 0} FAQs.</p>
+
+      {destinationQuery.data?.faqs && destinationQuery.data.faqs.length > 0 && (
+        <div className="mt-6 space-y-3">
+          {destinationQuery.data.faqs.map((faq) => (
+            <div key={faq.id} className="p-4 border border-border rounded-md bg-background/50">
+              <h4 className="font-medium text-sm">{faq.question}</h4>
+              <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{faq.answer}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="text-sm text-muted-foreground mt-4">{destinationQuery.data?.faqs.length ?? 0} FAQs.</p>
     </div>
   );
 }

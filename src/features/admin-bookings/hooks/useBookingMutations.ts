@@ -9,6 +9,7 @@ import {
   completeBooking,
   confirmBooking,
   createBooking,
+  deleteBooking,
   generateInvoice,
   generateVoucher,
   recordPayment,
@@ -39,6 +40,14 @@ export function useCreateBookingMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateBookingInput) => createBooking(input),
+    onSuccess: () => invalidateBookingQueries(queryClient),
+  });
+}
+
+export function useDeleteBookingMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (bookingId: string) => deleteBooking(bookingId),
     onSuccess: () => invalidateBookingQueries(queryClient),
   });
 }

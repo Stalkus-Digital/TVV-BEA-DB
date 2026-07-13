@@ -51,13 +51,13 @@ export function DashboardPage() {
         data={kpis.data}
       />
 
-      <SystemHealthPanel
+      {/* <SystemHealthPanel
         isLoading={health.isLoading}
         isError={health.isError}
         errorMessage={health.error ? errorMessage(health.error) : undefined}
         onRetry={() => void health.refetch()}
         data={health.data}
-      />
+      /> */}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <div className="col-span-4">

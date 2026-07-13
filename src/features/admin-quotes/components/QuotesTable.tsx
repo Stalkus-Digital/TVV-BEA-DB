@@ -14,6 +14,9 @@ interface QuotesTableProps {
   onSelect: (id: string) => void;
   page: number;
   onPageChange: (page: number) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  isDeleting?: string | null;
 }
 
 export function QuotesTable({
@@ -25,6 +28,9 @@ export function QuotesTable({
   onSelect,
   page,
   onPageChange,
+  onEdit,
+  onDelete,
+  isDeleting,
 }: QuotesTableProps) {
   if (isLoading) return <WidgetLoading label="Loading quotes…" />;
   if (isError) return <WidgetError message={errorMessage ?? "Failed to load quotes"} onRetry={onRetry} />;
@@ -44,6 +50,7 @@ export function QuotesTable({
               <th className="px-6 py-4 font-semibold">Valid until</th>
               <th className="px-6 py-4 font-semibold">Total</th>
               <th className="px-6 py-4 font-semibold">Assigned</th>
+              <th className="px-6 py-4 font-semibold text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -66,6 +73,21 @@ export function QuotesTable({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-muted-foreground" title="No assigned-staff field on Quote">
                   —
+                </td>
+                <td className="px-6 py-4 text-right whitespace-nowrap">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onEdit(quote.id); }}
+                    className="text-blue-600 hover:underline font-medium mr-3"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    disabled={isDeleting === quote.id}
+                    onClick={(e) => { e.stopPropagation(); onDelete(quote.id); }}
+                    className="text-muted-foreground hover:text-destructive font-medium disabled:opacity-50"
+                  >
+                    {isDeleting === quote.id ? "Deleting..." : "Delete"}
+                  </button>
                 </td>
               </tr>
             ))}

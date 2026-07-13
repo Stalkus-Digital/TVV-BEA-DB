@@ -4,11 +4,39 @@ import { useState } from "react";
 import { Calendar, Search, Filter, IndianRupee, Plus } from "lucide-react";
 import { useBookingsQueryState } from "@/features/admin-bookings/hooks/useBookingsQuery";
 import { BookingCreateDialog } from "@/features/admin-bookings/components/BookingCreateDialog";
+import { BookingDetailDrawer } from "@/features/admin-bookings/components/BookingDetailDrawer";
 
 export default function ActivityBookingsPage() {
   const [search, setSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
-  const { data, isLoading, refetch } = useBookingsQueryState({ search, hasItemKind: "ACTIVITY" });
+  const { data, users, bundle, isLoading, refetch } = useBookingsQueryState({ search, hasItemKind: "ACTIVITY" });
+
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this booking?")) return;
+    const { deleteBooking } = require("@/features/admin-bookings/api/bookings");
+    setIsDeleting(id);
+    try {
+      await deleteBooking(id);
+      await refetch();
+    } catch (e: any) {
+      alert("Failed to delete booking: " + e.message);
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  const handleVoucher = async (id: string) => {
+    const { generateVoucher } = require("@/features/admin-bookings/api/bookings");
+    try {
+      const res = await generateVoucher(id);
+      alert(`Voucher ${res.voucherNumber} generated successfully!`);
+    } catch (e: any) {
+      alert("Failed to generate voucher: " + e.message);
+    }
+  };
 
   const activityBookings = data?.items ?? [];
 
@@ -110,8 +138,26 @@ export default function ActivityBookingsPage() {
                           {booking.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap">
-                        <button className="text-primary hover:underline font-semibold text-xs">Voucher</button>
+                      <td className="px-6 py-4 text-right whitespace-nowrap flex gap-3 justify-end items-center">
+                        <button
+                          onClick={() => setSelectedId(booking.id)}
+                          className="text-blue-600 hover:underline font-semibold text-xs"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleVoucher(booking.id)}
+                          className="text-primary hover:underline font-semibold text-xs"
+                        >
+                          Voucher
+                        </button>
+                        <button
+                          disabled={isDeleting === booking.id}
+                          onClick={() => handleDelete(booking.id)}
+                          className="text-muted-foreground hover:text-destructive font-semibold text-xs disabled:opacity-50"
+                        >
+                          {isDeleting === booking.id ? "Deleting..." : "Delete"}
+                        </button>
                       </td>
                     </tr>
                   );
@@ -126,6 +172,13 @@ export default function ActivityBookingsPage() {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreated={() => void refetch()}
+      />
+
+      <BookingDetailDrawer
+        bookingId={selectedId}
+        users={users ?? []}
+        bundle={bundle}
+        onClose={() => setSelectedId(null)}
       />
     </div>
   );

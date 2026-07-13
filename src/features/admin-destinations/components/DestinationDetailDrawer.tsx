@@ -87,7 +87,7 @@ export function DestinationDetailDrawer({
                 type="button"
                 onClick={() => setTab(item.id)}
                 className={`px-3 py-2 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
-                  tab === item.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+                  tab === item.id ? "border-blue-600 text-blue-600 font-semibold" : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {item.label}

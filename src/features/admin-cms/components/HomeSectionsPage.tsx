@@ -87,7 +87,7 @@ export function HomeSectionsPage() {
                 });
                 setIsEditingHero(true);
               }}
-              className="text-sm text-primary hover:underline"
+              className="text-sm text-slate-900 hover:underline"
             >
               Edit
             </button>
@@ -119,7 +119,7 @@ export function HomeSectionsPage() {
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button type="button" onClick={() => setIsEditingHero(false)} className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-md">Cancel</button>
-              <button type="submit" disabled={configMutation.isPending} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary-hover">Save</button>
+              <button type="submit" disabled={configMutation.isPending} className="px-4 py-2 bg-primary text-slate-900-foreground text-sm font-medium rounded-md hover:bg-primary-hover">Save</button>
             </div>
           </form>
         ) : (
@@ -150,7 +150,7 @@ export function HomeSectionsPage() {
               {(cms.home?.featuredPackages ?? []).map((pkg) => (
                 <tr key={pkg.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-3">
-                    <Link href={`/packages?selected=${pkg.id}`} className="text-primary hover:underline">
+                    <Link href={`/packages?selected=${pkg.id}`} className="text-slate-900 hover:underline">
                       {pkg.title}
                     </Link>
                   </td>
@@ -189,7 +189,7 @@ export function HomeSectionsPage() {
               {cms.destinations.map((destination) => (
                 <tr key={destination.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-3">
-                    <Link href={`/destinations?selected=${destination.id}`} className="text-primary hover:underline">
+                    <Link href={`/destinations?selected=${destination.id}`} className="text-slate-900 hover:underline">
                       {destination.name}
                     </Link>
                   </td>
@@ -200,7 +200,7 @@ export function HomeSectionsPage() {
                       type="button"
                       disabled={featuredMutation.isPending}
                       onClick={() => void toggleFeatured(destination.id, destination.isFeatured)}
-                      className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
+                      className="text-xs font-medium text-slate-900 hover:underline disabled:opacity-50"
                     >
                       {destination.isFeatured ? "Remove featured" : "Mark featured"}
                     </button>
@@ -226,7 +226,7 @@ export function HomeSectionsPage() {
                 setLinksForm(cms.home?.quickLinks ?? []);
                 setIsEditingLinks(true);
               }}
-              className="text-sm text-primary hover:underline"
+              className="text-sm text-slate-900 hover:underline"
             >
               Edit
             </button>
@@ -241,10 +241,10 @@ export function HomeSectionsPage() {
                 <button type="button" onClick={() => setLinksForm(linksForm.filter((_, i) => i !== idx))} className="px-3 py-2 bg-destructive text-destructive-foreground rounded-md text-sm">X</button>
               </div>
             ))}
-            <button type="button" onClick={() => setLinksForm([...linksForm, { label: "", url: "" }])} className="text-sm text-primary hover:underline">+ Add Link</button>
+            <button type="button" onClick={() => setLinksForm([...linksForm, { label: "", url: "" }])} className="text-sm text-slate-900 hover:underline">+ Add Link</button>
             <div className="flex justify-end gap-2 pt-2">
               <button type="button" onClick={() => setIsEditingLinks(false)} className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-md">Cancel</button>
-              <button type="submit" disabled={configMutation.isPending} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary-hover">Save</button>
+              <button type="submit" disabled={configMutation.isPending} className="px-4 py-2 bg-primary text-slate-900-foreground text-sm font-medium rounded-md hover:bg-primary-hover">Save</button>
             </div>
           </form>
         ) : (

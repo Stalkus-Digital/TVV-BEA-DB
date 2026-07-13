@@ -23,3 +23,4 @@ export async function POST(request: NextRequest) {
   if (isErr(result)) return jsonError(result.error);
   return jsonSuccess(result.value, { status: 201 });
 }
+// Force HMR

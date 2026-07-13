@@ -5,6 +5,9 @@ import { useDebouncedValue } from "@/features/admin-enquiries/hooks/useDebounced
 import { useLandingPagesQuery } from "../hooks/useMarketingQueries";
 import { MarketingPageShell } from "./MarketingPageShell";
 import { LandingPageEditor } from "./LandingPageEditor";
+import { ExternalLink } from "lucide-react";
+
+const WEBSITE_BASE = (process.env.NEXT_PUBLIC_WEBSITE_BASE_URL ?? "").replace(/\/$/, "");
 
 export function LandingPagesPage() {
   const pagesQuery = useLandingPagesQuery();
@@ -68,36 +71,41 @@ export function LandingPagesPage() {
         <LandingPageEditor onCancel={() => setIsEditing(false)} />
       ) : (
 
-      <div className="rounded-xl border border-border overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50 border-b border-border">
-            <tr>
-              <th className="text-left px-4 py-3 font-medium">Title</th>
-              <th className="text-left px-4 py-3 font-medium">Type</th>
-              <th className="text-left px-4 py-3 font-medium">Slug / path</th>
-              <th className="text-left px-4 py-3 font-medium">SEO title</th>
-              <th className="text-left px-4 py-3 font-medium">Status</th>
-              <th className="text-right px-4 py-3 font-medium">Preview</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((page) => (
-              <tr key={page.id} className="border-b border-border last:border-0 align-top">
-                <td className="px-4 py-3 font-medium">{page.title}</td>
-                <td className="px-4 py-3 capitalize text-muted-foreground">{page.type}</td>
-                <td className="px-4 py-3 font-mono text-xs">{page.path}</td>
-                <td className="px-4 py-3">{page.seoTitle ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{page.publishedLabel}</td>
-                <td className="px-4 py-3 text-right">
-                  <a href={page.previewPath} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
-                    Open
-                  </a>
-                </td>
+        <div className="rounded-xl border border-border overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 border-b border-border">
+              <tr>
+                <th className="text-left px-4 py-3 font-medium">Title</th>
+                <th className="text-left px-4 py-3 font-medium">Type</th>
+                <th className="text-left px-4 py-3 font-medium">Slug / path</th>
+                <th className="text-left px-4 py-3 font-medium">SEO title</th>
+                <th className="text-left px-4 py-3 font-medium">Status</th>
+                <th className="text-right px-4 py-3 font-medium">Preview</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.map((page) => (
+                <tr key={page.id} className="border-b border-border last:border-0 align-top">
+                  <td className="px-4 py-3 font-medium">{page.title}</td>
+                  <td className="px-4 py-3 capitalize text-muted-foreground">{page.type}</td>
+                  <td className="px-4 py-3 font-mono text-xs">{page.path}</td>
+                  <td className="px-4 py-3">{page.seoTitle ?? "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{page.publishedLabel}</td>
+                  <td className="px-4 py-3 text-right">
+                    <a 
+                      href={WEBSITE_BASE ? `${WEBSITE_BASE}${page.previewPath}` : page.previewPath}
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline font-medium"
+                    >
+                      Open <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </MarketingPageShell>
   );

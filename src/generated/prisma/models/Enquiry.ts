@@ -36,6 +36,8 @@ export type EnquiryMinAggregateOutputType = {
   message: string | null
   destinationSlug: string | null
   packageSlug: string | null
+  hotelSlug: string | null
+  activitySlug: string | null
   customerId: string | null
   source: string | null
   status: string | null
@@ -53,6 +55,8 @@ export type EnquiryMaxAggregateOutputType = {
   message: string | null
   destinationSlug: string | null
   packageSlug: string | null
+  hotelSlug: string | null
+  activitySlug: string | null
   customerId: string | null
   source: string | null
   status: string | null
@@ -70,6 +74,8 @@ export type EnquiryCountAggregateOutputType = {
   message: number
   destinationSlug: number
   packageSlug: number
+  hotelSlug: number
+  activitySlug: number
   customerId: number
   source: number
   status: number
@@ -89,6 +95,8 @@ export type EnquiryMinAggregateInputType = {
   message?: true
   destinationSlug?: true
   packageSlug?: true
+  hotelSlug?: true
+  activitySlug?: true
   customerId?: true
   source?: true
   status?: true
@@ -106,6 +114,8 @@ export type EnquiryMaxAggregateInputType = {
   message?: true
   destinationSlug?: true
   packageSlug?: true
+  hotelSlug?: true
+  activitySlug?: true
   customerId?: true
   source?: true
   status?: true
@@ -123,6 +133,8 @@ export type EnquiryCountAggregateInputType = {
   message?: true
   destinationSlug?: true
   packageSlug?: true
+  hotelSlug?: true
+  activitySlug?: true
   customerId?: true
   source?: true
   status?: true
@@ -213,6 +225,8 @@ export type EnquiryGroupByOutputType = {
   message: string | null
   destinationSlug: string | null
   packageSlug: string | null
+  hotelSlug: string | null
+  activitySlug: string | null
   customerId: string | null
   source: string | null
   status: string
@@ -251,6 +265,8 @@ export type EnquiryWhereInput = {
   message?: Prisma.StringNullableFilter<"Enquiry"> | string | null
   destinationSlug?: Prisma.StringNullableFilter<"Enquiry"> | string | null
   packageSlug?: Prisma.StringNullableFilter<"Enquiry"> | string | null
+  hotelSlug?: Prisma.StringNullableFilter<"Enquiry"> | string | null
+  activitySlug?: Prisma.StringNullableFilter<"Enquiry"> | string | null
   customerId?: Prisma.StringNullableFilter<"Enquiry"> | string | null
   source?: Prisma.StringNullableFilter<"Enquiry"> | string | null
   status?: Prisma.StringFilter<"Enquiry"> | string
@@ -268,6 +284,8 @@ export type EnquiryOrderByWithRelationInput = {
   message?: Prisma.SortOrderInput | Prisma.SortOrder
   destinationSlug?: Prisma.SortOrderInput | Prisma.SortOrder
   packageSlug?: Prisma.SortOrderInput | Prisma.SortOrder
+  hotelSlug?: Prisma.SortOrderInput | Prisma.SortOrder
+  activitySlug?: Prisma.SortOrderInput | Prisma.SortOrder
   customerId?: Prisma.SortOrderInput | Prisma.SortOrder
   source?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -288,6 +306,8 @@ export type EnquiryWhereUniqueInput = Prisma.AtLeast<{
   message?: Prisma.StringNullableFilter<"Enquiry"> | string | null
   destinationSlug?: Prisma.StringNullableFilter<"Enquiry"> | string | null
   packageSlug?: Prisma.StringNullableFilter<"Enquiry"> | string | null
+  hotelSlug?: Prisma.StringNullableFilter<"Enquiry"> | string | null
+  activitySlug?: Prisma.StringNullableFilter<"Enquiry"> | string | null
   customerId?: Prisma.StringNullableFilter<"Enquiry"> | string | null
   source?: Prisma.StringNullableFilter<"Enquiry"> | string | null
   status?: Prisma.StringFilter<"Enquiry"> | string
@@ -305,6 +325,8 @@ export type EnquiryOrderByWithAggregationInput = {
   message?: Prisma.SortOrderInput | Prisma.SortOrder
   destinationSlug?: Prisma.SortOrderInput | Prisma.SortOrder
   packageSlug?: Prisma.SortOrderInput | Prisma.SortOrder
+  hotelSlug?: Prisma.SortOrderInput | Prisma.SortOrder
+  activitySlug?: Prisma.SortOrderInput | Prisma.SortOrder
   customerId?: Prisma.SortOrderInput | Prisma.SortOrder
   source?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -328,6 +350,8 @@ export type EnquiryScalarWhereWithAggregatesInput = {
   message?: Prisma.StringNullableWithAggregatesFilter<"Enquiry"> | string | null
   destinationSlug?: Prisma.StringNullableWithAggregatesFilter<"Enquiry"> | string | null
   packageSlug?: Prisma.StringNullableWithAggregatesFilter<"Enquiry"> | string | null
+  hotelSlug?: Prisma.StringNullableWithAggregatesFilter<"Enquiry"> | string | null
+  activitySlug?: Prisma.StringNullableWithAggregatesFilter<"Enquiry"> | string | null
   customerId?: Prisma.StringNullableWithAggregatesFilter<"Enquiry"> | string | null
   source?: Prisma.StringNullableWithAggregatesFilter<"Enquiry"> | string | null
   status?: Prisma.StringWithAggregatesFilter<"Enquiry"> | string
@@ -345,6 +369,8 @@ export type EnquiryCreateInput = {
   message?: string | null
   destinationSlug?: string | null
   packageSlug?: string | null
+  hotelSlug?: string | null
+  activitySlug?: string | null
   customerId?: string | null
   source?: string | null
   status?: string
@@ -362,6 +388,8 @@ export type EnquiryUncheckedCreateInput = {
   message?: string | null
   destinationSlug?: string | null
   packageSlug?: string | null
+  hotelSlug?: string | null
+  activitySlug?: string | null
   customerId?: string | null
   source?: string | null
   status?: string
@@ -379,6 +407,8 @@ export type EnquiryUpdateInput = {
   message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   destinationSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   packageSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hotelSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activitySlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -396,6 +426,8 @@ export type EnquiryUncheckedUpdateInput = {
   message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   destinationSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   packageSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hotelSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activitySlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -413,6 +445,8 @@ export type EnquiryCreateManyInput = {
   message?: string | null
   destinationSlug?: string | null
   packageSlug?: string | null
+  hotelSlug?: string | null
+  activitySlug?: string | null
   customerId?: string | null
   source?: string | null
   status?: string
@@ -430,6 +464,8 @@ export type EnquiryUpdateManyMutationInput = {
   message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   destinationSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   packageSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hotelSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activitySlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -447,6 +483,8 @@ export type EnquiryUncheckedUpdateManyInput = {
   message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   destinationSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   packageSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hotelSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activitySlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -464,6 +502,8 @@ export type EnquiryCountOrderByAggregateInput = {
   message?: Prisma.SortOrder
   destinationSlug?: Prisma.SortOrder
   packageSlug?: Prisma.SortOrder
+  hotelSlug?: Prisma.SortOrder
+  activitySlug?: Prisma.SortOrder
   customerId?: Prisma.SortOrder
   source?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -481,6 +521,8 @@ export type EnquiryMaxOrderByAggregateInput = {
   message?: Prisma.SortOrder
   destinationSlug?: Prisma.SortOrder
   packageSlug?: Prisma.SortOrder
+  hotelSlug?: Prisma.SortOrder
+  activitySlug?: Prisma.SortOrder
   customerId?: Prisma.SortOrder
   source?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -498,6 +540,8 @@ export type EnquiryMinOrderByAggregateInput = {
   message?: Prisma.SortOrder
   destinationSlug?: Prisma.SortOrder
   packageSlug?: Prisma.SortOrder
+  hotelSlug?: Prisma.SortOrder
+  activitySlug?: Prisma.SortOrder
   customerId?: Prisma.SortOrder
   source?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -517,6 +561,8 @@ export type EnquirySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   message?: boolean
   destinationSlug?: boolean
   packageSlug?: boolean
+  hotelSlug?: boolean
+  activitySlug?: boolean
   customerId?: boolean
   source?: boolean
   status?: boolean
@@ -534,6 +580,8 @@ export type EnquirySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   message?: boolean
   destinationSlug?: boolean
   packageSlug?: boolean
+  hotelSlug?: boolean
+  activitySlug?: boolean
   customerId?: boolean
   source?: boolean
   status?: boolean
@@ -551,6 +599,8 @@ export type EnquirySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   message?: boolean
   destinationSlug?: boolean
   packageSlug?: boolean
+  hotelSlug?: boolean
+  activitySlug?: boolean
   customerId?: boolean
   source?: boolean
   status?: boolean
@@ -568,6 +618,8 @@ export type EnquirySelectScalar = {
   message?: boolean
   destinationSlug?: boolean
   packageSlug?: boolean
+  hotelSlug?: boolean
+  activitySlug?: boolean
   customerId?: boolean
   source?: boolean
   status?: boolean
@@ -576,7 +628,7 @@ export type EnquirySelectScalar = {
   updatedAt?: boolean
 }
 
-export type EnquiryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "type" | "name" | "email" | "phone" | "message" | "destinationSlug" | "packageSlug" | "customerId" | "source" | "status" | "assignedToUserId" | "createdAt" | "updatedAt", ExtArgs["result"]["enquiry"]>
+export type EnquiryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "type" | "name" | "email" | "phone" | "message" | "destinationSlug" | "packageSlug" | "hotelSlug" | "activitySlug" | "customerId" | "source" | "status" | "assignedToUserId" | "createdAt" | "updatedAt", ExtArgs["result"]["enquiry"]>
 
 export type $EnquiryPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Enquiry"
@@ -590,6 +642,8 @@ export type $EnquiryPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     message: string | null
     destinationSlug: string | null
     packageSlug: string | null
+    hotelSlug: string | null
+    activitySlug: string | null
     /**
      * Set only when the submitter was an authenticated customer — derived
      * server-side from the session, never accepted from the request body.
@@ -1035,6 +1089,8 @@ export interface EnquiryFieldRefs {
   readonly message: Prisma.FieldRef<"Enquiry", 'String'>
   readonly destinationSlug: Prisma.FieldRef<"Enquiry", 'String'>
   readonly packageSlug: Prisma.FieldRef<"Enquiry", 'String'>
+  readonly hotelSlug: Prisma.FieldRef<"Enquiry", 'String'>
+  readonly activitySlug: Prisma.FieldRef<"Enquiry", 'String'>
   readonly customerId: Prisma.FieldRef<"Enquiry", 'String'>
   readonly source: Prisma.FieldRef<"Enquiry", 'String'>
   readonly status: Prisma.FieldRef<"Enquiry", 'String'>

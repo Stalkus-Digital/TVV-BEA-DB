@@ -19,6 +19,7 @@ interface HotelProperty {
   avgRate: number;
   status: "ACTIVE" | "MAINTENANCE";
   destinationId?: string | null;
+  image?: string | null;
 }
 
 export default function HotelsPage() {
@@ -60,13 +61,15 @@ export default function HotelsPage() {
       return res.items.map((item: any) => ({
         id: item.id,
         name: item.title,
-        location: item.details?.address || "Unknown",
-        stars: item.details?.starRating || 3,
+        location: item.details?.address || "",
+        stars: item.details?.rating || item.details?.starRating || 3,
         rooms: item.details?.rooms || 0,
         avgRate: item.details?.avgRate || 0,
         status: item.status,
         destinationId: item.destinationId || null,
-      })) as HotelProperty[];
+        image: item.details?.images?.[0] || item.details?.bannerImage?.[0] || null,
+        shortDescription: item.details?.shortDescription || "",
+      })) as (HotelProperty & { shortDescription?: string })[];
     }
   });
 
@@ -122,6 +125,15 @@ export default function HotelsPage() {
     }
   });
 
+  const publishMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return adminApiClient.patch(`${adminEndpoints.inventory}/${id}`, { status: "ACTIVE" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "inventory", "HOTEL"] });
+    }
+  });
+
   const filteredHotels = hotels.filter((h) =>
     h.name.toLowerCase().includes(search.toLowerCase()) ||
     h.location.toLowerCase().includes(search.toLowerCase())
@@ -159,6 +171,30 @@ export default function HotelsPage() {
     });
   };
 
+  const removeHotel = (id: string) => {
+    setConfirmDeleteId(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDeleteId) return;
+    try {
+      await deleteMutation.mutateAsync(confirmDeleteId);
+      setAlertState({ isOpen: true, message: "Hotel deleted successfully" });
+      setConfirmDeleteId(null);
+    } catch (err) {
+      setAlertState({ isOpen: true, message: "Failed to delete hotel" });
+    }
+  };
+
+  const publishHotel = async (id: string) => {
+    try {
+      await publishMutation.mutateAsync(id);
+      setAlertState({ isOpen: true, message: "Hotel published successfully!" });
+    } catch (err) {
+      setAlertState({ isOpen: true, message: "Failed to publish hotel" });
+    }
+  };
+
   const openAddModal = () => {
     setEditingHotelId(null);
     setNewHotel({
@@ -177,17 +213,6 @@ export default function HotelsPage() {
     setEditingHotelId(hotel.id);
     setNewHotel(hotel);
     setIsModalOpen(true);
-  };
-
-  const removeHotel = (id: string) => {
-    setConfirmDeleteId(id);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (confirmDeleteId) {
-      await deleteMutation.mutateAsync(confirmDeleteId);
-      setConfirmDeleteId(null);
-    }
   };
 
   const handleLiveSearch = async (e: React.FormEvent) => {
@@ -425,8 +450,12 @@ export default function HotelsPage() {
                           
                           <div className="flex items-center gap-1 mb-4 text-slate-500">
                             <MapPin className="h-3.5 w-3.5" />
-                            <span className="text-sm line-clamp-1">{hotel.location}</span>
+                            <span className="text-sm line-clamp-1">{destinationsQuery.data?.find(d => d.id === hotel.destinationId)?.name || hotel.location || "Unknown Location"}</span>
                           </div>
+                          
+                          {hotel.shortDescription && (
+                            <p className="text-sm text-slate-500 line-clamp-2 mb-4">{hotel.shortDescription}</p>
+                          )}
 
                           <div className="space-y-2.5 text-sm text-slate-600 mb-6 flex-1">
                             <div className="flex items-center gap-1.5">
@@ -437,14 +466,18 @@ export default function HotelsPage() {
                                 ))}
                               </div>
                             </div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-semibold text-slate-900">Total Rooms:</span>
-                              <span>{hotel.rooms}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-semibold text-slate-900">Avg. Nightly Rate:</span>
-                              <span>₹{(hotel.avgRate || 0).toLocaleString()}</span>
-                            </div>
+                            {hotel.rooms > 0 && (
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-semibold text-slate-900">Total Rooms:</span>
+                                <span>{hotel.rooms}</span>
+                              </div>
+                            )}
+                            {hotel.avgRate > 0 && (
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-semibold text-slate-900">Avg. Nightly Rate:</span>
+                                <span>₹{(hotel.avgRate || 0).toLocaleString()}</span>
+                              </div>
+                            )}
                             <div className="flex items-center gap-1.5 pt-1">
                               <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${hotel.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>
                                 {hotel.status}
@@ -452,16 +485,26 @@ export default function HotelsPage() {
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+                          <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100 gap-2 flex-wrap">
                             <button 
                               onClick={() => setSelectedId(hotel.id)}
-                              className="px-5 py-2 bg-slate-900 hover:bg-black text-white text-sm font-semibold rounded-lg transition-colors text-center"
+                              className="px-4 py-2 bg-slate-900 hover:bg-black text-white text-xs font-semibold rounded-lg transition-colors text-center flex-1"
                             >
                               View Detail
                             </button>
+                            {hotel.status === 'DRAFT' && (
+                              <button 
+                                disabled={publishMutation.isPending}
+                                onClick={() => publishHotel(hotel.id)}
+                                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold rounded-lg transition-colors flex-1"
+                              >
+                                Publish
+                              </button>
+                            )}
                             <button 
+                              disabled={deleteMutation.isPending}
                               onClick={() => removeHotel(hotel.id)}
-                              className="px-5 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 flex-1"
                             >
                               Delete
                             </button>

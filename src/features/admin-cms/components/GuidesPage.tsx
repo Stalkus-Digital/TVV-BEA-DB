@@ -4,6 +4,12 @@ import { useState, useEffect } from "react";
 import { CmsPageShell } from "./CmsPageShell";
 import { adminApiClient } from "@/lib/admin-api/client";
 
+import { ImageUploader } from "@/features/admin-hotels/components/ImageUploader";
+import dynamic from "next/dynamic";
+import "react-quill-new/dist/quill.snow.css";
+
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
+
 interface Guide {
   id: string;
   title: string;
@@ -40,10 +46,23 @@ export function GuidesPage() {
   async function saveGuide(e: React.FormEvent) {
     e.preventDefault();
     try {
+      const payload = {
+        title: form.title,
+        slug: form.slug,
+        status: form.status,
+        content: {
+          body: form.body,
+          excerpt: form.excerpt,
+          metaTitle: form.metaTitle,
+          metaDescription: form.metaDescription,
+          coverImage: form.coverImage,
+        }
+      };
+
       if (form.id) {
-        await adminApiClient.put(`/api/cms/guides/${form.id}`, form);
+        await adminApiClient.put(`/api/cms/guides/${form.id}`, payload);
       } else {
-        await adminApiClient.post("/api/cms/guides", form);
+        await adminApiClient.post("/api/cms/guides", payload);
       }
       setIsEditing(false);
       fetchGuides();
@@ -102,12 +121,24 @@ export function GuidesPage() {
             <input value={form.excerpt} onChange={e => setForm({ ...form, excerpt: e.target.value })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" placeholder="Brief description shown in listings..." />
           </div>
           <div>
-            <label className="block text-xs font-medium mb-1">Cover Image URL</label>
-            <input type="url" value={form.coverImage} onChange={e => setForm({ ...form, coverImage: e.target.value })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" placeholder="https://..." />
+            <label className="block text-xs font-medium mb-1">Cover Image</label>
+            <ImageUploader
+              label=""
+              multiple={false}
+              value={form.coverImage ? [form.coverImage] : []}
+              onChange={(urls) => setForm({ ...form, coverImage: urls[0] || "" })}
+            />
           </div>
           <div>
-            <label className="block text-xs font-medium mb-1">Body / Content (Markdown supported)</label>
-            <textarea rows={10} value={form.body} onChange={e => setForm({ ...form, body: e.target.value })} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm font-mono" placeholder="Write your guide content here..." />
+            <label className="block text-xs font-medium mb-1">Body / Content</label>
+            <div className="bg-white text-slate-900 rounded-md overflow-hidden">
+              <ReactQuill
+                theme="snow"
+                value={form.body}
+                onChange={(value) => setForm({ ...form, body: value })}
+                className="min-h-[300px]"
+              />
+            </div>
           </div>
           <div className="border-t border-border pt-4">
             <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wide">SEO</p>
@@ -152,7 +183,21 @@ export function GuidesPage() {
                   <td className="px-4 py-3 text-muted-foreground">{guide.slug}</td>
                   <td className="px-4 py-3">{guide.status}</td>
                   <td className="px-4 py-3 text-right space-x-3">
-                    <button onClick={() => { setForm({ id: guide.id, title: guide.title, slug: guide.slug, status: guide.status, body: (guide as any).body ?? "", excerpt: (guide as any).excerpt ?? "", metaTitle: (guide as any).metaTitle ?? "", metaDescription: (guide as any).metaDescription ?? "", coverImage: (guide as any).coverImage ?? "" }); setIsEditing(true); }} className="text-primary hover:underline">Edit</button>
+                    <button onClick={() => { 
+                      const content = (guide as any).content || {};
+                      setForm({ 
+                        id: guide.id, 
+                        title: guide.title, 
+                        slug: guide.slug, 
+                        status: guide.status, 
+                        body: content.body ?? "", 
+                        excerpt: content.excerpt ?? "", 
+                        metaTitle: content.metaTitle ?? "", 
+                        metaDescription: content.metaDescription ?? "", 
+                        coverImage: content.coverImage ?? "" 
+                      }); 
+                      setIsEditing(true); 
+                    }} className="text-primary hover:underline">Edit</button>
                     <button onClick={() => setGuideToDelete(guide.id)} className="text-destructive hover:underline">Delete</button>
                   </td>
                 </tr>

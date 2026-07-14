@@ -9,7 +9,7 @@ import { PackageSourceType } from "../constants";
 import { adminApiClient } from "@/lib/admin-api/client";
 import { adminEndpoints } from "@/lib/admin-api/endpoints";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFullPackage } from "../api/packages";
+import { createFullPackage, updateFullPackage } from "../api/packages";
 import { PackageStatusBadge } from "./PackageStatusBadge";
 import { Trash2, Plus } from "lucide-react";
 import { DescriptionEditor } from "@/features/admin-hotels/components/DescriptionEditor";
@@ -46,7 +46,7 @@ export function PackageSingleForm() {
   const [hotels, setHotels] = useState<{ dayNumber: number; location: string; hotelName: string }[]>([]);
   const [bannerImage, setBannerImage] = useState<File[]>([]);
 
-  const [isLoading, setIsLoading] = useState(!!editId);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Images
   const [images, setImages] = useState<string[]>([]);
@@ -65,8 +65,69 @@ export function PackageSingleForm() {
     }
   });
 
-  // In a real edit scenario, you would fetch package details here and populate state.
-  // For now, this is optimized for creation.
+  // Fetch existing package details if editing
+  const { data: previewData } = useQuery({
+    queryKey: ["admin", "packages", editId, "preview"],
+    queryFn: async () => {
+      if (!editId) return null;
+      return adminApiClient.get<any>(`${adminEndpoints.packages}/${editId}/preview`);
+    },
+    enabled: !!editId,
+  });
+
+  useEffect(() => {
+    if (previewData) {
+      const packageData = previewData.package;
+      const days = previewData.days || [];
+      const pricing = previewData.pricing;
+      
+      setTitle(packageData?.title || "");
+      setDestinationId(packageData.destinationId || "");
+      setSourceType(packageData.sourceType || PackageSourceType.MANUAL);
+      setDurationDays(packageData.durationDays || 1);
+      setDurationNights(packageData.durationNights || 0);
+      
+      if (packageData.content) {
+        setShortDescription(packageData.content.shortDescription || "");
+        setItineraryDetails(packageData.content.itineraryDetails || "");
+        setInclusions(packageData.content.inclusions || "");
+        setExclusions(packageData.content.exclusions || "");
+        if (packageData.content.images) {
+          setImages(packageData.content.images);
+        }
+      }
+      
+      if (pricing) {
+        setBasePrice(pricing.basePrice || 0);
+        setCurrency(pricing.currency || "INR");
+        setMinPax(previewData.rules?.minPax || 2);
+        setMaxPax(previewData.rules?.maxPax || "");
+      }
+
+      // Populate hotels from days
+      if (days.length > 0) {
+        const loadedHotels: { dayNumber: number; location: string; hotelName: string }[] = [];
+        days.forEach((day: any) => {
+          if (day.items) {
+            day.items.forEach((item: any) => {
+              if (item.kind === "HOTEL") {
+                loadedHotels.push({
+                  dayNumber: day.dayNumber,
+                  location: item.description || "",
+                  hotelName: item.title || "",
+                });
+              }
+            });
+          }
+        });
+        setHotels(loadedHotels);
+      }
+      
+      setIsLoading(false);
+    } else if (!editId) {
+      setIsLoading(false);
+    }
+  }, [previewData, editId]);
 
   const addHotel = () => {
     setHotels([...hotels, { dayNumber: 1, location: "", hotelName: "" }]);
@@ -90,6 +151,14 @@ export function PackageSingleForm() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => updateFullPackage(editId!, data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "packages"] });
+      router.push(`/packages`);
+    },
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -105,7 +174,7 @@ export function PackageSingleForm() {
       }
     }
 
-    await createMutation.mutateAsync({
+    const payload = {
       title,
       destinationId,
       sourceType,
@@ -122,8 +191,14 @@ export function PackageSingleForm() {
       inclusions,
       exclusions,
       hotels,
-      images: uploadedImageUrls,
-    });
+      images: uploadedImageUrls.length > 0 ? uploadedImageUrls : images,
+    };
+
+    if (editId) {
+      await updateMutation.mutateAsync(payload);
+    } else {
+      await createMutation.mutateAsync(payload);
+    }
   };
 
   const destinations = destinationsQuery.data || [];
@@ -131,7 +206,7 @@ export function PackageSingleForm() {
   return (
     <div className="flex justify-center w-full max-w-5xl mx-auto p-4 md:p-6 lg:p-8">
       <div className="w-full bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-border bg-white flex justify-between items-center sticky top-0 z-10">
+        <div className="p-6 border-b border-border bg-white flex justify-between items-center">
           <div>
             <Link href="/packages" className="text-xs text-muted-foreground hover:text-foreground mb-2 block">
               ← Back to packages
@@ -141,10 +216,10 @@ export function PackageSingleForm() {
           <div>
             <button
               onClick={handleSubmit}
-              disabled={createMutation.isPending || !title || !destinationId}
+              disabled={createMutation.isPending || updateMutation.isPending || !title || !destinationId}
               className="px-6 py-2.5 bg-primary text-primary-foreground font-medium rounded-lg disabled:opacity-50 transition-colors"
             >
-              {createMutation.isPending ? "Saving..." : editId ? "Update Package" : "Create Package"}
+              {createMutation.isPending || updateMutation.isPending ? "Saving..." : editId ? "Update Package" : "Create Package"}
             </button>
           </div>
         </div>

@@ -1,4 +1,9 @@
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
+
+
 import { jsonError, jsonSuccess } from "@/api";
 import { deleteInventoryItemHandler, getInventoryItemHandler, updateInventoryItemHandler } from "@/modules/inventory";
 import { isErr } from "@/shared/types";

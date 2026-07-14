@@ -21,6 +21,7 @@ export function LandingPageEditor({ onCancel }: LandingPageEditorProps) {
   const [badgeText, setBadgeText] = useState("");
   const [slotYear, setSlotYear] = useState(new Date().getFullYear().toString());
   const [trustBadges, setTrustBadges] = useState("");
+  const [showHeroForm, setShowHeroForm] = useState(true);
   
   const [selectedPackages, setSelectedPackages] = useState<string[]>([]);
   const [faqSection, setFaqSection] = useState<{ question: string; answer: string }[]>([]);
@@ -122,6 +123,7 @@ export function LandingPageEditor({ onCancel }: LandingPageEditorProps) {
             badgeText,
             slotYear,
             trustBadges: trustBadges.split(",").map((b) => b.trim()).filter(Boolean),
+            showHeroForm,
           },
           packages: selectedPackages,
           faqSection,
@@ -141,29 +143,29 @@ export function LandingPageEditor({ onCancel }: LandingPageEditorProps) {
   }
 
   function generateHtml() {
-    // Get full package objects for selected packages so we can render them in HTML
     const allPackages = packagesQuery.data?.items ?? [];
     const selectedPkgObjects = allPackages.filter((p) => selectedPackages.includes(p.id));
     const badges = trustBadges.split(",").map((b) => b.trim()).filter(Boolean);
 
-    // Build packages HTML — fully rendered, no JS needed
     const packagesHtml = selectedPkgObjects.length > 0
       ? selectedPkgObjects.map((pkg) => `
         <div class="pkg-card">
           <div class="pkg-body">
             <h3 class="pkg-title">${pkg.title}</h3>
-            <p class="pkg-meta">${pkg.durationDays} Days&nbsp;/&nbsp;${pkg.durationNights ?? pkg.durationDays - 1} Nights</p>
-            <a href="#enquire" class="pkg-cta">Enquire Now</a>
+            <p class="pkg-meta">${pkg.durationDays} Days / ${pkg.durationNights ?? pkg.durationDays - 1} Nights</p>
+            <div class="pkg-price-row">
+              <span class="pkg-price">From ${pkg.currency || '$'}${pkg.displayPrice || '---'}</span>
+              <a href="#enquire" onclick="document.querySelector('#leadForm').scrollIntoView(); return false;" class="pkg-cta">View Details</a>
+            </div>
           </div>
         </div>`).join("")
       : "<p class=\"no-packages\">Packages coming soon — contact us for exclusive deals.</p>";
 
-    // Build FAQ HTML — semantic details/summary accordion, no JS
     const faqHtml = faqSection.length > 0
       ? faqSection.map((f) => `
-        <details class="faq-item">
-          <summary class="faq-question">${f.question}</summary>
-          <p class="faq-answer">${f.answer}</p>
+        <details class="faq-item" style="border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 12px; overflow: hidden; background: #fff;">
+          <summary style="cursor: pointer; padding: 18px 20px; font-weight: 600; list-style: none;">${f.question}</summary>
+          <p style="padding: 0 20px 18px; color: #374151; margin: 0;">${f.answer}</p>
         </details>`).join("")
       : "";
 
@@ -174,154 +176,212 @@ export function LandingPageEditor({ onCancel }: LandingPageEditorProps) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="${heroSubheadline || title}">
   <title>${title || "Landing Page"}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: #f9fafb; color: #1f2937; }
-    a { color: inherit; }
+    body { font-family: 'Poppins', system-ui, sans-serif; margin: 0; padding: 0; background: #f9fafb; color: #1f2937; scroll-behavior: smooth; }
+    a { color: inherit; text-decoration: none; }
 
     /* ── Hero ── */
     .hero {
       position: relative;
-      min-height: 540px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; padding: 80px 20px;
+      min-height: 600px;
+      padding: 100px 20px;
       background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
       ${heroImage ? `background: url('${heroImage}') center/cover no-repeat;` : ""}
       color: #fff;
     }
-    .hero::before {
-      content: ""; position: absolute; inset: 0;
-      background: rgba(0,0,0,0.45);
+    .hero::before { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+    .hero-container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; display: flex; gap: 40px; align-items: center; flex-wrap: wrap; }
+    .hero-content { flex: 1; min-width: 300px; }
+    .hero-form-wrapper { flex: 0 0 400px; background: #fff; color: #111; padding: 32px; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+    
+    @media (max-width: 900px) {
+      .hero-form-wrapper { flex: 1 1 100%; margin-top: 40px; }
+      .hero { padding: 60px 20px; }
     }
-    .hero > * { position: relative; z-index: 1; }
-    .badge {
-      display: inline-block; background: #3b82f6; color: #fff;
-      padding: 4px 16px; border-radius: 99px; font-size: 0.85rem;
-      font-weight: 700; letter-spacing: 0.5px; margin-bottom: 20px;
-    }
-    .hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); margin: 0 0 16px; line-height: 1.15; max-width: 800px; }
-    .hero p { font-size: 1.15rem; max-width: 600px; margin: 0 auto 10px; opacity: 0.9; }
-    .hero .season { font-size: 0.85rem; opacity: 0.7; margin-top: 8px; }
-    .trust-badges { margin-top: 32px; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
-    .trust-badge {
-      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
-      padding: 8px 18px; border-radius: 6px; font-size: 0.85rem; font-weight: 600;
-      backdrop-filter: blur(4px);
-    }
-    .hero-cta {
-      display: inline-block; margin-top: 36px;
-      background: #3b82f6; color: #fff; text-decoration: none;
-      padding: 14px 36px; border-radius: 8px; font-size: 1rem; font-weight: 700;
-      transition: background 0.2s;
-    }
-    .hero-cta:hover { background: #2563eb; }
 
-    /* ── Section wrapper ── */
-    .section { max-width: 1100px; margin: 0 auto; padding: 64px 20px; }
-    .section-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 8px; text-align: center; }
-    .section-subtitle { text-align: center; color: #6b7280; margin-bottom: 40px; }
+    .badge { display: inline-block; background: #3b82f6; color: #fff; padding: 6px 16px; border-radius: 99px; font-size: 0.85rem; font-weight: 700; margin-bottom: 20px; }
+    .hero h1 { font-size: clamp(2rem, 4vw, 3.5rem); margin: 0 0 16px; line-height: 1.2; font-weight: 800; }
+    .hero p { font-size: 1.15rem; margin: 0 0 16px; opacity: 0.9; }
+    
+    .trust-badges { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+    .trust-badge { background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; backdrop-filter: blur(4px); }
+
+    /* ── Hero Form ── */
+    .hero-form-wrapper h3 { margin: 0 0 8px; font-size: 1.5rem; font-weight: 700; color: #111; }
+    .hero-form-wrapper p { margin: 0 0 24px; font-size: 0.9rem; color: #555; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; font-weight: 600; color: #333; }
+    .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; font-family: inherit; outline: none; }
+    .form-group input:focus { border-color: #3b82f6; }
+    .form-submit { width: 100%; background: #3b82f6; color: #fff; border: none; padding: 14px; border-radius: 8px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+    .form-submit:hover { background: #2563eb; }
+
+    /* ── Tabs ── */
+    .tabs-nav { background: #fff; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 50; display: flex; justify-content: center; gap: 40px; padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .tab-btn { background: none; border: none; padding: 20px 0; font-size: 1rem; font-weight: 600; color: #6b7280; cursor: pointer; border-bottom: 3px solid transparent; font-family: inherit; }
+    .tab-btn.active { color: #3b82f6; border-bottom-color: #3b82f6; }
+    
+    .tab-content { display: none; padding: 64px 20px; max-width: 1200px; margin: 0 auto; }
+    .tab-content.active { display: block; }
 
     /* ── Packages grid ── */
-    .packages-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
-    .pkg-card {
-      background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .pkg-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+    .packages-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 32px; }
+    .pkg-card { background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; transition: transform 0.2s; border: 1px solid #f3f4f6; }
+    .pkg-card:hover { transform: translateY(-6px); }
     .pkg-body { padding: 24px; }
-    .pkg-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 8px; color: #111827; }
-    .pkg-meta { font-size: 0.875rem; color: #6b7280; margin: 0 0 20px; }
-    .pkg-cta {
-      display: inline-block; background: #0f172a; color: #fff; text-decoration: none;
-      padding: 10px 24px; border-radius: 6px; font-size: 0.875rem; font-weight: 600;
-    }
-    .pkg-cta:hover { background: #1e293b; }
-    .no-packages { text-align: center; color: #6b7280; font-style: italic; }
+    .pkg-title { font-size: 1.25rem; font-weight: 700; margin: 0 0 12px; }
+    .pkg-meta { font-size: 0.9rem; color: #6b7280; margin: 0 0 24px; font-weight: 500; }
+    .pkg-price-row { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f3f4f6; padding-top: 20px; }
+    .pkg-price { font-size: 1.25rem; font-weight: 800; color: #111; }
+    .pkg-cta { background: #111; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; }
+    
+    /* ── Placeholder content ── */
+    .placeholder-box { background: #fff; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 60px 20px; text-align: center; }
+    .placeholder-box h3 { font-size: 1.5rem; margin: 0 0 12px; }
+    .placeholder-box p { color: #6b7280; margin: 0; }
 
-    /* ── FAQ ── */
-    .faq-list { max-width: 720px; margin: 0 auto; }
-    .faq-item {
-      border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 12px;
-      overflow: hidden;
-    }
-    .faq-question {
-      cursor: pointer; padding: 18px 20px; font-size: 1rem; font-weight: 600;
-      list-style: none; display: flex; justify-content: space-between; align-items: center;
-      background: #fff; user-select: none;
-    }
-    .faq-question::after { content: "+"; font-size: 1.25rem; color: #3b82f6; }
-    details[open] .faq-question::after { content: "−"; }
-    .faq-answer { padding: 0 20px 18px; color: #374151; line-height: 1.7; margin: 0; }
-
-    /* ── Enquiry CTA ── */
-    .cta-section { background: #0f172a; color: #fff; text-align: center; padding: 64px 20px; }
-    .cta-section h2 { font-size: 2rem; margin-bottom: 12px; }
-    .cta-section p { opacity: 0.8; margin-bottom: 28px; }
-    .cta-form { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-width: 500px; margin: 0 auto; }
-    .cta-form input {
-      flex: 1; min-width: 200px; padding: 12px 16px; border-radius: 6px;
-      border: none; font-size: 1rem; outline: none;
-    }
-    .cta-form button {
-      background: #3b82f6; color: #fff; border: none; padding: 12px 28px;
-      border-radius: 6px; font-size: 1rem; font-weight: 700; cursor: pointer;
-    }
-
-    /* ── Footer ── */
-    footer { background: #111827; color: #9ca3af; text-align: center; padding: 24px 20px; font-size: 0.85rem; }
+    footer { background: #111827; color: #9ca3af; text-align: center; padding: 32px 20px; font-size: 0.9rem; }
   </style>
 </head>
 <body>
 
   <!-- Hero Section -->
   <div class="hero">
-    ${badgeText ? `<div class="badge">${badgeText}</div>` : ""}
-    <h1>${heroHeadline || "Your Dream Holiday Awaits"}</h1>
-    <p>${heroSubheadline || "Handcrafted travel experiences, exclusively for you."}</p>
-    ${slotYear ? `<p class="season">Season ${slotYear}</p>` : ""}
-    <div class="trust-badges">
-      ${badges.map((b) => `<div class="trust-badge">${b}</div>`).join("")}
+    <div class="hero-container">
+      <div class="hero-content">
+        ${badgeText ? `<div class="badge">${badgeText}</div>` : ""}
+        <h1>${heroHeadline || "Your Dream Holiday Awaits"}</h1>
+        <p>${heroSubheadline || "Handcrafted travel experiences, exclusively for you."}</p>
+        <div class="trust-badges">
+          ${badges.map((b) => `<div class="trust-badge">${b}</div>`).join("")}
+        </div>
+      </div>
+      
+      ${showHeroForm ? `
+      <div class="hero-form-wrapper">
+        <h3>Get a Free Quote</h3>
+        <p>Fill out the details below and our experts will craft the perfect itinerary for you.</p>
+        <form id="leadForm" onsubmit="submitLead(event)">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="name" required placeholder="John Doe" />
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" name="phone" required placeholder="+91 98765 43210" />
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" required placeholder="john@example.com" />
+          </div>
+          <div class="form-group">
+            <label>Departure City</label>
+            <input type="text" name="city" required placeholder="e.g. New Delhi" />
+          </div>
+          <div class="form-group">
+            <label>Travel Date</label>
+            <input type="date" name="date" required />
+          </div>
+          <button type="submit" class="form-submit" id="submitBtn">Get My Quote</button>
+        </form>
+      </div>` : ""}
     </div>
-    <a href="#packages" class="hero-cta">Explore Packages</a>
   </div>
 
-  <!-- Packages Section -->
-  <div class="section" id="packages">
-    <h2 class="section-title">Featured Holiday Packages</h2>
-    <p class="section-subtitle">Curated experiences for every type of traveller</p>
+  <!-- Sticky Tabs -->
+  <div class="tabs-nav">
+    <button class="tab-btn active" onclick="switchTab('packages')">Packages</button>
+    <button class="tab-btn" onclick="switchTab('hotels')">Hotels</button>
+    <button class="tab-btn" onclick="switchTab('flights')">Flights</button>
+  </div>
+
+  <!-- Packages Tab -->
+  <div id="tab-packages" class="tab-content active">
     <div class="packages-grid">
       ${packagesHtml}
     </div>
   </div>
 
-  ${faqSection.length > 0 ? `
-  <!-- FAQ Section -->
-  <div class="section" style="background:#fff; max-width:100%; padding:64px 0;">
-    <div style="max-width:1100px; margin:0 auto; padding:0 20px;">
-      <h2 class="section-title">Frequently Asked Questions</h2>
-      <p class="section-subtitle">Everything you need to know before you book</p>
-      <div class="faq-list">
-        ${faqHtml}
-      </div>
+  <!-- Hotels Tab -->
+  <div id="tab-hotels" class="tab-content">
+    <div class="placeholder-box">
+      <h3>Hotels in ${title || "this Destination"}</h3>
+      <p>Premium hotels and resorts will be listed here soon. Enquire above for direct hotel bookings.</p>
     </div>
   </div>
-  ` : ""}
 
-  <!-- Enquiry CTA Section -->
-  <div class="cta-section" id="enquire">
-    <h2>Ready to Book Your Holiday?</h2>
-    <p>Leave your details and our travel experts will get back to you within 24 hours.</p>
-    <div class="cta-form">
-      <input type="text" placeholder="Your Name" />
-      <input type="email" placeholder="Your Email" />
-      <button type="button">Send Enquiry</button>
+  <!-- Flights Tab -->
+  <div id="tab-flights" class="tab-content">
+    <div class="placeholder-box">
+      <h3>Flight Bookings</h3>
+      <p>Flight connections and schedules will be listed here soon. Our packages include flight arrangements.</p>
     </div>
   </div>
+
+  ${faqSection.length > 0 ? `
+  <div style="background:#fff; padding:64px 20px;">
+    <div style="max-width:800px; margin:0 auto;">
+      <h2 style="font-size:2rem; text-align:center; margin-bottom:40px;">Frequently Asked Questions</h2>
+      ${faqHtml}
+    </div>
+  </div>` : ""}
 
   <footer>
     &copy; ${new Date().getFullYear()} ${title || "The Vacation Voice"} &mdash; All rights reserved.
   </footer>
 
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    async function submitLead(e) {
+      e.preventDefault();
+      const form = e.target;
+      const btn = document.getElementById('submitBtn');
+      const originalText = btn.innerText;
+      
+      try {
+        btn.innerText = 'Submitting...';
+        btn.disabled = true;
+        
+        const payload = {
+          type: "DESTINATION",
+          name: form.name.value,
+          email: form.email.value,
+          phone: form.phone.value,
+          message: "Lead captured from " + document.title,
+          metadata: {
+            departureCity: form.city.value,
+            travelDate: form.date.value
+          }
+        };
+
+        const res = await fetch("/api/external/enquiries", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          alert("Thank you! Your quote request has been received.");
+          form.reset();
+        } else {
+          alert("Failed to submit request. Please try again later.");
+        }
+      } catch (err) {
+        alert("A network error occurred. Please try again.");
+      } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+      }
+    }
+  </script>
 </body>
 </html>`;
   }
@@ -409,6 +469,10 @@ export function LandingPageEditor({ onCancel }: LandingPageEditorProps) {
             <div className="col-span-2">
               <label className="block text-sm text-muted-foreground mb-1">Trust Badges (comma-separated)</label>
               <input className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" value={trustBadges} onChange={(e) => setTrustBadges(e.target.value)} placeholder="500+ Happy Travelers, 4.8 Avg Rating, 0 Hidden Costs" />
+            </div>
+            <div className="col-span-2 flex items-center gap-2">
+              <input type="checkbox" id="heroFormToggle" checked={showHeroForm} onChange={(e) => setShowHeroForm(e.target.checked)} className="rounded border-input text-primary" />
+              <label htmlFor="heroFormToggle" className="text-sm font-medium">Show Lead Capture Form in Hero Section</label>
             </div>
           </div>
         </div>

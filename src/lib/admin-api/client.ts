@@ -82,14 +82,19 @@ export const adminApiClient = {
     const { noAuth, treat404AsNull, _retriedAfterRefresh, headers, params, ...init } = options;
     const url = buildUrl(path, params);
 
+    const reqHeaders: Record<string, string> = {
+      accept: "application/json",
+      ...authHeaders(noAuth),
+      ...(headers as Record<string, string> || {}),
+    };
+
+    if (!(init.body instanceof FormData) && !reqHeaders["content-type"] && !reqHeaders["Content-Type"]) {
+      reqHeaders["content-type"] = "application/json";
+    }
+
     const res = await fetch(url, {
       ...init,
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
-        ...authHeaders(noAuth),
-        ...headers,
-      },
+      headers: reqHeaders,
     });
 
     if (res.status === 401 && !noAuth && !_retriedAfterRefresh && !AUTH_REFRESH_SKIP.has(path)) {

@@ -3,6 +3,8 @@ import { CmsConfigService } from "@/modules/website/services/cms-config.service"
 import { isErr } from "@/shared/types";
 import { jsonSuccess, jsonError } from "@/api/http";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const key = searchParams.get("key");

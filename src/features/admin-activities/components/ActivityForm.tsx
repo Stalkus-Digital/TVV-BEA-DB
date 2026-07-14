@@ -23,6 +23,7 @@ export function ActivityForm() {
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<File[]>([]);
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
 
   const [isLoading, setIsLoading] = useState(!!editId);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,6 +38,7 @@ export function ActivityForm() {
             setStarterPrice(data.details?.starterPrice?.toString() || data.details?.adultPrice?.toString() || "");
             setOfferPrice(data.details?.offerPrice?.toString() || "");
             setDescription(data.details?.description || "");
+            setExistingImageUrls(data.details?.images || []);
           }
         })
         .catch(console.error)
@@ -64,7 +66,7 @@ export function ActivityForm() {
           starterPrice: Number(starterPrice) || 0,
           offerPrice: Number(offerPrice) || 0,
           description,
-          images: uploadedImageUrls,
+          images: images.length > 0 ? uploadedImageUrls : existingImageUrls,
         }
       };
 

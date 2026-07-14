@@ -690,6 +690,8 @@ model Enquiry {
   message         String?
   destinationSlug String?
   packageSlug     String?
+  hotelSlug       String?
+  activitySlug    String?
   /// Set only when the submitter was an authenticated customer — derived
   /// server-side from the session, never accepted from the request body.
   customerId      String?
@@ -773,6 +775,7 @@ model LandingPage {
   heroSection Json     
   packages    Json     
   faqSection  Json     
+  content     Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

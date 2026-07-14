@@ -27,6 +27,8 @@ export function HotelForm() {
   const [rules, setRules] = useState("");
   const [bannerImage, setBannerImage] = useState<File[]>([]);
   const [hotelImages, setHotelImages] = useState<File[]>([]);
+  const [existingBannerUrl, setExistingBannerUrl] = useState<string | null>(null);
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
 
   const [isLoading, setIsLoading] = useState(!!editId);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,6 +46,8 @@ export function HotelForm() {
             setPoints(data.details?.points || "");
             setPolicies(data.details?.policies || "");
             setRules(data.details?.rules || "");
+            setExistingBannerUrl(data.details?.bannerImage || null);
+            setExistingImageUrls(data.details?.images || []);
           }
         })
         .catch(console.error)
@@ -80,8 +84,8 @@ export function HotelForm() {
           points,
           policies,
           rules,
-          bannerImage: uploadedBannerUrls[0] || null,
-          images: uploadedHotelUrls,
+          bannerImage: bannerImage.length > 0 ? uploadedBannerUrls[0] : existingBannerUrl,
+          images: hotelImages.length > 0 ? uploadedHotelUrls : existingImageUrls,
         }
       };
 

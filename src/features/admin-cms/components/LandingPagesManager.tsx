@@ -8,7 +8,21 @@ export function LandingPagesManager() {
   const [pages, setPages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState<any>({ id: "", title: "", slug: "", heroSection: { headline: "", subheadline: "", imageUrl: "" }, packages: [], faqSection: { faqs: [] } });
+  const defaultForm = {
+    id: "", title: "", slug: "", 
+    heroSection: { headline: "", subheadline: "", imageUrl: "" }, 
+    packages: [], 
+    faqSection: { faqs: [] },
+    content: {
+      valueProposition: [],
+      inclusions: [],
+      exclusions: [],
+      timeline: [],
+      whyBook: []
+    }
+  };
+
+  const [form, setForm] = useState<any>(defaultForm);
   const [pageToDelete, setPageToDelete] = useState<string | null>(null);
 
   useEffect(() => {
@@ -57,7 +71,7 @@ export function LandingPagesManager() {
     <CmsPageShell title="Landing Pages Builder" description="Create and manage dynamic SEO destination landing pages.">
       <div className="mt-6 flex justify-end">
         {!isEditing && (
-          <button onClick={() => { setForm({ id: "", title: "", slug: "", heroSection: { headline: "", subheadline: "", imageUrl: "" }, packages: [], faqSection: { faqs: [] } }); setIsEditing(true); }} className="bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium text-sm">
+          <button onClick={() => { setForm(defaultForm); setIsEditing(true); }} className="bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium text-sm">
             + Create Landing Page
           </button>
         )}
@@ -114,6 +128,86 @@ export function LandingPagesManager() {
                     } catch (err) {}
                   }} 
                   className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm font-mono" 
+                />
+              </div>
+            </div>
+
+            <div className="border border-border rounded-lg p-4 space-y-4">
+              <h4 className="font-semibold text-sm">Dynamic Sections Content</h4>
+              <p className="text-xs text-muted-foreground">Provide JSON arrays for each section.</p>
+              
+              <div>
+                <label className="block text-xs font-medium mb-1">Value Propositions (JSON Array)</label>
+                <textarea 
+                  rows={3}
+                  value={JSON.stringify(form.content?.valueProposition || [], null, 2)} 
+                  onChange={e => {
+                    try {
+                      setForm({ ...form, content: { ...form.content, valueProposition: JSON.parse(e.target.value) } });
+                    } catch (err) {}
+                  }} 
+                  className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm font-mono" 
+                  placeholder='[{"title":"...","description":"...","icon":"Clock"}]'
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium mb-1">Inclusions (JSON Array of strings)</label>
+                <textarea 
+                  rows={3}
+                  value={JSON.stringify(form.content?.inclusions || [], null, 2)} 
+                  onChange={e => {
+                    try {
+                      setForm({ ...form, content: { ...form.content, inclusions: JSON.parse(e.target.value) } });
+                    } catch (err) {}
+                  }} 
+                  className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm font-mono" 
+                  placeholder='["Breakfast", "Transfers"]'
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium mb-1">Exclusions (JSON Array of strings)</label>
+                <textarea 
+                  rows={3}
+                  value={JSON.stringify(form.content?.exclusions || [], null, 2)} 
+                  onChange={e => {
+                    try {
+                      setForm({ ...form, content: { ...form.content, exclusions: JSON.parse(e.target.value) } });
+                    } catch (err) {}
+                  }} 
+                  className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm font-mono" 
+                  placeholder='["Flights", "Lunch"]'
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium mb-1">Timeline Steps (JSON Array)</label>
+                <textarea 
+                  rows={3}
+                  value={JSON.stringify(form.content?.timeline || [], null, 2)} 
+                  onChange={e => {
+                    try {
+                      setForm({ ...form, content: { ...form.content, timeline: JSON.parse(e.target.value) } });
+                    } catch (err) {}
+                  }} 
+                  className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm font-mono" 
+                  placeholder='[{"day":1,"title":"Arrival","description":"..."}]'
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium mb-1">Why Book (JSON Array)</label>
+                <textarea 
+                  rows={3}
+                  value={JSON.stringify(form.content?.whyBook || [], null, 2)} 
+                  onChange={e => {
+                    try {
+                      setForm({ ...form, content: { ...form.content, whyBook: JSON.parse(e.target.value) } });
+                    } catch (err) {}
+                  }} 
+                  className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm font-mono" 
+                  placeholder='[{"title":"...","description":"..."}]'
                 />
               </div>
             </div>

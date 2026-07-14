@@ -33,7 +33,7 @@ export function toPackageSummary(
     durationNights: pkg.durationNights,
     fromPrice,
     currency,
-    heroImage: pkg.seo.ogImageUrl ?? null,
+    heroImage: pkg.seo?.ogImageUrl ?? null,
   };
 }
 
@@ -75,10 +75,10 @@ export function toPackageDetail(input: PackageDetailInput): WebsitePackageDetail
   const seo = buildSeoDTO(
     input.baseUrl,
     {
-      metaTitle: input.pkg.seo.metaTitle,
-      metaDescription: input.pkg.seo.metaDescription,
-      canonicalUrl: input.pkg.seo.canonicalUrl,
-      ogImageUrl: input.pkg.seo.ogImageUrl,
+      metaTitle: input.pkg.seo?.metaTitle,
+      metaDescription: input.pkg.seo?.metaDescription,
+      canonicalUrl: input.pkg.seo?.canonicalUrl,
+      ogImageUrl: input.pkg.seo?.ogImageUrl,
     },
     {
       title: input.pkg.title,
@@ -94,7 +94,7 @@ export function toPackageDetail(input: PackageDetailInput): WebsitePackageDetail
       ? { currency: input.pricing.currency, basePrice: input.pricing.basePrice, fromPrice: input.fromPrice }
       : null,
     gallery,
-    faqs: input.pkg.faqs.map((f) => ({ question: f.question, answer: f.answer })),
+    faqs: (input.pkg.faqs || []).map((f: any) => ({ question: f.question, answer: f.answer })),
     relatedPackages: input.relatedPackages,
     destinationSummary,
     seo,

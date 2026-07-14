@@ -16,6 +16,8 @@ export interface SubmitEnquiryInput {
   message: string | null;
   destinationSlug: string | null;
   packageSlug: string | null;
+  hotelSlug: string | null;
+  activitySlug: string | null;
   source: string | null;
 }
 
@@ -30,7 +32,7 @@ export function validateSubmitEnquiry(input: unknown): Result<SubmitEnquiryInput
   if (!isNonEmptyString(body.name)) return err(new ValidationError("name is required"));
   if (!isNonEmptyString(body.email)) return err(new ValidationError("email is required"));
 
-  for (const field of ["phone", "message", "destinationSlug", "packageSlug", "source"] as const) {
+  for (const field of ["phone", "message", "destinationSlug", "packageSlug", "hotelSlug", "activitySlug", "source"] as const) {
     if (body[field] !== undefined && body[field] !== null && typeof body[field] !== "string") {
       return err(new ValidationError(`${field} must be a string`));
     }
@@ -42,6 +44,12 @@ export function validateSubmitEnquiry(input: unknown): Result<SubmitEnquiryInput
   if (type === EnquiryType.PACKAGE && !isNonEmptyString(body.packageSlug)) {
     return err(new ValidationError("packageSlug is required for a PACKAGE enquiry"));
   }
+  if (type === EnquiryType.HOTEL && !isNonEmptyString(body.hotelSlug)) {
+    return err(new ValidationError("hotelSlug is required for a HOTEL enquiry"));
+  }
+  if (type === EnquiryType.ACTIVITY && !isNonEmptyString(body.activitySlug)) {
+    return err(new ValidationError("activitySlug is required for an ACTIVITY enquiry"));
+  }
 
   return ok({
     type,
@@ -51,6 +59,8 @@ export function validateSubmitEnquiry(input: unknown): Result<SubmitEnquiryInput
     message: (body.message as string | undefined) ?? null,
     destinationSlug: (body.destinationSlug as string | undefined) ?? null,
     packageSlug: (body.packageSlug as string | undefined) ?? null,
+    hotelSlug: (body.hotelSlug as string | undefined) ?? null,
+    activitySlug: (body.activitySlug as string | undefined) ?? null,
     source: (body.source as string | undefined) ?? null,
   });
 }

@@ -48,7 +48,7 @@ export function PackagesGrid({
     <div className="flex flex-col h-full bg-slate-50/50 p-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-1 items-start">
         {data.items.map((row: any) => {
-          const image = row.images?.[0] || row.thumbnail || "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=800";
+          const image = row.content?.images?.[0] || row.images?.[0] || row.thumbnail || "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=800";
           const capacity = row.minPax || 2;
           
           return (

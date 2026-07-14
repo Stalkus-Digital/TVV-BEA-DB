@@ -1,11 +1,18 @@
 import { FileText } from "lucide-react";
 
-interface ItineraryTimelineProps {
-  destinationName: string;
+interface TimelineStep {
+  day: number;
+  title: string;
+  description: string;
 }
 
-export function ItineraryTimeline({ destinationName }: ItineraryTimelineProps) {
-  const days = [
+interface ItineraryTimelineProps {
+  destinationName: string;
+  timeline?: TimelineStep[];
+}
+
+export function ItineraryTimeline({ destinationName, timeline: customTimeline }: ItineraryTimelineProps) {
+  const defaultTimeline = [
     {
       day: 1,
       title: "Arrive Port Blair",
@@ -32,6 +39,8 @@ export function ItineraryTimeline({ destinationName }: ItineraryTimelineProps) {
       description: "Local Shopping - Airport Drop"
     }
   ];
+
+  const days = customTimeline && customTimeline.length > 0 ? customTimeline : defaultTimeline;
 
   return (
     <section className="py-24 bg-slate-900 text-white">

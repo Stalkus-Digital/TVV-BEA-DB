@@ -1,32 +1,48 @@
 import { Heart, ThumbsUp, Map, ShieldCheck } from "lucide-react";
 
-interface WhyBookSectionProps {
-  destinationName: string;
+import * as LucideIcons from "lucide-react";
+
+interface WhyBookReason {
+  title: string;
+  description: string;
+  icon?: string;
 }
 
-export function WhyBookSection({ destinationName }: WhyBookSectionProps) {
-  const reasons = [
+interface WhyBookSectionProps {
+  destinationName: string;
+  reasons?: WhyBookReason[];
+}
+
+export function WhyBookSection({ destinationName, reasons: customReasons }: WhyBookSectionProps) {
+  const defaultReasons = [
     {
-      icon: Map,
+      icon: "Map",
       title: "Local Expertise",
       description: `We know every hidden beach and local secret in ${destinationName}.`
     },
     {
-      icon: ShieldCheck,
+      icon: "ShieldCheck",
       title: "Verified Partners",
       description: "We personally vet every hotel, driver, and guide we work with."
     },
     {
-      icon: ThumbsUp,
+      icon: "ThumbsUp",
       title: "Zero Hidden Costs",
       description: "The price you see is the price you pay. No last-minute surprises."
     },
     {
-      icon: Heart,
+      icon: "Heart",
       title: "Personalized Care",
       description: "Dedicated trip coordinators available 24/7 during your travel."
     }
   ];
+
+  const reasons = customReasons && customReasons.length > 0 ? customReasons : defaultReasons;
+
+  const renderIcon = (iconName: string = "Map") => {
+    const IconComponent = (LucideIcons as any)[iconName] || LucideIcons.Map;
+    return <IconComponent className="w-5 h-5" />;
+  };
 
   return (
     <section className="py-24 bg-white">
@@ -68,7 +84,7 @@ export function WhyBookSection({ destinationName }: WhyBookSectionProps) {
                 <div key={i}>
                   <div className="flex items-center gap-3 mb-3">
                     <div className="bg-blue-50 p-2.5 rounded-lg text-blue-600">
-                      <reason.icon className="w-5 h-5" />
+                      {renderIcon(reason.icon as string)}
                     </div>
                     <h3 className="font-bold text-slate-900">{reason.title}</h3>
                   </div>

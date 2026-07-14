@@ -3,11 +3,13 @@ import { CheckCircle2, Phone, Star } from "lucide-react";
 import type { Destination } from "@/modules/destination";
 
 interface DestinationHeroProps {
-  destination: Destination;
+  destination: Partial<Destination>;
   heroImage: string;
+  customHeadline?: string;
+  customSubheadline?: string;
 }
 
-export function DestinationHero({ destination, heroImage }: DestinationHeroProps) {
+export function DestinationHero({ destination, heroImage, customHeadline, customSubheadline }: DestinationHeroProps) {
   return (
     <section className="relative min-h-[90vh] flex flex-col items-center justify-center pt-24 pb-16">
       {/* Background Image */}
@@ -24,18 +26,26 @@ export function DestinationHero({ destination, heroImage }: DestinationHeroProps
         {/* Left Column: Copy */}
         <div className="space-y-6">
           <div className="inline-flex items-center rounded-full border border-white/30 bg-white/10 px-3 py-1 text-sm font-medium backdrop-blur-md">
-            <span>✨ {destination.name.toUpperCase()} ISLANDS</span>
+            <span>✨ {(destination.name || "").toUpperCase()} ISLANDS</span>
           </div>
           
-          <h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-tight">
-            {destination.name} Holiday <br />
-            Packages <br />
-            <span className="text-amber-400">Starting ₹10,500</span>
+          <h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-tight whitespace-pre-line">
+            {customHeadline || (
+              <>
+                {destination.name} Holiday <br />
+                Packages <br />
+                <span className="text-amber-400">Starting ₹10,500</span>
+              </>
+            )}
           </h1>
           
-          <p className="text-lg lg:text-xl text-slate-200 max-w-xl">
-            All-inclusive {destination.name} trips with stays, ferries, transfers & local support. 
-            Get your <span className="font-semibold text-white">custom itinerary in 10 minutes</span> with up to 40% OFF.
+          <p className="text-lg lg:text-xl text-slate-200 max-w-xl whitespace-pre-line">
+            {customSubheadline || (
+              <>
+                All-inclusive {destination.name} trips with stays, ferries, transfers & local support. 
+                Get your <span className="font-semibold text-white">custom itinerary in 10 minutes</span> with up to 40% OFF.
+              </>
+            )}
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-4">

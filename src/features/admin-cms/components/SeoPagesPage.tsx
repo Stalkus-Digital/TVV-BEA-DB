@@ -47,6 +47,17 @@ export function SeoPagesPage() {
     }
   }
 
+  async function deleteSeo(item: SeoListItem) {
+    if (!confirm(`Are you sure you want to clear SEO data for ${item.name}?`)) return;
+    setError(null);
+    try {
+      const emptySeo = { metaTitle: "", metaDescription: "", canonicalUrl: "", ogImageUrl: "", focusKeyword: "" };
+      await seoMutation.mutateAsync({ type: item.type, id: item.id, seo: emptySeo });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to clear SEO");
+    }
+  }
+
   return (
     <CmsPageShell
       title="SEO Pages"
@@ -99,13 +110,16 @@ export function SeoPagesPage() {
                 <td className="px-4 py-3 capitalize text-muted-foreground">{item.type}</td>
                 <td className="px-4 py-3">{hasSeoContent(item.seo) ? "Configured" : "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{new Date(item.updatedAt).toLocaleDateString()}</td>
-                <td className="px-4 py-3 text-right space-x-2">
-                  <button type="button" onClick={() => openEdit(item)} className="text-xs text-primary hover:underline">
-                    Edit SEO
+                <td className="px-4 py-3 text-right space-x-3">
+                  <button type="button" onClick={() => openEdit(item)} className="text-xs text-slate-500 hover:underline">
+                    Edit
+                  </button>
+                  <button type="button" onClick={() => deleteSeo(item)} className="text-xs text-red-500 hover:underline">
+                    Delete
                   </button>
                   <Link
                     href={item.type === "destination" ? `/destinations?selected=${item.id}` : `/packages?selected=${item.id}`}
-                    className="text-xs text-muted-foreground hover:underline"
+                    className="text-xs text-slate-500 hover:underline"
                   >
                     Open
                   </Link>

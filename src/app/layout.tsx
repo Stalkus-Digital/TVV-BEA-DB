@@ -16,8 +16,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="h-full antialiased">
+      <body className={`${inter.className} h-full overflow-hidden`} suppressHydrationWarning>
         <AppShell>{children}</AppShell>
       </body>
     </html>

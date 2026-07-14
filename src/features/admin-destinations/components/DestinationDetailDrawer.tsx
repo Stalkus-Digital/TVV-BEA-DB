@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { ChevronRight, ExternalLink, X } from "lucide-react";
 import { WidgetError, WidgetLoading } from "@/features/admin-dashboard/components/WidgetState";
+import { ImageUploader } from "@/features/admin-hotels/components/ImageUploader";
+import { uploadFiles } from "@/lib/admin-api/upload";
 import { DestinationStatus, EDITABLE_DESTINATION_STATUSES } from "../constants";
 import {
   useAddFaqMutation,
@@ -371,8 +373,8 @@ function NearbyTab({
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">
-        Nearby list from GET /api/destinations/:id/nearby — backend heuristic (siblings / same city / same state).
+      <p className="text-xs text-muted-foreground mb-4">
+        Calculated automatically based on geography.
       </p>
       {nearby.length === 0 ? (
         <p className="text-sm text-muted-foreground">No nearby destinations returned.</p>
@@ -440,38 +442,46 @@ function SeoTab({ destination, destinationId }: { destination: Destination; dest
 function GalleryTab({ destination, destinationId }: { destination: Destination; destinationId: string }) {
   const addMutation = useAddGalleryImageMutation(destinationId);
   const removeMutation = useRemoveGalleryImageMutation(destinationId);
-  const [url, setUrl] = useState("");
   const [altText, setAltText] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-muted-foreground">Gallery accepts image URLs only — no file upload endpoint.</p>
-      <div className="grid grid-cols-2 gap-2">
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="Image URL"
-          className="col-span-2 px-3 py-2 text-sm border border-border rounded-md"
+      <p className="text-xs text-muted-foreground">Upload images for the destination gallery.</p>
+      <div className="space-y-4">
+        <ImageUploader 
+          label=""
+          multiple={false}
+          value={[]}
+          onChange={async (urls) => {
+            if (urls && urls.length > 0) {
+              try {
+                setIsUploading(true);
+                const file = urls[0];
+                if (typeof file === "string") {
+                   await addMutation.mutateAsync({ url: file, altText: altText || undefined });
+                } else {
+                   const results = await uploadFiles([file], "GALLERY_IMAGE");
+                   if (results.length > 0) {
+                      await addMutation.mutateAsync({ url: results[0].url, altText: altText || undefined });
+                   }
+                }
+              } catch (err) {
+                console.error("Failed to upload image", err);
+                alert("Failed to upload image");
+              } finally {
+                setIsUploading(false);
+              }
+            }
+          }}
         />
+        {isUploading && <p className="text-sm text-muted-foreground animate-pulse">Uploading...</p>}
         <input
           value={altText}
           onChange={(e) => setAltText(e.target.value)}
-          placeholder="Alt text"
-          className="px-3 py-2 text-sm border border-border rounded-md"
+          placeholder="Optional alt text for next upload"
+          className="w-full px-3 py-2 text-sm border border-border rounded-md"
         />
-        <button
-          type="button"
-          disabled={addMutation.isPending || !url.trim()}
-          onClick={() => {
-            void addMutation.mutateAsync({ url, altText: altText || undefined }).then(() => {
-              setUrl("");
-              setAltText("");
-            });
-          }}
-          className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md disabled:opacity-50"
-        >
-          Add image
-        </button>
       </div>
       {destination.gallery.length === 0 ? (
         <p className="text-sm text-muted-foreground">No gallery images.</p>

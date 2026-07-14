@@ -2,6 +2,8 @@ export const EnquiryType = {
   GENERAL: "GENERAL",
   PACKAGE: "PACKAGE",
   DESTINATION: "DESTINATION",
+  HOTEL: "HOTEL",
+  ACTIVITY: "ACTIVITY",
   CALLBACK: "CALLBACK",
   CORPORATE: "CORPORATE",
 } as const;
@@ -32,6 +34,8 @@ export interface Enquiry {
   message: string | null;
   destinationSlug: string | null;
   packageSlug: string | null;
+  hotelSlug: string | null;
+  activitySlug: string | null;
   /** Set only when the submitter was an authenticated customer — derived server-side, never accepted from the request body. */
   customerId: string | null;
   source: string | null;

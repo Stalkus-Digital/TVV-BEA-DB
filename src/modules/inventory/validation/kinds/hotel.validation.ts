@@ -6,9 +6,9 @@ export function validateHotelDetails(input: unknown): Result<HotelDetails, Valid
   if (typeof input !== "object" || input === null) {
     return err(new ValidationError("Hotel details must be an object"));
   }
-  const { starRating, address, latitude, longitude, rooms, avgRate } = input as Record<string, unknown>;
+  const { starRating, rating, address, latitude, longitude, rooms, avgRate, ...rest } = input as Record<string, unknown>;
 
-  let parsedStarRating = typeof starRating === "string" ? Number(starRating) : starRating;
+  let parsedStarRating = typeof starRating === "string" ? Number(starRating) : (starRating ?? rating);
   if (parsedStarRating === undefined || parsedStarRating === null || parsedStarRating === 0 || Number.isNaN(parsedStarRating)) parsedStarRating = 3; // fallback to 3 stars
 
   if (typeof parsedStarRating !== "number" || parsedStarRating < 1 || parsedStarRating > 5) {
@@ -34,5 +34,6 @@ export function validateHotelDetails(input: unknown): Result<HotelDetails, Valid
     ...(longitude !== undefined ? { longitude: longitude as number } : {}),
     ...(rooms !== undefined ? { rooms: typeof rooms === "string" ? Number(rooms) : (rooms as number) } : {}),
     ...(avgRate !== undefined ? { avgRate: typeof avgRate === "string" ? Number(avgRate) : (avgRate as number) } : {}),
+    ...rest,
   });
 }

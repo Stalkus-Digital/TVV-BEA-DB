@@ -5,4 +5,8 @@ export interface ActivityDetails {
   location?: string;
   adultPrice?: number;
   childPrice?: number;
+  starterPrice?: number;
+  offerPrice?: number;
+  description?: string;
+  images?: string[];
 }

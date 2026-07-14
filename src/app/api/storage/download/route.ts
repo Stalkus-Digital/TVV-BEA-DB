@@ -5,6 +5,8 @@ import { downloadHandler } from "@/modules/storage";
 import { isErr } from "@/shared/types";
 
 /** Deliberately unauthenticated (see route-permission-map.ts) — the signed HMAC query params are the credential, not a JWT. */
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const result = await downloadHandler(searchParams.get("key"), searchParams.get("expiresAt"), searchParams.get("signature"));

@@ -1,5 +1,6 @@
 import { adminEndpoints } from "./endpoints";
 import { getAccessToken, clearTokens } from "./token";
+import { adminApiClient } from "./client";
 
 export interface UploadResult {
   url: string;
@@ -14,33 +15,16 @@ export async function uploadFile(file: File, category: string = "general"): Prom
   formData.append("fileName", file.name);
   formData.append("category", category);
 
-  const token = getAccessToken();
-  const headers: Record<string, string> = {};
-  if (token) {
-    headers["authorization"] = `Bearer ${token}`;
-  }
-
-  const res = await fetch(adminEndpoints.storage.upload, {
+  const res = await adminApiClient.request<UploadResult>(adminEndpoints.storage.upload, {
     method: "POST",
-    headers,
     body: formData,
   });
 
-  if (res.status === 401) {
-    clearTokens();
-    throw new Error("Unauthorized");
+  if (!res) {
+    throw new Error("Upload failed (no response)");
   }
 
-  if (!res.ok) {
-    throw new Error(`Upload failed with status ${res.status}`);
-  }
-
-  const result = await res.json();
-  if (!result.success) {
-    throw new Error(result.error?.message || "Upload failed");
-  }
-
-  return result.data as UploadResult;
+  return res;
 }
 
 export async function uploadFiles(files: File[], category: string = "general"): Promise<UploadResult[]> {

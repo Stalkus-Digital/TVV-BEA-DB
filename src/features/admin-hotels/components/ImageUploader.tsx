@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import { UploadCloud } from "lucide-react";
 
 interface ImageUploaderProps {
@@ -9,11 +9,12 @@ interface ImageUploaderProps {
 }
 
 export function ImageUploader({ label, multiple = false, value = [], onChange }: ImageUploaderProps) {
-  const id = label.replace(/\s+/g, '-').toLowerCase();
+  const generatedId = useId();
+  const id = label ? label.replace(/\s+/g, '-').toLowerCase() : generatedId;
   
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium">{label}</label>
+      {label && <label className="text-sm font-medium">{label}</label>}
       <label htmlFor={id} className="border border-border border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-slate-50/50 hover:bg-slate-50 transition-colors cursor-pointer group">
         <UploadCloud className="h-8 w-8 text-muted-foreground mb-3 group-hover:text-primary transition-colors" />
         <div className="text-sm">

@@ -27,6 +27,9 @@ import {
   useCitiesQuery,
 } from "../hooks/useDestinationSubQueries";
 import { DestinationStatusBadge } from "./DestinationStatusBadge";
+import { adminApiClient } from "@/lib/admin-api/client";
+import { ImageUploader } from "@/features/admin-hotels/components/ImageUploader";
+import { uploadFiles } from "@/lib/admin-api/upload";
 
 const STEPS = [
   { id: 1, name: "Basic Info", icon: MapPin },
@@ -659,27 +662,40 @@ function SeoBuilderStep({ destinationId }: { destinationId: string }) {
 function GalleryBuilderStep({ destinationId }: { destinationId: string }) {
   const destinationQuery = useDestinationQuery(destinationId);
   const addMutation = useAddGalleryImageMutation(destinationId);
-  const [url, setUrl] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
 
   if (destinationQuery.isLoading) return <WidgetLoading label="Loading…" />;
 
   return (
     <div className="space-y-4 bg-card border border-border rounded-lg p-6">
-      <p className="text-xs text-muted-foreground">URL only — no upload API.</p>
-      <input
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-        placeholder="https://…"
-        className="w-full px-3 py-2 border border-border rounded-md text-sm"
+      <p className="text-xs text-muted-foreground">Upload images to gallery.</p>
+      <ImageUploader 
+        label=""
+        multiple={false}
+        value={[]}
+        onChange={async (urls) => {
+          if (urls && urls.length > 0) {
+            try {
+              setIsUploading(true);
+              const file = urls[0];
+              if (typeof file === "string") {
+                 await addMutation.mutateAsync({ url: file });
+              } else {
+                 const results = await uploadFiles([file], "GALLERY_IMAGE");
+                 if (results.length > 0) {
+                    await addMutation.mutateAsync({ url: results[0].url });
+                 }
+              }
+            } catch (err) {
+              console.error("Failed to upload image", err);
+              alert("Failed to upload image");
+            } finally {
+              setIsUploading(false);
+            }
+          }
+        }}
       />
-      <button
-        type="button"
-        disabled={addMutation.isPending || !url.trim()}
-        onClick={() => void addMutation.mutateAsync({ url }).then(() => setUrl(""))}
-        className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md disabled:opacity-50"
-      >
-        Add image
-      </button>
+      {isUploading && <p className="text-sm text-muted-foreground animate-pulse">Uploading...</p>}
 
       {destinationQuery.data?.gallery && destinationQuery.data.gallery.length > 0 && (
         <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4">

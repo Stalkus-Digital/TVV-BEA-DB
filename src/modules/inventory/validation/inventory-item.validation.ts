@@ -1,5 +1,6 @@
 import { err, isErr, ok, type Result } from "@/shared/types";
 import { ValidationError } from "@/shared/errors";
+
 import { InventoryKind, type InventoryItemDetails } from "../types";
 import { validateActivityDetails } from "./kinds/activity.validation";
 import { validateFlightDetails } from "./kinds/flight.validation";
@@ -63,6 +64,7 @@ export interface UpdateInventoryItemInput {
   title?: string;
   destinationId?: string | null;
   details?: InventoryItemDetails;
+  status?: string;
 }
 
 export function validateUpdateInventoryItem(
@@ -72,8 +74,13 @@ export function validateUpdateInventoryItem(
   if (typeof input !== "object" || input === null) {
     return err(new ValidationError("Request body must be an object"));
   }
-  const { title, destinationId, details } = input as Record<string, unknown>;
+  const { title, destinationId, details, status } = input as Record<string, unknown>;
   const output: UpdateInventoryItemInput = {};
+
+  if (status !== undefined) {
+    if (typeof status !== "string") return err(new ValidationError("status must be a string"));
+    output.status = status;
+  }
 
   if (title !== undefined) {
     if (typeof title !== "string" || title.trim().length === 0) {

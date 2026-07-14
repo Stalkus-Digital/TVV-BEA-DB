@@ -86,6 +86,6 @@ export function buildDashboardStats(
   };
 }
 
-export function hasSeoContent(seo: { metaTitle?: string; metaDescription?: string; focusKeyword?: string }): boolean {
-  return Boolean(seo.metaTitle || seo.metaDescription || seo.focusKeyword);
+export function hasSeoContent(seo: { metaTitle?: string; metaDescription?: string; focusKeyword?: string } | null | undefined): boolean {
+  return Boolean(seo?.metaTitle || seo?.metaDescription || seo?.focusKeyword);
 }

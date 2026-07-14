@@ -75,11 +75,11 @@ export function buildFormStatistics(
   };
 }
 
-export function getMissingSeoFields(seo: { metaTitle?: string; metaDescription?: string; focusKeyword?: string }): string[] {
+export function getMissingSeoFields(seo: { metaTitle?: string; metaDescription?: string; focusKeyword?: string } | null | undefined): string[] {
   const missing: string[] = [];
-  if (!seo.metaTitle) missing.push("metaTitle");
-  if (!seo.metaDescription) missing.push("metaDescription");
-  if (!seo.focusKeyword) missing.push("focusKeyword");
+  if (!seo?.metaTitle) missing.push("metaTitle");
+  if (!seo?.metaDescription) missing.push("metaDescription");
+  if (!seo?.focusKeyword) missing.push("focusKeyword");
   return missing;
 }
 
@@ -90,7 +90,7 @@ export function buildSeoList(destinations: Destination[], packages: Package[]): 
     name: destination.name,
     slug: destination.slug,
     seo: destination.seo,
-    websiteSeoTitle: destination.seo.metaTitle ?? null,
+    websiteSeoTitle: destination.seo?.metaTitle ?? null,
     updatedAt: destination.updatedAt,
     missingFields: getMissingSeoFields(destination.seo),
   }));
@@ -101,7 +101,7 @@ export function buildSeoList(destinations: Destination[], packages: Package[]): 
     name: pkg.title,
     slug: pkg.slug,
     seo: pkg.seo,
-    websiteSeoTitle: pkg.seo.metaTitle ?? null,
+    websiteSeoTitle: pkg.seo?.metaTitle ?? null,
     updatedAt: pkg.updatedAt,
     missingFields: getMissingSeoFields(pkg.seo),
   }));
@@ -143,8 +143,8 @@ export function buildLandingPages(
       title: pkg.title,
       slug: pkg.slug,
       path: `/packages/${pkg.slug}`,
-      seoTitle: admin?.seo.metaTitle ?? null,
-      seoDescription: admin?.seo.metaDescription ?? null,
+      seoTitle: admin?.seo?.metaTitle ?? null,
+      seoDescription: admin?.seo?.metaDescription ?? null,
       publishedLabel: admin?.status === "PUBLISHED" ? "Published" : "On website (published)",
       previewPath: `/packages/${pkg.slug}`,
     });
@@ -158,8 +158,8 @@ export function buildLandingPages(
       title: dest.name,
       slug: dest.slug,
       path: `/destinations/${dest.slug}`,
-      seoTitle: admin?.seo.metaTitle ?? null,
-      seoDescription: admin?.seo.metaDescription ?? null,
+      seoTitle: admin?.seo?.metaTitle ?? null,
+      seoDescription: admin?.seo?.metaDescription ?? null,
       publishedLabel: admin?.status ?? "Listed on website",
       previewPath: `/destinations/${dest.slug}`,
     });

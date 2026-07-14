@@ -758,6 +758,8 @@ export const EnquiryScalarFieldEnum = {
   message: 'message',
   destinationSlug: 'destinationSlug',
   packageSlug: 'packageSlug',
+  hotelSlug: 'hotelSlug',
+  activitySlug: 'activitySlug',
   customerId: 'customerId',
   source: 'source',
   status: 'status',
@@ -828,6 +830,7 @@ export const LandingPageScalarFieldEnum = {
   heroSection: 'heroSection',
   packages: 'packages',
   faqSection: 'faqSection',
+  content: 'content',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -1,7 +1,7 @@
 import { container, createToken, moduleRegistry, type ModuleDefinition } from "@/shared/di";
 import { healthCheckRegistry, type HealthCheck, type HealthCheckResult } from "@/shared/health";
 import { createLogger } from "@/shared/logger";
-import { VercelBlobProvider } from "./providers/vercel-blob.provider";
+import { CloudinaryProvider } from "./providers/cloudinary.provider";
 import type { StorageProvider } from "./providers/storage-provider";
 import { SignedUrlService } from "./signed-urls/signed-url.service";
 import { StorageService } from "./services/storage.service";
@@ -15,7 +15,7 @@ export const STORAGE_SERVICE_TOKEN = createToken<StorageService>("storage.servic
  * The storage infrastructure used by every module (Sprint 14). Owns no
  * Prisma models or `repositories/` — ownership is encoded entirely in the
  * object's storage key (see uploads/key-generator.ts), so there is no
- * database state for this module to persist. `VercelBlobProvider` is the
+ * database state for this module to persist. `CloudinaryProvider` is the
  * only concrete `StorageProvider` wired up here; S3/Cloudflare R2 would be
  * additional implementations of the same interface, swapped in here, not
  * built this sprint.
@@ -23,7 +23,7 @@ export const STORAGE_SERVICE_TOKEN = createToken<StorageService>("storage.servic
 export const storageModule: ModuleDefinition = {
   name: "storage",
   register(c) {
-    c.registerFactory(STORAGE_PROVIDER_TOKEN, () => new VercelBlobProvider());
+    c.registerFactory(STORAGE_PROVIDER_TOKEN, () => new CloudinaryProvider());
     c.registerFactory(SIGNED_URL_SERVICE_TOKEN, () => SignedUrlService.fromConfig());
     c.registerFactory(
       STORAGE_SERVICE_TOKEN,
@@ -35,12 +35,12 @@ export const storageModule: ModuleDefinition = {
 class StorageModuleHealthCheck implements HealthCheck {
   readonly name = "storage";
   async check(): Promise<HealthCheckResult> {
-    const configured = StorageConfigService.getInstance().get("blobReadWriteToken").length > 0;
+    const configured = !!process.env.CLOUDINARY_API_KEY;
     if (!configured) {
       return {
         name: this.name,
         status: "degraded",
-        details: { reason: "BLOB_READ_WRITE_TOKEN is not configured — uploads will fail until it is set" },
+        details: { reason: "CLOUDINARY_API_KEY is not configured — uploads will fail until it is set" },
         checkedAt: new Date().toISOString(),
       };
     }

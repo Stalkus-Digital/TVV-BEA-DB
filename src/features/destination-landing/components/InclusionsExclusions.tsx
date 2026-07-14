@@ -1,7 +1,12 @@
 import { CheckCircle2, XCircle } from "lucide-react";
 
-export function InclusionsExclusions() {
-  const inclusions = [
+interface InclusionsExclusionsProps {
+  inclusions?: string[];
+  exclusions?: string[];
+}
+
+export function InclusionsExclusions({ inclusions: customInclusions, exclusions: customExclusions }: InclusionsExclusionsProps) {
+  const defaultInclusions = [
     "Accommodation (as per chosen category)",
     "Daily Breakfast",
     "All inter-island ferry tickets",
@@ -10,13 +15,16 @@ export function InclusionsExclusions() {
     "All entry fees & permits"
   ];
 
-  const exclusions = [
+  const defaultExclusions = [
     "Airfare to/from Port Blair",
     "Lunch & Dinner",
     "Personal expenses",
     "Water sports (scuba, snorkeling)",
     "Travel Insurance"
   ];
+
+  const inclusions = customInclusions && customInclusions.length > 0 ? customInclusions : defaultInclusions;
+  const exclusions = customExclusions && customExclusions.length > 0 ? customExclusions : defaultExclusions;
 
   return (
     <section className="py-20 bg-white">

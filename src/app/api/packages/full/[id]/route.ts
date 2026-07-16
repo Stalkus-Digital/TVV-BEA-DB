@@ -23,6 +23,7 @@ export async function PUT(req: Request, context: any) {
       inclusions,
       exclusions,
       hotels,
+      dayDescriptions,
       images
     } = body;
 
@@ -129,12 +130,22 @@ export async function PUT(req: Request, context: any) {
           dayMap.get(dNum)!.push(h);
         }
 
+        // Build a lookup for per-day descriptions
+        const descMap = new Map<number, { title: string; description: string }>();
+        if (dayDescriptions && Array.isArray(dayDescriptions)) {
+          for (const dd of dayDescriptions) {
+            descMap.set(Number(dd.dayNumber), { title: dd.title || `Day ${dd.dayNumber}`, description: dd.description || "" });
+          }
+        }
+
         for (let i = 1; i <= Number(durationDays); i++) {
+          const dayMeta = descMap.get(i);
           const day = await tx.packageDay.create({
             data: {
               packageId: id,
               dayNumber: i,
-              title: `Day ${i}`,
+              title: dayMeta?.title || `Day ${i}`,
+              description: dayMeta?.description || null,
             }
           });
 

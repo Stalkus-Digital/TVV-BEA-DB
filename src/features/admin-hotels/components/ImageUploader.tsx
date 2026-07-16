@@ -33,7 +33,7 @@ export function ImageUploader({ label, multiple = false, value = [], onChange }:
         id={id}
         type="file"
         multiple={multiple}
-        className="sr-only"
+        className="hidden"
         accept="image/*"
         onChange={(e) => {
           if (e.target.files) {

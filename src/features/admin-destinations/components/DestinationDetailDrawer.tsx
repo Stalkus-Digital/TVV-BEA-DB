@@ -152,6 +152,11 @@ function OverviewTab({
   const [isConfirmingArchive, setIsConfirmingArchive] = useState(false);
   const editable = EDITABLE_DESTINATION_STATUSES.includes(destination.status);
 
+  const handleTogglePublish = () => {
+    const newStatus = destination.status === DestinationStatus.ACTIVE ? DestinationStatus.DRAFT : DestinationStatus.ACTIVE;
+    void updateMutation.mutateAsync({ status: newStatus });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -236,14 +241,22 @@ function OverviewTab({
       )}
 
       {destination.status !== DestinationStatus.ARCHIVED && (
-        <div className="border-t border-border pt-4">
+        <div className="border-t border-border pt-4 flex gap-2">
+          <button
+            type="button"
+            disabled={updateMutation.isPending}
+            onClick={handleTogglePublish}
+            className="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted disabled:opacity-50"
+          >
+            {destination.status === DestinationStatus.ACTIVE ? "Unpublish destination" : "Publish destination"}
+          </button>
           <button
             type="button"
             disabled={archiveMutation.isPending}
             onClick={() => setIsConfirmingArchive(true)}
-            className="px-4 py-2 text-sm border border-amber-300 text-amber-800 rounded-md hover:bg-amber-50 disabled:opacity-50"
+            className="px-4 py-2 text-sm border border-red-300 text-red-800 rounded-md hover:bg-red-50 disabled:opacity-50"
           >
-            Archive destination
+            Delete destination
           </button>
         </div>
       )}
@@ -252,8 +265,8 @@ function OverviewTab({
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setIsConfirmingArchive(false)} aria-label="Cancel" />
           <div className="relative w-full max-w-sm rounded-lg border border-border bg-white shadow-xl p-6 space-y-4">
-            <h3 className="font-semibold text-foreground">Archive Destination</h3>
-            <p className="text-sm text-muted-foreground">Are you sure you want to archive this destination? It will be hidden from the website.</p>
+            <h3 className="font-semibold text-foreground">Delete Destination</h3>
+            <p className="text-sm text-muted-foreground">Are you sure you want to completely delete this destination from the database? This action cannot be undone.</p>
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setIsConfirmingArchive(false)} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-muted transition-colors">
                 Cancel
@@ -264,9 +277,9 @@ function OverviewTab({
                   void archiveMutation.mutateAsync();
                   setIsConfirmingArchive(false);
                 }}
-                className="px-4 py-2 text-sm rounded-md bg-amber-600 text-white hover:bg-amber-700 transition-colors"
+                className="px-4 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
               >
-                Archive
+                Delete
               </button>
             </div>
           </div>

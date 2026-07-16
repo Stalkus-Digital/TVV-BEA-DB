@@ -115,6 +115,7 @@ export interface UpdateDestinationInput {
   categoryIds?: string[];
   isFeatured?: boolean;
   seo?: DestinationSeo;
+  status?: any;
 }
 
 export function validateUpdateDestination(input: unknown): Result<UpdateDestinationInput, ValidationError> {
@@ -145,6 +146,10 @@ export function validateUpdateDestination(input: unknown): Result<UpdateDestinat
     const seo = validateSeo(body.seo);
     if (!seo.ok) return seo;
     output.seo = seo.value;
+  }
+  if (body.status !== undefined) {
+    if (typeof body.status !== "string") return err(new ValidationError("status must be a string"));
+    output.status = body.status as any; // Cast to bypass strict type matching on enum
   }
 
   return ok(output);

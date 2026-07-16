@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { archiveDestination } from "../api/destinations";
+import { archiveDestination, updateDestination } from "../api/destinations";
+import { DestinationStatus } from "../constants";
 import { useDebouncedValue } from "@/features/admin-enquiries/hooks/useDebouncedValue";
 import { DestinationDetailDrawer } from "./DestinationDetailDrawer";
 import { DestinationFiltersBar } from "./DestinationFiltersBar";
@@ -24,6 +25,7 @@ export function DestinationsPage() {
   const [searchInput, setSearchInput] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(searchParams.get("selected"));
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
+  const [isPublishingId, setIsPublishingId] = useState<string | null>(null);
   const debouncedSearch = useDebouncedValue(searchInput);
 
   const queryFilters: DestinationListFilters = { ...filters, search: debouncedSearch };
@@ -41,18 +43,35 @@ export function DestinationsPage() {
     },
   });
 
+  const publishMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string, status: string }) => updateDestination(id, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "destinations"] });
+    },
+  });
+
   const handleEdit = (id: string) => {
     router.push(`/destinations/new?id=${id}`);
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this destination?")) {
+    if (window.confirm("Are you sure you want to completely delete this destination from the database?")) {
       setIsDeletingId(id);
       try {
         await deleteMutation.mutateAsync(id);
       } finally {
         setIsDeletingId(null);
       }
+    }
+  };
+
+  const handleTogglePublish = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === DestinationStatus.ACTIVE ? DestinationStatus.DRAFT : DestinationStatus.ACTIVE;
+    setIsPublishingId(id);
+    try {
+      await publishMutation.mutateAsync({ id, status: newStatus });
+    } finally {
+      setIsPublishingId(null);
     }
   };
 
@@ -93,6 +112,8 @@ export function DestinationsPage() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           isDeleting={isDeletingId}
+          onTogglePublish={handleTogglePublish}
+          isPublishing={isPublishingId}
           page={filters.page ?? 1}
           onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
         />

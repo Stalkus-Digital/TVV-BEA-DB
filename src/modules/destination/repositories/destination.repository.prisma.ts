@@ -126,4 +126,5 @@ export class PrismaDestinationRepository implements DestinationRepository {
       return err(new NotFoundError(`Destination "${id}" not found`));
     }
   }
+
 }

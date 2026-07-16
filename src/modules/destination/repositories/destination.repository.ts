@@ -25,6 +25,7 @@ export interface DestinationRepository extends BaseRepository<Destination, strin
   findBySlug(slug: string): Promise<Result<Destination | null, AppError>>;
   findByFilter(filter: DestinationListFilter): Promise<Result<PaginatedResult<Destination>, AppError>>;
   findChildren(parentDestinationId: string): Promise<Result<Destination[], AppError>>;
+  delete(id: string): Promise<Result<void, AppError>>;
 }
 
 import { PrismaStore } from "@/shared/database/prisma-store";
@@ -36,23 +37,23 @@ export class PrismaDestinationRepository extends PrismaStore<any> implements Des
   }
 
   async findBySlug(slug: string): Promise<Result<Destination | null, AppError>> {
-    return ok((await this.delegate.findMany()).find(( d: any ) => d.slug === slug) ?? null);
+    return ok((await this.delegate.findMany()).find((d: any) => d.slug === slug) ?? null);
   }
 
   async findChildren(parentDestinationId: string): Promise<Result<Destination[], AppError>> {
-    return ok((await this.delegate.findMany()).filter(( d: any ) => d.parentDestinationId === parentDestinationId));
+    return ok((await this.delegate.findMany()).filter((d: any) => d.parentDestinationId === parentDestinationId));
   }
 
   async findByFilter(filter: DestinationListFilter): Promise<Result<PaginatedResult<Destination>, AppError>> {
     let items = (await this.delegate.findMany());
-    if (filter.countryId) items = items.filter(( d: any ) => d.countryId === filter.countryId);
-    if (filter.stateId) items = items.filter(( d: any ) => d.stateId === filter.stateId);
-    if (filter.cityId) items = items.filter(( d: any ) => d.cityId === filter.cityId);
-    if (filter.categoryId) items = items.filter(( d: any ) => d.categoryIds.includes(filter.categoryId as string));
+    if (filter.countryId) items = items.filter((d: any) => d.countryId === filter.countryId);
+    if (filter.stateId) items = items.filter((d: any) => d.stateId === filter.stateId);
+    if (filter.cityId) items = items.filter((d: any) => d.cityId === filter.cityId);
+    if (filter.categoryId) items = items.filter((d: any) => d.categoryIds.includes(filter.categoryId as string));
     if (filter.parentDestinationId !== undefined) {
-      items = items.filter(( d: any ) => d.parentDestinationId === filter.parentDestinationId);
+      items = items.filter((d: any) => d.parentDestinationId === filter.parentDestinationId);
     }
-    if (filter.featured !== undefined) items = items.filter(( d: any ) => d.isFeatured === filter.featured);
+    if (filter.featured !== undefined) items = items.filter((d: any) => d.isFeatured === filter.featured);
 
     const page = filter.page ?? DEFAULT_PAGINATION.page;
     const pageSize = filter.pageSize ?? DEFAULT_PAGINATION.pageSize;

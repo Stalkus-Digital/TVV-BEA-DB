@@ -84,11 +84,11 @@ export class DestinationService extends BaseService {
     return this.repository.update(id, validated.value);
   }
 
-  async archive(id: string): Promise<Result<Destination, AppError>> {
+  async delete(id: string): Promise<Result<void, AppError>> {
     const existing = await this.getById(id);
     if (isErr(existing)) return existing;
-    this.logger.info("Archiving destination", { id });
-    return this.repository.update(id, { status: DestinationStatus.ARCHIVED });
+    this.logger.info("Deleting destination", { id });
+    return this.repository.delete(id);
   }
 
   async getChildren(id: string): Promise<Result<Destination[], AppError>> {

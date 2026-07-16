@@ -147,6 +147,7 @@ export interface UpdateDestinationInput {
   categoryIds?: string[];
   isFeatured?: boolean;
   seo?: DestinationSeo;
+  status?: DestinationStatus | string;
 }
 
 export interface CreateFaqInput {

@@ -18,6 +18,8 @@ interface DestinationsTableProps {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   isDeleting?: string | null;
+  onTogglePublish?: (id: string, currentStatus: string) => void;
+  isPublishing?: string | null;
 }
 
 export function DestinationsTable({
@@ -32,6 +34,8 @@ export function DestinationsTable({
   onEdit,
   onDelete,
   isDeleting,
+  onTogglePublish,
+  isPublishing,
 }: DestinationsTableProps) {
   if (isLoading && !data) {
     return <WidgetLoading label="Loading destinations…" />;
@@ -85,6 +89,15 @@ export function DestinationsTable({
                 <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{row.slug}</td>
                 <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatDestinationDate(row.updatedAt)}</td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
+                  {onTogglePublish && (
+                    <button
+                      disabled={isPublishing === row.id}
+                      onClick={(e) => { e.stopPropagation(); onTogglePublish(row.id, row.status); }}
+                      className="text-emerald-600 hover:underline font-medium mr-3 disabled:opacity-50"
+                    >
+                      {isPublishing === row.id ? "..." : row.status === "ACTIVE" ? "Unpublish" : "Publish"}
+                    </button>
+                  )}
                   <button
                     onClick={(e) => { e.stopPropagation(); onEdit(row.id); }}
                     className="text-blue-600 hover:underline font-medium mr-3"

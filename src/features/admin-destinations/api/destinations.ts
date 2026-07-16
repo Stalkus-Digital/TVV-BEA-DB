@@ -72,10 +72,8 @@ export async function updateDestination(id: string, input: UpdateDestinationInpu
   return result;
 }
 
-export async function archiveDestination(id: string): Promise<Destination> {
-  const result = await adminApiClient.delete<Destination>(destinationPath(id));
-  if (!result) throw new Error("Failed to archive destination");
-  return result;
+export async function archiveDestination(id: string): Promise<void> {
+  await adminApiClient.delete<void>(destinationPath(id));
 }
 
 export async function fetchDestinationBreadcrumbs(id: string): Promise<DestinationBreadcrumb[]> {

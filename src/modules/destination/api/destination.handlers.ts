@@ -30,8 +30,8 @@ export async function updateDestinationHandler(id: string, body: unknown): Promi
   return getDestinationService().update(id, body);
 }
 
-export async function archiveDestinationHandler(id: string): Promise<Result<Destination, AppError>> {
-  return getDestinationService().archive(id);
+export async function archiveDestinationHandler(id: string): Promise<Result<void, AppError>> {
+  return getDestinationService().delete(id);
 }
 
 export async function getDestinationChildrenHandler(id: string): Promise<Result<Destination[], AppError>> {

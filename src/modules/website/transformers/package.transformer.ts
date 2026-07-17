@@ -1,4 +1,6 @@
-import type { PackageTripType } from "@/modules/package/constants/trip-type";
+import type { Package } from "@/modules/package/types/package";
+import type { PackageDayWithItems } from "@/modules/package/types/package-preview";
+import type { PackagePricing } from "@/modules/package/types/package-pricing";
 import { packageTripTypeLabel } from "@/modules/package/constants/trip-type";
 import type { Destination } from "@/modules/destination";
 import { buildSeoDTO } from "../seo/seo-builder";
@@ -10,6 +12,23 @@ import type {
 import type { WebsiteBreadcrumbDTO } from "../dto/website-seo.dto";
 import type { WebsiteDestinationSummaryDTO } from "../dto/website-destination.dto";
 import { toDestinationSummary } from "./destination.transformer";
+
+function contentImages(pkg: Package): string[] {
+  const raw = pkg.content?.images;
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((url): url is string => typeof url === "string" && url.length > 0);
+}
+
+function contentString(pkg: Package, key: "inclusions" | "exclusions" | "rules"): string | null {
+  const value = pkg.content?.[key];
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function resolveHeroImage(pkg: Package): string | null {
+  return pkg.seo?.ogImageUrl ?? contentImages(pkg)[0] ?? null;
+}
 
 /**
  * Pure — no I/O, no service calls. Every piece of data (Package, its
@@ -34,7 +53,7 @@ export function toPackageSummary(
     durationNights: pkg.durationNights,
     fromPrice,
     currency,
-    heroImage: pkg.seo?.ogImageUrl ?? null,
+    heroImage: resolveHeroImage(pkg),
     tripType: pkg.tripType ?? null,
     tripTypeLabel: packageTripTypeLabel(pkg.tripType),
   };
@@ -53,6 +72,20 @@ export interface PackageDetailInput {
 
 export function toPackageDetail(input: PackageDetailInput): WebsitePackageDetailDTO {
   const summary = toPackageSummary(input.pkg, input.destination, input.fromPrice, input.pricing?.currency ?? null);
+  const fromContent = contentImages(input.pkg);
+  const fromItems = input.days.flatMap((day) => day.items.flatMap((item) => item.images));
+  const seen = new Set<string>();
+  const allImages = (fromContent.length > 0 ? fromContent : fromItems).filter((url) => {
+    if (!url || seen.has(url)) return false;
+    seen.add(url);
+    return true;
+  });
+  const hero = summary.heroImage;
+  // Gallery thumbs: remaining images after hero (frontend still prepends hero for display)
+  const gallery =
+    hero && allImages[0] === hero
+      ? allImages.slice(1)
+      : allImages.filter((url) => url !== hero);
 
   const itinerary: WebsitePackageDayDTO[] = input.days
     .sort((a, b) => a.dayNumber - b.dayNumber)
@@ -69,8 +102,6 @@ export function toPackageDetail(input: PackageDetailInput): WebsitePackageDetail
       })),
     }));
 
-  const gallery = input.days.flatMap((day) => day.items.flatMap((item) => item.images));
-
   const destinationSummary: WebsiteDestinationSummaryDTO | null = input.destination
     ? toDestinationSummary(input.destination)
     : null;
@@ -81,7 +112,7 @@ export function toPackageDetail(input: PackageDetailInput): WebsitePackageDetail
       metaTitle: input.pkg.seo?.metaTitle,
       metaDescription: input.pkg.seo?.metaDescription,
       canonicalUrl: input.pkg.seo?.canonicalUrl,
-      ogImageUrl: input.pkg.seo?.ogImageUrl,
+      ogImageUrl: input.pkg.seo?.ogImageUrl ?? hero ?? undefined,
     },
     {
       title: input.pkg.title,
@@ -97,6 +128,9 @@ export function toPackageDetail(input: PackageDetailInput): WebsitePackageDetail
       ? { currency: input.pricing.currency, basePrice: input.pricing.basePrice, fromPrice: input.fromPrice }
       : null,
     gallery,
+    inclusions: contentString(input.pkg, "inclusions"),
+    exclusions: contentString(input.pkg, "exclusions"),
+    rules: contentString(input.pkg, "rules"),
     faqs: (input.pkg.faqs || []).map((f: any) => ({ question: f.question, answer: f.answer })),
     relatedPackages: input.relatedPackages,
     destinationSummary,

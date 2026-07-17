@@ -53,6 +53,9 @@ export interface WebsitePackageDetailDTO extends WebsitePackageSummaryDTO {
   itinerary: WebsitePackageDayDTO[];
   pricing: WebsitePackagePricingDTO | null;
   gallery: string[];
+  inclusions: string | null;
+  exclusions: string | null;
+  rules: string | null;
   faqs: WebsitePackageFaqDTO[];
   relatedPackages: WebsitePackageSummaryDTO[];
   destinationSummary: WebsiteDestinationSummaryDTO | null;

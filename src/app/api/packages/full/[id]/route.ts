@@ -23,12 +23,18 @@ export async function PUT(req: Request, context: any) {
       itineraryDetails,
       inclusions,
       exclusions,
+      rules,
       hotels,
       dayDescriptions,
       images
     } = body;
 
+    const imageList = Array.isArray(images) ? images.slice(0, 5) : [];
+
     const result = await prisma.$transaction(async (tx) => {
+      const existing = await tx.package.findUnique({ where: { id }, select: { seo: true } });
+      const existingSeo = (existing?.seo && typeof existing.seo === "object" ? existing.seo : {}) as Record<string, unknown>;
+
       // 1. Update base Package
       const pkg = await tx.package.update({
         where: { id },
@@ -39,12 +45,17 @@ export async function PUT(req: Request, context: any) {
           tripType: tripType || null,
           durationDays: Number(durationDays),
           durationNights: Number(durationNights),
+          seo: {
+            ...existingSeo,
+            ...(imageList[0] ? { ogImageUrl: imageList[0] } : {}),
+          },
           content: {
             shortDescription,
             itineraryDetails,
             inclusions,
             exclusions,
-            images,
+            rules: rules || "",
+            images: imageList,
           } as any
         },
       });
@@ -163,7 +174,7 @@ export async function PUT(req: Request, context: any) {
                 description: h.location,
                 pricingMode: "INCLUDED",
                 position: j,
-                images: images || [],
+                images: imageList,
               }
             });
           }

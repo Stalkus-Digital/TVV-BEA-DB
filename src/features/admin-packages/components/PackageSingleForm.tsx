@@ -9,11 +9,12 @@ import { PackageSourceType } from "../constants";
 import { adminApiClient } from "@/lib/admin-api/client";
 import { adminEndpoints } from "@/lib/admin-api/endpoints";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFullPackage, updateFullPackage } from "../api/packages";
-import { PackageStatusBadge } from "./PackageStatusBadge";
+import { createFullPackage, publishPackage, updateFullPackage } from "../api/packages";
 import { Trash2, Plus } from "lucide-react";
 import { DescriptionEditor } from "@/features/admin-hotels/components/DescriptionEditor";
 import { ImageUploader } from "@/features/admin-hotels/components/ImageUploader";
+
+const MAX_GALLERY_IMAGES = 5;
 
 interface HotelEntry {
   dayNumber: number;
@@ -45,9 +46,10 @@ export function PackageSingleForm() {
   const [itineraryDetails, setItineraryDetails] = useState("");
   const [inclusions, setInclusions] = useState("");
   const [exclusions, setExclusions] = useState("");
+  const [rules, setRules] = useState("");
   const [days, setDays] = useState<HotelEntry[]>([]);
-  const [bannerImage, setBannerImage] = useState<File[]>([]);
-  const [images, setImages] = useState<string[]>([]);
+  const [gallery, setGallery] = useState<(File | string)[]>([]);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const { data: inventoryHotels } = useQuery({
     queryKey: ["admin", "inventory", "HOTEL"],
@@ -78,13 +80,16 @@ export function PackageSingleForm() {
       setSourceType(packageData.sourceType || PackageSourceType.MANUAL);
       setDurationDays(packageData.durationDays || 1);
       setDurationNights(packageData.durationNights || 0);
-      
+
       if (packageData.content) {
         setShortDescription(packageData.content.shortDescription || "");
         setItineraryDetails(packageData.content.itineraryDetails || "");
         setInclusions(packageData.content.inclusions || "");
         setExclusions(packageData.content.exclusions || "");
-        if (packageData.content.images) setImages(packageData.content.images);
+        setRules(packageData.content.rules || "");
+        if (Array.isArray(packageData.content.images)) {
+          setGallery(packageData.content.images.slice(0, MAX_GALLERY_IMAGES));
+        }
       }
       if (pricing) {
         setBasePrice(pricing.basePrice || 0);
@@ -92,7 +97,7 @@ export function PackageSingleForm() {
         setMinPax(previewData.rules?.minPax || 2);
         setMaxPax(previewData.rules?.maxPax || "");
       }
-      
+
       if (rawDays.length > 0) {
         const flatRows: HotelEntry[] = [];
         rawDays.forEach((d: any) => {
@@ -120,7 +125,15 @@ export function PackageSingleForm() {
   }, [previewData, editId]);
 
   const addHotel = () => {
-    setDays((prev) => [...prev, { dayNumber: prev.length > 0 ? prev[prev.length - 1].dayNumber + 1 : 1, location: "", hotelName: "", description: "" }]);
+    setDays((prev) => [
+      ...prev,
+      {
+        dayNumber: prev.length > 0 ? prev[prev.length - 1].dayNumber + 1 : 1,
+        location: "",
+        hotelName: "",
+        description: "",
+      },
+    ]);
   };
 
   const updateHotel = (idx: number, field: keyof HotelEntry, val: string | number) => {
@@ -133,104 +146,156 @@ export function PackageSingleForm() {
 
   const createMutation = useMutation({
     mutationFn: (data: any) => createFullPackage(data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin", "packages"] }); router.push("/packages"); },
   });
 
   const updateMutation = useMutation({
     mutationFn: (data: any) => updateFullPackage(editId!, data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin", "packages"] }); router.push("/packages"); },
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    let uploadedImageUrls: string[] = [];
-    if (bannerImage.length > 0) {
-      try {
-        const results = await uploadFiles(bannerImage, "PACKAGE_IMAGE");
-        uploadedImageUrls = results.map((r) => r.url);
-      } catch (err) {
-        console.error("Failed to upload images:", err);
-        alert("Failed to upload images. Please try again.");
-        return;
+    setIsPublishing(true);
+
+    try {
+      const existingUrls = gallery.filter((item): item is string => typeof item === "string");
+      const newFiles = gallery.filter((item): item is File => item instanceof File);
+
+      let uploadedImageUrls: string[] = [];
+      if (newFiles.length > 0) {
+        try {
+          const results = await uploadFiles(newFiles, "PACKAGE_IMAGE");
+          uploadedImageUrls = results.map((r) => r.url);
+        } catch (err) {
+          console.error("Failed to upload images:", err);
+          alert("Failed to upload images. Please try again.");
+          return;
+        }
       }
-    }
-    
-    const hotelsFlat = days.map((h) => ({ dayNumber: h.dayNumber, location: h.location, hotelName: h.hotelName }));
 
-    const descByDay = new Map<number, string>();
-    days.forEach((h) => { if (h.description) descByDay.set(h.dayNumber, h.description); });
-    const dayDescriptions = Array.from(descByDay.entries()).map(([dayNumber, description]) => ({
-      dayNumber,
-      title: `Day ${dayNumber}`,
-      description,
-    }));
+      // Preserve order: replace File slots with uploaded URLs in sequence
+      const orderedImages: string[] = [];
+      let uploadIdx = 0;
+      for (const item of gallery) {
+        if (typeof item === "string") {
+          orderedImages.push(item);
+        } else if (uploadIdx < uploadedImageUrls.length) {
+          orderedImages.push(uploadedImageUrls[uploadIdx++]);
+        }
+      }
+      const finalImages = (orderedImages.length > 0 ? orderedImages : existingUrls).slice(0, MAX_GALLERY_IMAGES);
 
-    const payload = { 
-      title, 
-      destinationId, 
-      tripType,
-      sourceType, 
-      durationDays, 
-      durationNights, 
-      basePrice, 
-      currency, 
-      minPax, 
-      maxPax, 
-      validFrom, 
-      validTo, 
-      shortDescription, 
-      itineraryDetails, 
-      inclusions, 
-      exclusions, 
-      hotels: hotelsFlat, 
-      dayDescriptions, 
-      images: uploadedImageUrls.length > 0 ? uploadedImageUrls : images 
-    };
-    
-    if (editId) { 
-      await updateMutation.mutateAsync(payload); 
-    } else { 
-      await createMutation.mutateAsync(payload); 
+      const hotelsFlat = days.map((h) => ({ dayNumber: h.dayNumber, location: h.location, hotelName: h.hotelName }));
+
+      const descByDay = new Map<number, string>();
+      days.forEach((h) => {
+        if (h.description) descByDay.set(h.dayNumber, h.description);
+      });
+      const dayDescriptions = Array.from(descByDay.entries()).map(([dayNumber, description]) => ({
+        dayNumber,
+        title: `Day ${dayNumber}`,
+        description,
+      }));
+
+      const payload = {
+        title,
+        destinationId,
+        tripType,
+        sourceType,
+        durationDays,
+        durationNights,
+        basePrice,
+        currency,
+        minPax,
+        maxPax,
+        validFrom,
+        validTo,
+        shortDescription,
+        itineraryDetails,
+        inclusions,
+        exclusions,
+        rules,
+        hotels: hotelsFlat,
+        dayDescriptions,
+        images: finalImages,
+      };
+
+      const saved = editId
+        ? await updateMutation.mutateAsync(payload)
+        : await createMutation.mutateAsync(payload);
+
+      const packageId = editId || saved?.id;
+      if (!packageId) {
+        throw new Error("Package saved but no id returned");
+      }
+
+      await publishPackage(packageId, editId ? "Updated and published from package builder" : "Created and published from package builder");
+
+      queryClient.invalidateQueries({ queryKey: ["admin", "packages"] });
+      router.push("/packages");
+    } catch (err: any) {
+      console.error("Failed to save/publish package:", err);
+      alert(err?.message || "Failed to save and publish package. Please try again.");
+    } finally {
+      setIsPublishing(false);
     }
   };
 
   const destinations = (destinationsQuery.data || []).filter(
     (d) => !["andaman", "domestic", "international"].includes(d.slug),
   );
-  const isSaving = createMutation.isPending || updateMutation.isPending;
+  const isSaving = createMutation.isPending || updateMutation.isPending || isPublishing;
+  const nextDayNumber = days.length > 0 ? days[days.length - 1].dayNumber + 1 : 1;
 
   return (
     <div className="flex justify-center w-full max-w-5xl mx-auto p-4 md:p-6 lg:p-8">
       <div className="w-full bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-border bg-white flex justify-between items-center">
-          <div>
-            <Link href="/packages" className="text-xs text-muted-foreground hover:text-foreground mb-2 block">← Back to packages</Link>
-            <h1 className="text-2xl font-bold">{editId ? "Edit Package" : "Create Package"}</h1>
-          </div>
-          <button onClick={handleSubmit} disabled={isSaving || !title || !destinationId || !tripType} className="px-6 py-2.5 bg-primary text-primary-foreground font-medium rounded-lg disabled:opacity-50 transition-colors">
-            {isSaving ? "Saving..." : editId ? "Update Package" : "Create Package"}
-          </button>
+        <div className="p-6 border-b border-border bg-white">
+          <Link href="/packages" className="text-xs text-muted-foreground hover:text-foreground mb-2 block">
+            ← Back to packages
+          </Link>
+          <h1 className="text-2xl font-bold">{editId ? "Edit Package" : "Create Package"}</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-10">
-
           <section className="space-y-6">
-            <div className="border-b border-border pb-2"><h2 className="text-lg font-semibold">Basic Information</h2></div>
+            <div className="border-b border-border pb-2">
+              <h2 className="text-lg font-semibold">Basic Information</h2>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-medium">Package Name</label>
-                <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Exotic Kerala Tour 5N/6D" className="w-full px-4 py-2 border border-border rounded-lg" required />
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Exotic Kerala Tour 5N/6D"
+                  className="w-full px-4 py-2 border border-border rounded-lg"
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Main Destination</label>
-                <select value={destinationId} onChange={(e) => setDestinationId(e.target.value)} className="w-full px-4 py-2 border border-border rounded-lg" required>
+                <select
+                  value={destinationId}
+                  onChange={(e) => setDestinationId(e.target.value)}
+                  className="w-full px-4 py-2 border border-border rounded-lg"
+                  required
+                >
                   <option value="">Select a destination...</option>
-                  {destinations.map((d) => (<option key={d.id} value={d.id}>{d.name}</option>))}
+                  {destinations.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">By trip type</label>
-                <select value={tripType} onChange={(e) => setTripType(e.target.value)} className="w-full px-4 py-2 border border-border rounded-lg" required>
+                <select
+                  value={tripType}
+                  onChange={(e) => setTripType(e.target.value)}
+                  className="w-full px-4 py-2 border border-border rounded-lg"
+                  required
+                >
                   <option value="HONEYMOON">Honeymoon packages</option>
                   <option value="FAMILY">Family tours packages</option>
                   <option value="LUXURY">Luxury packages</option>
@@ -240,7 +305,11 @@ export function PackageSingleForm() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Source Type</label>
-                <select value={sourceType} onChange={(e) => setSourceType(e.target.value as PackageSourceType)} className="w-full px-4 py-2 border border-border rounded-lg">
+                <select
+                  value={sourceType}
+                  onChange={(e) => setSourceType(e.target.value as PackageSourceType)}
+                  className="w-full px-4 py-2 border border-border rounded-lg"
+                >
                   <option value="MANUAL">Manual Entry</option>
                   <option value="TRIPJACK">TripJack Sync</option>
                   <option value="SEMBARK">Sembark Sync</option>
@@ -248,19 +317,42 @@ export function PackageSingleForm() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Duration (Days)</label>
-                <input type="number" min={1} value={durationDays} onChange={(e) => setDurationDays(Number(e.target.value))} className="w-full px-4 py-2 border border-border rounded-lg" />
+                <input
+                  type="number"
+                  min={1}
+                  value={durationDays}
+                  onChange={(e) => setDurationDays(Number(e.target.value))}
+                  className="w-full px-4 py-2 border border-border rounded-lg"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Duration (Nights)</label>
-                <input type="number" min={0} value={durationNights} onChange={(e) => setDurationNights(Number(e.target.value))} className="w-full px-4 py-2 border border-border rounded-lg" />
+                <input
+                  type="number"
+                  min={0}
+                  value={durationNights}
+                  onChange={(e) => setDurationNights(Number(e.target.value))}
+                  className="w-full px-4 py-2 border border-border rounded-lg"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Price Per Person</label>
-                <input type="number" min={0} value={basePrice} placeholder="0" onChange={(e) => setBasePrice(Number(e.target.value))} className="w-full px-4 py-2 border border-border rounded-lg" />
+                <input
+                  type="number"
+                  min={0}
+                  value={basePrice}
+                  placeholder="0"
+                  onChange={(e) => setBasePrice(Number(e.target.value))}
+                  className="w-full px-4 py-2 border border-border rounded-lg"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Currency</label>
-                <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full px-4 py-2 border border-border rounded-lg">
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  className="w-full px-4 py-2 border border-border rounded-lg"
+                >
                   <option value="INR">INR</option>
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
@@ -268,36 +360,88 @@ export function PackageSingleForm() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Min Capacity (Pax)</label>
-                <input type="number" min={1} value={minPax} onChange={(e) => setMinPax(Number(e.target.value))} className="w-full px-4 py-2 border border-border rounded-lg" />
+                <input
+                  type="number"
+                  min={1}
+                  value={minPax}
+                  onChange={(e) => setMinPax(Number(e.target.value))}
+                  className="w-full px-4 py-2 border border-border rounded-lg"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Max Capacity (Pax) — optional</label>
-                <input type="number" min={1} value={maxPax} placeholder="Unlimited" onChange={(e) => setMaxPax(e.target.value ? Number(e.target.value) : "")} className="w-full px-4 py-2 border border-border rounded-lg" />
+                <input
+                  type="number"
+                  min={1}
+                  value={maxPax}
+                  placeholder="Unlimited"
+                  onChange={(e) => setMaxPax(e.target.value ? Number(e.target.value) : "")}
+                  className="w-full px-4 py-2 border border-border rounded-lg"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Valid From</label>
-                <input type="date" value={validFrom} onChange={(e) => setValidFrom(e.target.value)} className="w-full px-4 py-2 border border-border rounded-lg" />
+                <input
+                  type="date"
+                  value={validFrom}
+                  onChange={(e) => setValidFrom(e.target.value)}
+                  className="w-full px-4 py-2 border border-border rounded-lg"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Valid To</label>
-                <input type="date" value={validTo} onChange={(e) => setValidTo(e.target.value)} className="w-full px-4 py-2 border border-border rounded-lg" />
+                <input
+                  type="date"
+                  value={validTo}
+                  onChange={(e) => setValidTo(e.target.value)}
+                  className="w-full px-4 py-2 border border-border rounded-lg"
+                />
               </div>
             </div>
           </section>
 
           <section className="space-y-6">
-            <div className="border-b border-border pb-2"><h2 className="text-lg font-semibold">Package Details</h2></div>
+            <div className="border-b border-border pb-2">
+              <h2 className="text-lg font-semibold">Package Details</h2>
+            </div>
             <DescriptionEditor label="Short Description" value={shortDescription} onChange={setShortDescription} rows={3} />
-            <DescriptionEditor label="Itinerary Details (Rich Text Format)" value={itineraryDetails} onChange={setItineraryDetails} rows={8} />
+            <DescriptionEditor
+              label="Itinerary Details (Rich Text Format)"
+              value={itineraryDetails}
+              onChange={setItineraryDetails}
+              rows={8}
+            />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <DescriptionEditor label="Inclusions" value={inclusions} onChange={setInclusions} rows={6} />
               <DescriptionEditor label="Exclusions" value={exclusions} onChange={setExclusions} rows={6} />
             </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Package rules & regulations</label>
+              <p className="text-xs text-muted-foreground">
+                Enter each rule on a new line. These appear under What&apos;s included on the website.
+              </p>
+              <textarea
+                value={rules}
+                onChange={(e) => setRules(e.target.value)}
+                rows={6}
+                placeholder="e.g. Valid ID required for all travellers&#10;Check-in after 2 PM"
+                className="w-full px-4 py-2 border border-border rounded-lg text-sm resize-y"
+              />
+            </div>
           </section>
 
           <section className="space-y-6">
-            <div className="border-b border-border pb-2"><h2 className="text-lg font-semibold">Media</h2></div>
-            <ImageUploader label="Package Banner Image" multiple={false} value={bannerImage} onChange={setBannerImage} />
+            <div className="border-b border-border pb-2">
+              <h2 className="text-lg font-semibold">Media</h2>
+            </div>
+            <ImageUploader
+              label="Package gallery (1 main + up to 4)"
+              hint="First image is the main hero on the left; the next four appear as thumbnails on the right."
+              multiple
+              maxFiles={MAX_GALLERY_IMAGES}
+              value={gallery}
+              onChange={setGallery}
+            />
           </section>
 
           <section className="space-y-4">
@@ -308,7 +452,7 @@ export function PackageSingleForm() {
                 onClick={addHotel}
                 className="text-sm text-primary font-medium flex items-center gap-1 hover:underline"
               >
-                <Plus className="h-4 w-4" /> Add Hotel
+                <Plus className="h-4 w-4" /> Add day plan entry
               </button>
             </div>
 
@@ -324,7 +468,9 @@ export function PackageSingleForm() {
                 {days.map((h, i) => (
                   <div key={i} className="bg-slate-50 border border-border rounded-xl p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Entry {i + 1}</span>
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        Entry {i + 1}
+                      </span>
                       <button
                         type="button"
                         onClick={() => removeHotel(i)}
@@ -367,7 +513,8 @@ export function PackageSingleForm() {
                           <option value="">Select a hotel</option>
                           {inventoryHotels?.map((inv: any) => (
                             <option key={inv.id} value={inv.name}>
-                              {inv.name}{inv.location !== "Unknown" ? ` (${inv.location})` : ""}
+                              {inv.name}
+                              {inv.location !== "Unknown" ? ` (${inv.location})` : ""}
                             </option>
                           ))}
                         </select>
@@ -386,9 +533,32 @@ export function PackageSingleForm() {
                     </div>
                   </div>
                 ))}
+
+                <button
+                  type="button"
+                  onClick={addHotel}
+                  className="w-full py-3 border border-dashed border-border rounded-lg text-sm font-medium text-primary hover:bg-slate-50 transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Day {nextDayNumber} plan entry
+                </button>
               </div>
             )}
           </section>
+
+          <div className="pt-4 border-t border-border flex justify-end">
+            <button
+              type="submit"
+              disabled={isSaving || !title || !destinationId || !tripType}
+              className="px-6 py-3 bg-primary text-primary-foreground font-medium rounded-lg disabled:opacity-50 transition-colors"
+            >
+              {isSaving
+                ? "Saving & publishing..."
+                : editId
+                  ? "Update package and publish package"
+                  : "Create package and publish package"}
+            </button>
+          </div>
         </form>
       </div>
     </div>

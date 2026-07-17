@@ -31,6 +31,7 @@ export async function POST(req: Request) {
       itineraryDetails,
       inclusions,
       exclusions,
+      rules,
       hotels,
       dayDescriptions,
       images
@@ -38,6 +39,7 @@ export async function POST(req: Request) {
 
     const slug = simpleSlugify(title) + "-" + Math.random().toString(36).slice(2, 7);
     const code = "PKG-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+    const imageList = Array.isArray(images) ? images.slice(0, 5) : [];
 
     const result = await prisma.$transaction(async (tx) => {
       // 1. Create base Package
@@ -52,12 +54,14 @@ export async function POST(req: Request) {
           durationDays: Number(durationDays),
           durationNights: Number(durationNights),
           status: "DRAFT",
+          seo: imageList[0] ? { ogImageUrl: imageList[0] } : {},
           content: {
             shortDescription,
             itineraryDetails,
             inclusions,
             exclusions,
-            images,
+            rules: rules || "",
+            images: imageList,
           } as any
         },
       });
@@ -145,7 +149,7 @@ export async function POST(req: Request) {
                 description: h.location,
                 pricingMode: "INCLUDED",
                 position: j,
-                images: images || [],
+                images: imageList,
               }
             });
           }

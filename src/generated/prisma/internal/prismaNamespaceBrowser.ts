@@ -262,6 +262,8 @@ export const PackageScalarFieldEnum = {
   sourceTemplateId: 'sourceTemplateId',
   aiGeneratedFromId: 'aiGeneratedFromId',
   status: 'status',
+  isStaffPick: 'isStaffPick',
+  flightsIncluded: 'flightsIncluded',
   currentVersionId: 'currentVersionId',
   seo: 'seo',
   faqs: 'faqs',

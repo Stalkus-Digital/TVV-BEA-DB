@@ -38,6 +38,10 @@ export function PackageSingleForm() {
   const [durationNights, setDurationNights] = useState(0);
   const [basePrice, setBasePrice] = useState(0);
   const [currency, setCurrency] = useState("INR");
+  const [discountType, setDiscountType] = useState<"PERCENTAGE" | "FLAT">("PERCENTAGE");
+  const [discountValue, setDiscountValue] = useState(0);
+  const [isStaffPick, setIsStaffPick] = useState(false);
+  const [flightsIncluded, setFlightsIncluded] = useState(false);
   const [minPax, setMinPax] = useState(2);
   const [maxPax, setMaxPax] = useState<number | "">("");
   const [validFrom, setValidFrom] = useState("");
@@ -80,6 +84,8 @@ export function PackageSingleForm() {
       setSourceType(packageData.sourceType || PackageSourceType.MANUAL);
       setDurationDays(packageData.durationDays || 1);
       setDurationNights(packageData.durationNights || 0);
+      setIsStaffPick(Boolean(packageData.isStaffPick));
+      setFlightsIncluded(Boolean(packageData.flightsIncluded));
 
       if (packageData.content) {
         setShortDescription(packageData.content.shortDescription || "");
@@ -94,6 +100,13 @@ export function PackageSingleForm() {
       if (pricing) {
         setBasePrice(pricing.basePrice || 0);
         setCurrency(pricing.currency || "INR");
+        if (pricing.discount && pricing.discount.value > 0) {
+          setDiscountType(pricing.discount.type === "FLAT" ? "FLAT" : "PERCENTAGE");
+          setDiscountValue(pricing.discount.value);
+        } else {
+          setDiscountType("PERCENTAGE");
+          setDiscountValue(0);
+        }
         setMinPax(previewData.rules?.minPax || 2);
         setMaxPax(previewData.rules?.maxPax || "");
       }
@@ -205,6 +218,9 @@ export function PackageSingleForm() {
         durationNights,
         basePrice,
         currency,
+        discount: discountValue > 0 ? { type: discountType, value: discountValue } : null,
+        isStaffPick,
+        flightsIncluded,
         minPax,
         maxPax,
         validFrom,
@@ -357,6 +373,49 @@ export function PackageSingleForm() {
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
                 </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Discount type</label>
+                <select
+                  value={discountType}
+                  onChange={(e) => setDiscountType(e.target.value as "PERCENTAGE" | "FLAT")}
+                  className="w-full px-4 py-2 border border-border rounded-lg"
+                >
+                  <option value="PERCENTAGE">Percentage (%)</option>
+                  <option value="FLAT">Flat amount</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Discount value</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={discountValue || ""}
+                  placeholder="0"
+                  onChange={(e) => setDiscountValue(Number(e.target.value) || 0)}
+                  className="w-full px-4 py-2 border border-border rounded-lg"
+                />
+                <p className="text-xs text-muted-foreground">Leave at 0 for no discount on cards.</p>
+              </div>
+              <div className="space-y-3 md:col-span-2">
+                <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isStaffPick}
+                    onChange={(e) => setIsStaffPick(e.target.checked)}
+                    className="rounded border-border"
+                  />
+                  Staff pick (shows yellow badge on website cards)
+                </label>
+                <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={flightsIncluded}
+                    onChange={(e) => setFlightsIncluded(e.target.checked)}
+                    className="rounded border-border"
+                  />
+                  Flights included (shows Flights icon on website cards)
+                </label>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Min Capacity (Pax)</label>

@@ -137,13 +137,11 @@ export class WebsitePackageService extends BaseService {
    */
   async toSummaryDTO(pkg: Package): Promise<WebsitePackageSummaryDTO> {
     const destination = await this.tryGetDestination(pkg.destinationId);
-    const pricing = await getPackagePricingService().getByPackage(pkg.id);
-    if (isErr(pricing)) {
-      return toPackageSummary(pkg, destination, null, null);
-    }
-    const computed = await getPackagePricingService().compute(pkg.id, DEFAULT_PRICE_PAX);
-    const fromPrice = isErr(computed) ? pricing.value.basePrice : computed.value.total;
-    return toPackageSummary(pkg, destination, fromPrice, pricing.value.currency);
+    const priceSummary = await this.resolvePriceSummary(pkg.id);
+    return toPackageSummary(pkg, destination, priceSummary.fromPricePerPerson, priceSummary.currency, {
+      originalFromPrice: priceSummary.originalFromPrice,
+      discount: priceSummary.discount,
+    });
   }
 
   /** Destination IDs under a market root (children + nested descendants — not the root itself). */
@@ -186,12 +184,43 @@ export class WebsitePackageService extends BaseService {
     return isErr(result) ? null : result.value;
   }
 
-  /** "From" price = live-computed price for 2 adults, falling back to raw basePrice if compute fails, null if no pricing exists at all. */
+  /** "From" price per adult = live-computed price for 2 adults ÷ 2, falling back to basePrice. */
   private async resolveFromPrice(packageId: string): Promise<number | null> {
-    const computed = await getPackagePricingService().compute(packageId, DEFAULT_PRICE_PAX);
-    if (!isErr(computed)) return computed.value.total;
+    const summary = await this.resolvePriceSummary(packageId);
+    return summary.fromPricePerPerson;
+  }
 
+  private async resolvePriceSummary(packageId: string): Promise<{
+    fromPricePerPerson: number | null;
+    originalFromPrice: number | null;
+    currency: string | null;
+    discount: { type: "PERCENTAGE" | "FLAT"; value: number } | null;
+  }> {
     const pricing = await getPackagePricingService().getByPackage(packageId);
-    return isErr(pricing) ? null : pricing.value.basePrice;
+    if (isErr(pricing)) {
+      return { fromPricePerPerson: null, originalFromPrice: null, currency: null, discount: null };
+    }
+
+    const adults = DEFAULT_PRICE_PAX.adults;
+    const computed = await getPackagePricingService().compute(packageId, DEFAULT_PRICE_PAX);
+    const fromPriceTotal = isErr(computed) ? pricing.value.basePrice * adults : computed.value.total;
+    const fromPricePerPerson = fromPriceTotal / adults;
+
+    const rawDiscount = pricing.value.discount;
+    const discount =
+      rawDiscount &&
+      typeof rawDiscount === "object" &&
+      "type" in rawDiscount &&
+      "value" in rawDiscount &&
+      Number(rawDiscount.value) > 0
+        ? { type: rawDiscount.type as "PERCENTAGE" | "FLAT", value: Number(rawDiscount.value) }
+        : null;
+
+    return {
+      fromPricePerPerson,
+      originalFromPrice: pricing.value.basePrice,
+      currency: pricing.value.currency,
+      discount,
+    };
   }
 }

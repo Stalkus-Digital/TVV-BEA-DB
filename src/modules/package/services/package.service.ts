@@ -90,6 +90,8 @@ export class PackageService extends BaseService {
       aiGeneratedFromId: null,
       status: PackageStatus.DRAFT,
       currentVersionId: null,
+      isStaffPick: false,
+      flightsIncluded: false,
       faqs: [],
       createdAt: now,
       updatedAt: now,

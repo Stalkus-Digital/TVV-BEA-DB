@@ -51,6 +51,8 @@ export type PackageMinAggregateOutputType = {
   sourceTemplateId: string | null
   aiGeneratedFromId: string | null
   status: string | null
+  isStaffPick: boolean | null
+  flightsIncluded: boolean | null
   currentVersionId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -71,6 +73,8 @@ export type PackageMaxAggregateOutputType = {
   sourceTemplateId: string | null
   aiGeneratedFromId: string | null
   status: string | null
+  isStaffPick: boolean | null
+  flightsIncluded: boolean | null
   currentVersionId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -91,6 +95,8 @@ export type PackageCountAggregateOutputType = {
   sourceTemplateId: number
   aiGeneratedFromId: number
   status: number
+  isStaffPick: number
+  flightsIncluded: number
   currentVersionId: number
   seo: number
   faqs: number
@@ -126,6 +132,8 @@ export type PackageMinAggregateInputType = {
   sourceTemplateId?: true
   aiGeneratedFromId?: true
   status?: true
+  isStaffPick?: true
+  flightsIncluded?: true
   currentVersionId?: true
   createdAt?: true
   updatedAt?: true
@@ -146,6 +154,8 @@ export type PackageMaxAggregateInputType = {
   sourceTemplateId?: true
   aiGeneratedFromId?: true
   status?: true
+  isStaffPick?: true
+  flightsIncluded?: true
   currentVersionId?: true
   createdAt?: true
   updatedAt?: true
@@ -166,6 +176,8 @@ export type PackageCountAggregateInputType = {
   sourceTemplateId?: true
   aiGeneratedFromId?: true
   status?: true
+  isStaffPick?: true
+  flightsIncluded?: true
   currentVersionId?: true
   seo?: true
   faqs?: true
@@ -276,6 +288,8 @@ export type PackageGroupByOutputType = {
   sourceTemplateId: string | null
   aiGeneratedFromId: string | null
   status: string
+  isStaffPick: boolean
+  flightsIncluded: boolean
   currentVersionId: string | null
   seo: runtime.JsonValue | null
   faqs: runtime.JsonValue | null
@@ -322,6 +336,8 @@ export type PackageWhereInput = {
   sourceTemplateId?: Prisma.StringNullableFilter<"Package"> | string | null
   aiGeneratedFromId?: Prisma.StringNullableFilter<"Package"> | string | null
   status?: Prisma.StringFilter<"Package"> | string
+  isStaffPick?: Prisma.BoolFilter<"Package"> | boolean
+  flightsIncluded?: Prisma.BoolFilter<"Package"> | boolean
   currentVersionId?: Prisma.StringNullableFilter<"Package"> | string | null
   seo?: Prisma.JsonNullableFilter<"Package">
   faqs?: Prisma.JsonNullableFilter<"Package">
@@ -346,6 +362,8 @@ export type PackageOrderByWithRelationInput = {
   sourceTemplateId?: Prisma.SortOrderInput | Prisma.SortOrder
   aiGeneratedFromId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  isStaffPick?: Prisma.SortOrder
+  flightsIncluded?: Prisma.SortOrder
   currentVersionId?: Prisma.SortOrderInput | Prisma.SortOrder
   seo?: Prisma.SortOrderInput | Prisma.SortOrder
   faqs?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -373,6 +391,8 @@ export type PackageWhereUniqueInput = Prisma.AtLeast<{
   sourceTemplateId?: Prisma.StringNullableFilter<"Package"> | string | null
   aiGeneratedFromId?: Prisma.StringNullableFilter<"Package"> | string | null
   status?: Prisma.StringFilter<"Package"> | string
+  isStaffPick?: Prisma.BoolFilter<"Package"> | boolean
+  flightsIncluded?: Prisma.BoolFilter<"Package"> | boolean
   currentVersionId?: Prisma.StringNullableFilter<"Package"> | string | null
   seo?: Prisma.JsonNullableFilter<"Package">
   faqs?: Prisma.JsonNullableFilter<"Package">
@@ -397,6 +417,8 @@ export type PackageOrderByWithAggregationInput = {
   sourceTemplateId?: Prisma.SortOrderInput | Prisma.SortOrder
   aiGeneratedFromId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  isStaffPick?: Prisma.SortOrder
+  flightsIncluded?: Prisma.SortOrder
   currentVersionId?: Prisma.SortOrderInput | Prisma.SortOrder
   seo?: Prisma.SortOrderInput | Prisma.SortOrder
   faqs?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -428,6 +450,8 @@ export type PackageScalarWhereWithAggregatesInput = {
   sourceTemplateId?: Prisma.StringNullableWithAggregatesFilter<"Package"> | string | null
   aiGeneratedFromId?: Prisma.StringNullableWithAggregatesFilter<"Package"> | string | null
   status?: Prisma.StringWithAggregatesFilter<"Package"> | string
+  isStaffPick?: Prisma.BoolWithAggregatesFilter<"Package"> | boolean
+  flightsIncluded?: Prisma.BoolWithAggregatesFilter<"Package"> | boolean
   currentVersionId?: Prisma.StringNullableWithAggregatesFilter<"Package"> | string | null
   seo?: Prisma.JsonNullableWithAggregatesFilter<"Package">
   faqs?: Prisma.JsonNullableWithAggregatesFilter<"Package">
@@ -451,6 +475,8 @@ export type PackageCreateInput = {
   sourceTemplateId?: string | null
   aiGeneratedFromId?: string | null
   status: string
+  isStaffPick?: boolean
+  flightsIncluded?: boolean
   currentVersionId?: string | null
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -475,6 +501,8 @@ export type PackageUncheckedCreateInput = {
   sourceTemplateId?: string | null
   aiGeneratedFromId?: string | null
   status: string
+  isStaffPick?: boolean
+  flightsIncluded?: boolean
   currentVersionId?: string | null
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -499,6 +527,8 @@ export type PackageUpdateInput = {
   sourceTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  isStaffPick?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flightsIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -523,6 +553,8 @@ export type PackageUncheckedUpdateInput = {
   sourceTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  isStaffPick?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flightsIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -547,6 +579,8 @@ export type PackageCreateManyInput = {
   sourceTemplateId?: string | null
   aiGeneratedFromId?: string | null
   status: string
+  isStaffPick?: boolean
+  flightsIncluded?: boolean
   currentVersionId?: string | null
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -570,6 +604,8 @@ export type PackageUpdateManyMutationInput = {
   sourceTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  isStaffPick?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flightsIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -593,6 +629,8 @@ export type PackageUncheckedUpdateManyInput = {
   sourceTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  isStaffPick?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flightsIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -616,6 +654,8 @@ export type PackageCountOrderByAggregateInput = {
   sourceTemplateId?: Prisma.SortOrder
   aiGeneratedFromId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  isStaffPick?: Prisma.SortOrder
+  flightsIncluded?: Prisma.SortOrder
   currentVersionId?: Prisma.SortOrder
   seo?: Prisma.SortOrder
   faqs?: Prisma.SortOrder
@@ -644,6 +684,8 @@ export type PackageMaxOrderByAggregateInput = {
   sourceTemplateId?: Prisma.SortOrder
   aiGeneratedFromId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  isStaffPick?: Prisma.SortOrder
+  flightsIncluded?: Prisma.SortOrder
   currentVersionId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -664,6 +706,8 @@ export type PackageMinOrderByAggregateInput = {
   sourceTemplateId?: Prisma.SortOrder
   aiGeneratedFromId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  isStaffPick?: Prisma.SortOrder
+  flightsIncluded?: Prisma.SortOrder
   currentVersionId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -716,6 +760,8 @@ export type PackageCreateWithoutDaysInput = {
   sourceTemplateId?: string | null
   aiGeneratedFromId?: string | null
   status: string
+  isStaffPick?: boolean
+  flightsIncluded?: boolean
   currentVersionId?: string | null
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -739,6 +785,8 @@ export type PackageUncheckedCreateWithoutDaysInput = {
   sourceTemplateId?: string | null
   aiGeneratedFromId?: string | null
   status: string
+  isStaffPick?: boolean
+  flightsIncluded?: boolean
   currentVersionId?: string | null
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -778,6 +826,8 @@ export type PackageUpdateWithoutDaysInput = {
   sourceTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  isStaffPick?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flightsIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -801,6 +851,8 @@ export type PackageUncheckedUpdateWithoutDaysInput = {
   sourceTemplateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   aiGeneratedFromId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  isStaffPick?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flightsIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -855,6 +907,8 @@ export type PackageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   sourceTemplateId?: boolean
   aiGeneratedFromId?: boolean
   status?: boolean
+  isStaffPick?: boolean
+  flightsIncluded?: boolean
   currentVersionId?: boolean
   seo?: boolean
   faqs?: boolean
@@ -880,6 +934,8 @@ export type PackageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   sourceTemplateId?: boolean
   aiGeneratedFromId?: boolean
   status?: boolean
+  isStaffPick?: boolean
+  flightsIncluded?: boolean
   currentVersionId?: boolean
   seo?: boolean
   faqs?: boolean
@@ -903,6 +959,8 @@ export type PackageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   sourceTemplateId?: boolean
   aiGeneratedFromId?: boolean
   status?: boolean
+  isStaffPick?: boolean
+  flightsIncluded?: boolean
   currentVersionId?: boolean
   seo?: boolean
   faqs?: boolean
@@ -926,6 +984,8 @@ export type PackageSelectScalar = {
   sourceTemplateId?: boolean
   aiGeneratedFromId?: boolean
   status?: boolean
+  isStaffPick?: boolean
+  flightsIncluded?: boolean
   currentVersionId?: boolean
   seo?: boolean
   faqs?: boolean
@@ -934,7 +994,7 @@ export type PackageSelectScalar = {
   updatedAt?: boolean
 }
 
-export type PackageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "code" | "slug" | "destinationId" | "sourceType" | "tripType" | "durationDays" | "durationNights" | "durationText" | "isTemplate" | "sourceTemplateId" | "aiGeneratedFromId" | "status" | "currentVersionId" | "seo" | "faqs" | "content" | "createdAt" | "updatedAt", ExtArgs["result"]["package"]>
+export type PackageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "code" | "slug" | "destinationId" | "sourceType" | "tripType" | "durationDays" | "durationNights" | "durationText" | "isTemplate" | "sourceTemplateId" | "aiGeneratedFromId" | "status" | "isStaffPick" | "flightsIncluded" | "currentVersionId" | "seo" | "faqs" | "content" | "createdAt" | "updatedAt", ExtArgs["result"]["package"]>
 export type PackageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   days?: boolean | Prisma.Package$daysArgs<ExtArgs>
   _count?: boolean | Prisma.PackageCountOutputTypeDefaultArgs<ExtArgs>
@@ -962,6 +1022,8 @@ export type $PackagePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     sourceTemplateId: string | null
     aiGeneratedFromId: string | null
     status: string
+    isStaffPick: boolean
+    flightsIncluded: boolean
     currentVersionId: string | null
     seo: runtime.JsonValue | null
     faqs: runtime.JsonValue | null
@@ -1406,6 +1468,8 @@ export interface PackageFieldRefs {
   readonly sourceTemplateId: Prisma.FieldRef<"Package", 'String'>
   readonly aiGeneratedFromId: Prisma.FieldRef<"Package", 'String'>
   readonly status: Prisma.FieldRef<"Package", 'String'>
+  readonly isStaffPick: Prisma.FieldRef<"Package", 'Boolean'>
+  readonly flightsIncluded: Prisma.FieldRef<"Package", 'Boolean'>
   readonly currentVersionId: Prisma.FieldRef<"Package", 'String'>
   readonly seo: Prisma.FieldRef<"Package", 'Json'>
   readonly faqs: Prisma.FieldRef<"Package", 'Json'>

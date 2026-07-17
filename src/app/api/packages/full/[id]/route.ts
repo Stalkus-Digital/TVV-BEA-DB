@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/shared/database/prisma-client";
-import { isErr } from "@/shared/types";
+
+function normalizeDiscount(
+  discount: unknown,
+): Prisma.InputJsonValue | typeof Prisma.JsonNull | undefined {
+  if (discount === undefined) return undefined;
+  if (discount === null) return Prisma.JsonNull;
+  if (typeof discount === "object" && discount !== null && "value" in discount && Number(discount.value) > 0) {
+    const typed = discount as { type: string; value: number };
+    return { type: typed.type, value: Number(typed.value) };
+  }
+  return Prisma.JsonNull;
+}
 
 export async function PUT(req: Request, context: any) {
   try {
@@ -26,7 +38,10 @@ export async function PUT(req: Request, context: any) {
       rules,
       hotels,
       dayDescriptions,
-      images
+      images,
+      isStaffPick,
+      flightsIncluded,
+      discount,
     } = body;
 
     const imageList = Array.isArray(images) ? images.slice(0, 5) : [];
@@ -45,6 +60,8 @@ export async function PUT(req: Request, context: any) {
           tripType: tripType || null,
           durationDays: Number(durationDays),
           durationNights: Number(durationNights),
+          isStaffPick: Boolean(isStaffPick),
+          flightsIncluded: Boolean(flightsIncluded),
           seo: {
             ...existingSeo,
             ...(imageList[0] ? { ogImageUrl: imageList[0] } : {}),
@@ -62,17 +79,20 @@ export async function PUT(req: Request, context: any) {
 
       // 2. Update or Create Pricing
       if (basePrice !== undefined) {
+        const discountPayload = normalizeDiscount(discount);
         await tx.packagePricing.upsert({
           where: { packageId: id },
           update: {
             basePrice: Number(basePrice),
             currency: currency || "INR",
+            ...(discountPayload !== undefined ? { discount: discountPayload } : {}),
             updatedAt: new Date(),
           },
           create: {
             packageId: id,
             basePrice: Number(basePrice),
             currency: currency || "INR",
+            discount: discountPayload ?? Prisma.JsonNull,
             occupancyPricing: [],
             childPricing: [],
             groupPricing: [],
@@ -80,6 +100,11 @@ export async function PUT(req: Request, context: any) {
             createdAt: new Date(),
             updatedAt: new Date(),
           }
+        });
+      } else if (discount !== undefined) {
+        await tx.packagePricing.updateMany({
+          where: { packageId: id },
+          data: { discount: normalizeDiscount(discount), updatedAt: new Date() },
         });
       }
 

@@ -37,11 +37,17 @@ function resolveHeroImage(pkg: Package): string | null {
  * the internal Package/PackagePreview entity to a caller outside this
  * module — only these DTOs cross the module boundary via api/.
  */
+export interface PackageSummaryExtras {
+  originalFromPrice?: number | null;
+  discount?: { type: "PERCENTAGE" | "FLAT"; value: number } | null;
+}
+
 export function toPackageSummary(
   pkg: Package,
   destination: Destination | null,
   fromPrice: number | null,
-  currency: string | null
+  currency: string | null,
+  extras?: PackageSummaryExtras,
 ): WebsitePackageSummaryDTO {
   return {
     id: pkg.id,
@@ -52,10 +58,14 @@ export function toPackageSummary(
     durationDays: pkg.durationDays,
     durationNights: pkg.durationNights,
     fromPrice,
+    originalFromPrice: extras?.originalFromPrice ?? null,
     currency,
     heroImage: resolveHeroImage(pkg),
     tripType: pkg.tripType ?? null,
     tripTypeLabel: packageTripTypeLabel(pkg.tripType),
+    isStaffPick: pkg.isStaffPick ?? false,
+    flightsIncluded: pkg.flightsIncluded ?? false,
+    discount: extras?.discount ?? null,
   };
 }
 

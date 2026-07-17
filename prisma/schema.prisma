@@ -162,6 +162,8 @@ model Package {
   sourceTemplateId  String?
   aiGeneratedFromId String?
   status            String
+  isStaffPick       Boolean  @default(false)
+  flightsIncluded   Boolean  @default(false)
   currentVersionId  String?
   seo               Json?
   faqs              Json?

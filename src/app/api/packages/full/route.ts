@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/shared/database/prisma-client";
-import { isErr } from "@/shared/types";
+
+function normalizeDiscount(
+  discount: unknown,
+): Prisma.InputJsonValue | typeof Prisma.JsonNull | undefined {
+  if (discount === undefined) return undefined;
+  if (discount === null) return Prisma.JsonNull;
+  if (typeof discount === "object" && discount !== null && "value" in discount && Number(discount.value) > 0) {
+    const typed = discount as { type: string; value: number };
+    return { type: typed.type, value: Number(typed.value) };
+  }
+  return Prisma.JsonNull;
+}
 
 function simpleSlugify(text: string) {
   return text.toString().toLowerCase()
@@ -34,7 +46,10 @@ export async function POST(req: Request) {
       rules,
       hotels,
       dayDescriptions,
-      images
+      images,
+      isStaffPick,
+      flightsIncluded,
+      discount,
     } = body;
 
     const slug = simpleSlugify(title) + "-" + Math.random().toString(36).slice(2, 7);
@@ -54,6 +69,8 @@ export async function POST(req: Request) {
           durationDays: Number(durationDays),
           durationNights: Number(durationNights),
           status: "DRAFT",
+          isStaffPick: Boolean(isStaffPick),
+          flightsIncluded: Boolean(flightsIncluded),
           seo: imageList[0] ? { ogImageUrl: imageList[0] } : {},
           content: {
             shortDescription,
@@ -67,12 +84,14 @@ export async function POST(req: Request) {
       });
 
       // 2. Create Pricing
-      if (basePrice) {
+      if (basePrice !== undefined && basePrice !== null && basePrice !== "") {
+        const discountPayload = normalizeDiscount(discount);
         await tx.packagePricing.create({
           data: {
             packageId: pkg.id,
             basePrice: Number(basePrice),
             currency: currency || "INR",
+            ...(discountPayload !== undefined ? { discount: discountPayload } : {}),
             occupancyPricing: [],
             childPricing: [],
             groupPricing: [],

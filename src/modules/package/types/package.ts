@@ -70,6 +70,8 @@ export interface Package {
   sourceTemplateId: string | null;
   aiGeneratedFromId: string | null;
   status: PackageStatus;
+  isStaffPick: boolean;
+  flightsIncluded: boolean;
   currentVersionId: string | null;
   seo: PackageSeo;
   faqs: PackageFaqEntry[];

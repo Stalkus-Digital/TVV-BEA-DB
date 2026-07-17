@@ -17,10 +17,14 @@ export interface WebsitePackageSummaryDTO {
   durationDays: number;
   durationNights: number;
   fromPrice: number | null;
+  originalFromPrice: number | null;
   currency: string | null;
   heroImage: string | null;
   tripType: PackageTripType | null;
   tripTypeLabel: string | null;
+  isStaffPick: boolean;
+  flightsIncluded: boolean;
+  discount: { type: "PERCENTAGE" | "FLAT"; value: number } | null;
 }
 
 export interface WebsitePackageItemDTO {

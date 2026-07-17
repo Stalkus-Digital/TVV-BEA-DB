@@ -7,12 +7,33 @@ import { ImageUploader } from "@/features/admin-hotels/components/ImageUploader"
 import { adminApiClient } from "@/lib/admin-api/client";
 import { uploadFile } from "@/lib/admin-api/upload";
 
+const GUIDE_CATEGORIES = [
+  "Andaman",
+  "Kerala",
+  "Maldives",
+  "Honeymoon",
+  "Luxury",
+  "Ferry Guide",
+  "International",
+  "Bali",
+  "Dubai",
+  "Leh-Ladakh",
+  "Packing Tips",
+  "Travel Hacks",
+  "Hotel Reviews",
+] as const;
+
+const CUSTOM_CATEGORY = "__custom__";
+
 interface GuideContent {
   body?: string;
   excerpt?: string;
   metaTitle?: string;
   metaDescription?: string;
   coverImage?: string;
+  category?: string;
+  tags?: string[];
+  author?: string;
 }
 
 interface Guide {
@@ -34,6 +55,8 @@ interface GuideFormState {
   metaTitle: string;
   metaDescription: string;
   coverImage: string;
+  category: string;
+  tags: string[];
 }
 
 const EMPTY_FORM: GuideFormState = {
@@ -46,6 +69,8 @@ const EMPTY_FORM: GuideFormState = {
   metaTitle: "",
   metaDescription: "",
   coverImage: "",
+  category: "Andaman",
+  tags: [],
 };
 
 function slugify(value: string): string {
@@ -58,9 +83,27 @@ function slugify(value: string): string {
     .replace(/^-|-$/g, "");
 }
 
+function normalizeTag(value: string): string {
+  return slugify(value);
+}
+
 function parseContent(content: Guide["content"]): GuideContent {
   if (!content || typeof content !== "object" || Array.isArray(content)) return {};
   return content as GuideContent;
+}
+
+function contentCategory(content: GuideContent): string {
+  return typeof content.category === "string" && content.category.trim()
+    ? content.category.trim()
+    : "Guides";
+}
+
+function contentTags(content: GuideContent): string[] {
+  if (!Array.isArray(content.tags)) return [];
+  return content.tags
+    .filter((t): t is string => typeof t === "string")
+    .map(normalizeTag)
+    .filter(Boolean);
 }
 
 export function GuidesPage() {
@@ -70,6 +113,8 @@ export function GuidesPage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState<GuideFormState>(EMPTY_FORM);
+  const [categoryMode, setCategoryMode] = useState<"preset" | "custom">("preset");
+  const [tagDraft, setTagDraft] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
@@ -101,6 +146,8 @@ export function GuidesPage() {
 
   function openCreate() {
     setForm(EMPTY_FORM);
+    setCategoryMode("preset");
+    setTagDraft("");
     setSlugTouched(false);
     setFormError(null);
     setIsEditing(true);
@@ -116,6 +163,8 @@ export function GuidesPage() {
         return;
       }
       const content = parseContent(guide.content);
+      const category = contentCategory(content);
+      const isPreset = (GUIDE_CATEGORIES as readonly string[]).includes(category);
       setForm({
         id: guide.id,
         title: guide.title,
@@ -126,7 +175,11 @@ export function GuidesPage() {
         metaTitle: content.metaTitle ?? "",
         metaDescription: content.metaDescription ?? "",
         coverImage: typeof content.coverImage === "string" ? content.coverImage : "",
+        category: category === "Guides" ? "Andaman" : category,
+        tags: contentTags(content),
       });
+      setCategoryMode(isPreset || category === "Guides" ? "preset" : "custom");
+      setTagDraft("");
       setSlugTouched(true);
       setIsEditing(true);
     } catch {
@@ -134,6 +187,19 @@ export function GuidesPage() {
     } finally {
       setIsLoadingEdit(false);
     }
+  }
+
+  function addTag(raw: string) {
+    const tag = normalizeTag(raw);
+    if (!tag) return;
+    setForm((prev) =>
+      prev.tags.includes(tag) ? prev : { ...prev, tags: [...prev.tags, tag] }
+    );
+    setTagDraft("");
+  }
+
+  function removeTag(tag: string) {
+    setForm((prev) => ({ ...prev, tags: prev.tags.filter((t) => t !== tag) }));
   }
 
   async function saveGuide(status: "DRAFT" | "PUBLISHED") {
@@ -144,6 +210,11 @@ export function GuidesPage() {
     const slug = slugify(form.slug.trim() || form.title);
     if (!slug) {
       setFormError("Slug is required");
+      return;
+    }
+    const category = form.category.trim();
+    if (!category) {
+      setFormError("Category is required");
       return;
     }
 
@@ -162,6 +233,8 @@ export function GuidesPage() {
         metaTitle: form.metaTitle,
         metaDescription: form.metaDescription,
         coverImage,
+        category,
+        tags: form.tags,
       },
     };
 
@@ -245,6 +318,11 @@ export function GuidesPage() {
     }));
   }
 
+  const categorySelectValue =
+    categoryMode === "custom" || !(GUIDE_CATEGORIES as readonly string[]).includes(form.category)
+      ? CUSTOM_CATEGORY
+      : form.category;
+
   return (
     <CmsPageShell
       title="Guides (Blogs)"
@@ -297,6 +375,86 @@ export function GuidesPage() {
               className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm font-mono"
               placeholder="url-friendly-slug"
             />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-xs font-medium mb-1">Category</label>
+              <select
+                value={categorySelectValue}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === CUSTOM_CATEGORY) {
+                    setCategoryMode("custom");
+                    setForm((prev) => ({
+                      ...prev,
+                      category: (GUIDE_CATEGORIES as readonly string[]).includes(prev.category)
+                        ? ""
+                        : prev.category,
+                    }));
+                    return;
+                  }
+                  setCategoryMode("preset");
+                  setForm((prev) => ({ ...prev, category: value }));
+                }}
+                className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
+              >
+                {GUIDE_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+                <option value={CUSTOM_CATEGORY}>Custom…</option>
+              </select>
+              {categoryMode === "custom" && (
+                <input
+                  value={form.category}
+                  onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
+                  className="mt-2 w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
+                  placeholder="Custom category name"
+                />
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium mb-1">Tags</label>
+              <input
+                value={tagDraft}
+                onChange={(e) => setTagDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === ",") {
+                    e.preventDefault();
+                    addTag(tagDraft);
+                  }
+                }}
+                onBlur={() => {
+                  if (tagDraft.trim()) addTag(tagDraft);
+                }}
+                className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
+                placeholder="Add tag + Enter"
+              />
+              {form.tags.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {form.tags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => removeTag(tag)}
+                      className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-200"
+                      title="Remove tag"
+                    >
+                      {tag}
+                      <span aria-hidden className="text-slate-400">
+                        ×
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Used as filters on the public guides page.
+              </p>
+            </div>
           </div>
 
           <div>
@@ -407,7 +565,8 @@ export function GuidesPage() {
             <thead className="bg-muted/50 border-b border-border">
               <tr>
                 <th className="text-left px-4 py-3 font-medium">Title</th>
-                <th className="text-left px-4 py-3 font-medium">Slug</th>
+                <th className="text-left px-4 py-3 font-medium">Category</th>
+                <th className="text-left px-4 py-3 font-medium">Tags</th>
                 <th className="text-left px-4 py-3 font-medium">Status</th>
                 <th className="text-right px-4 py-3 font-medium">Actions</th>
               </tr>
@@ -416,10 +575,32 @@ export function GuidesPage() {
               {guides.map((guide) => {
                 const isPublished = guide.status === "PUBLISHED";
                 const isUpdating = statusUpdatingId === guide.id;
+                const content = parseContent(guide.content);
+                const category = contentCategory(content);
+                const tags = contentTags(content);
                 return (
                   <tr key={guide.id} className="border-b border-border last:border-0">
-                    <td className="px-4 py-3 font-medium text-foreground">{guide.title}</td>
-                    <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{guide.slug}</td>
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-foreground">{guide.title}</p>
+                      <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{guide.slug}</p>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-foreground">{category}</td>
+                    <td className="px-4 py-3">
+                      {tags.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
@@ -460,7 +641,7 @@ export function GuidesPage() {
               })}
               {guides.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
                     No guides found
                   </td>
                 </tr>

@@ -4,16 +4,15 @@ const corsEnvSchema = {
   /**
    * Comma-separated list of exact origins (`scheme://host[:port]`, no
    * trailing slash, no path) allowed to make cross-origin requests to this
-   * API. Defaults to the known local Website frontend dev port only —
-   * safe for local development, but MUST be overridden with the real
-   * production frontend origin(s) before any non-local deployment. Never
-   * "*" — this project's docs/37 audit found the browser blocks every
-   * cross-origin authenticated call without this being correctly set, and
-   * a wildcard would defeat the point of allow-listing in the first place
-   * (also incompatible with `Access-Control-Allow-Credentials: true`,
-   * which the CORS spec forbids pairing with a wildcard origin).
+   * API. Defaults to local Website frontend + the Vercel production site.
+   * Override with CORS_ALLOWED_ORIGINS for additional custom domains. Never
+   * "*" — incompatible with `Access-Control-Allow-Credentials: true`.
    */
-  allowedOrigins: { key: "CORS_ALLOWED_ORIGINS", type: "string", default: "http://localhost:3001" },
+  allowedOrigins: {
+    key: "CORS_ALLOWED_ORIGINS",
+    type: "string",
+    default: "http://localhost:3001,https://tvv-frontend-final.vercel.app",
+  },
 } satisfies EnvSchema;
 
 export interface CorsConfigValues {
@@ -41,6 +40,10 @@ export class CorsConfigService {
         .map((origin) => origin.trim())
         .filter((origin) => origin.length > 0)
     );
+    // Ensure production website can call the API even if Vercel env still
+    // only lists localhost (common misconfig after the default was localhost-only).
+    this.allowedOrigins.add("https://tvv-frontend-final.vercel.app");
+    this.allowedOrigins.add("http://localhost:3001");
   }
 
   static getInstance(): CorsConfigService {

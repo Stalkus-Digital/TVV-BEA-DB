@@ -34,6 +34,8 @@ interface GuideContent {
   category?: string;
   tags?: string[];
   author?: string;
+  /** Display date on the public byline (YYYY-MM-DD) */
+  publishDate?: string;
 }
 
 interface Guide {
@@ -57,6 +59,16 @@ interface GuideFormState {
   coverImage: string;
   category: string;
   tags: string[];
+  author: string;
+  publishDate: string;
+}
+
+function todayDateInput(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 const EMPTY_FORM: GuideFormState = {
@@ -71,6 +83,8 @@ const EMPTY_FORM: GuideFormState = {
   coverImage: "",
   category: "Andaman",
   tags: [],
+  author: "TVV Editorial",
+  publishDate: todayDateInput(),
 };
 
 function slugify(value: string): string {
@@ -145,7 +159,7 @@ export function GuidesPage() {
   }
 
   function openCreate() {
-    setForm(EMPTY_FORM);
+    setForm({ ...EMPTY_FORM, publishDate: todayDateInput(), author: "TVV Editorial" });
     setCategoryMode("preset");
     setTagDraft("");
     setSlugTouched(false);
@@ -165,6 +179,12 @@ export function GuidesPage() {
       const content = parseContent(guide.content);
       const category = contentCategory(content);
       const isPreset = (GUIDE_CATEGORIES as readonly string[]).includes(category);
+      const publishDate =
+        typeof content.publishDate === "string" && /^\d{4}-\d{2}-\d{2}/.test(content.publishDate)
+          ? content.publishDate.slice(0, 10)
+          : guide.createdAt
+            ? guide.createdAt.slice(0, 10)
+            : todayDateInput();
       setForm({
         id: guide.id,
         title: guide.title,
@@ -177,6 +197,11 @@ export function GuidesPage() {
         coverImage: typeof content.coverImage === "string" ? content.coverImage : "",
         category: category === "Guides" ? "Andaman" : category,
         tags: contentTags(content),
+        author:
+          typeof content.author === "string" && content.author.trim()
+            ? content.author.trim()
+            : "TVV Editorial",
+        publishDate,
       });
       setCategoryMode(isPreset || category === "Guides" ? "preset" : "custom");
       setTagDraft("");
@@ -223,6 +248,9 @@ export function GuidesPage() {
 
     const coverImage = typeof form.coverImage === "string" ? form.coverImage.trim() : "";
 
+    const author = form.author.trim() || "TVV Editorial";
+    const publishDate = form.publishDate.trim();
+
     const payload = {
       title: form.title.trim(),
       slug,
@@ -235,6 +263,8 @@ export function GuidesPage() {
         coverImage,
         category,
         tags: form.tags,
+        author,
+        ...(publishDate ? { publishDate } : {}),
       },
     };
 
@@ -453,6 +483,33 @@ export function GuidesPage() {
               )}
               <p className="mt-1 text-[11px] text-muted-foreground">
                 Used as filters on the public guides page.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-xs font-medium mb-1">Author</label>
+              <input
+                value={form.author}
+                onChange={(e) => setForm((prev) => ({ ...prev, author: e.target.value }))}
+                className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
+                placeholder="TVV Editorial"
+              />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Shown as “Words by …” on the guide page.
+              </p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Publish date</label>
+              <input
+                type="date"
+                value={form.publishDate}
+                onChange={(e) => setForm((prev) => ({ ...prev, publishDate: e.target.value }))}
+                className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
+              />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Month and year shown in the hero byline. Optional.
               </p>
             </div>
           </div>

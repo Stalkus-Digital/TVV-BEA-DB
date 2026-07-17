@@ -12,6 +12,8 @@ export type CmsGuideContent = {
   author?: string;
   tags?: string[];
   readTime?: string;
+  /** Display date override (YYYY-MM-DD) from the CMS editor */
+  publishDate?: string;
 };
 
 type CmsGuideRow = {
@@ -41,6 +43,17 @@ function estimateReadTime(html: string): string {
   return `${mins} min`;
 }
 
+function resolvePublishedAt(content: CmsGuideContent, guide: CmsGuideRow): string {
+  const raw = typeof content.publishDate === "string" ? content.publishDate.trim() : "";
+  if (raw) {
+    // Treat YYYY-MM-DD as a calendar date in UTC noon to avoid timezone day-shift
+    const iso = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T12:00:00.000Z` : raw;
+    const parsed = new Date(iso);
+    if (!Number.isNaN(parsed.getTime())) return parsed.toISOString();
+  }
+  return (guide.publishedAt ?? guide.createdAt ?? new Date()).toISOString();
+}
+
 const PLACEHOLDER_IMAGE =
   "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&q=80";
 
@@ -48,6 +61,10 @@ export function mapCmsGuideToPublic(guide: CmsGuideRow, options: { includeBody?:
   const content = asContent(guide.content);
   const body = typeof content.body === "string" ? content.body : "";
   const includeBody = options.includeBody !== false;
+  const author =
+    typeof content.author === "string" && content.author.trim()
+      ? content.author.trim()
+      : "TVV Editorial";
 
   return {
     slug: guide.slug,
@@ -57,10 +74,10 @@ export function mapCmsGuideToPublic(guide: CmsGuideRow, options: { includeBody?:
     category: content.category || "Guides",
     tags: Array.isArray(content.tags) ? content.tags : [],
     readTime: content.readTime || estimateReadTime(body),
-    publishedAt: (guide.publishedAt ?? guide.createdAt ?? new Date()).toISOString(),
+    publishedAt: resolvePublishedAt(content, guide),
     updatedAt: guide.updatedAt?.toISOString(),
     image: asImageUrl(content.coverImage) || PLACEHOLDER_IMAGE,
-    author: content.author || "TVV Editorial",
+    author,
     seo: {
       title: content.metaTitle || guide.title,
       description: content.metaDescription || content.excerpt || "",

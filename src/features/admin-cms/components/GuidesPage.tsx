@@ -141,7 +141,7 @@ export function GuidesPage() {
       setFormError("Title is required");
       return;
     }
-    const slug = form.slug.trim() || slugify(form.title);
+    const slug = slugify(form.slug.trim() || form.title);
     if (!slug) {
       setFormError("Slug is required");
       return;
@@ -149,6 +149,8 @@ export function GuidesPage() {
 
     setIsSaving(true);
     setFormError(null);
+
+    const coverImage = typeof form.coverImage === "string" ? form.coverImage.trim() : "";
 
     const payload = {
       title: form.title.trim(),
@@ -159,7 +161,7 @@ export function GuidesPage() {
         excerpt: form.excerpt,
         metaTitle: form.metaTitle,
         metaDescription: form.metaDescription,
-        coverImage: form.coverImage,
+        coverImage,
       },
     };
 

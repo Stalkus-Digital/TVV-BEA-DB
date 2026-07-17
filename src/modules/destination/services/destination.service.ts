@@ -84,13 +84,16 @@ export class DestinationService extends BaseService {
 
     this.logger.info("Creating destination", { slug: validated.value.slug });
     const now = new Date().toISOString();
+    // Destinations under a market root (Andaman/Domestic/International) go
+    // live as ACTIVE so the public website tree/nav can show them immediately.
+    const status = DestinationStatus.ACTIVE;
     return this.repository.create({
       ...validated.value,
       isFeatured: false,
       gallery: [],
       faqs: [],
       guideReferenceIds: [],
-      status: DestinationStatus.DRAFT,
+      status,
       createdAt: now,
       updatedAt: now,
     });

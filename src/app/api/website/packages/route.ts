@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
   const result = await listWebsitePackagesHandler({
     destinationSlug: searchParams.get("destinationSlug") ?? undefined,
     tripType: searchParams.get("tripType") ?? undefined,
+    marketRoot: searchParams.get("marketRoot") ?? undefined,
     page: searchParams.get("page") ? Number(searchParams.get("page")) : undefined,
     pageSize: searchParams.get("pageSize") ? Number(searchParams.get("pageSize")) : undefined,
   });

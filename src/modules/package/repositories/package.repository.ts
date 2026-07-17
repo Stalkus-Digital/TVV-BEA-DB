@@ -45,6 +45,7 @@ export class PrismaPackageRepository extends PrismaStore<any> implements Package
     
     if (filter.destinationId) items = items.filter(( p: any ) => p.destinationId === filter.destinationId);
     if (filter.sourceType) items = items.filter(( p: any ) => p.sourceType === filter.sourceType);
+    if (filter.tripType) items = items.filter(( p: any ) => p.tripType === filter.tripType);
     if (filter.isTemplate !== undefined) items = items.filter(( p: any ) => p.isTemplate === filter.isTemplate);
 
     const page = filter.page ?? DEFAULT_PAGINATION.page;

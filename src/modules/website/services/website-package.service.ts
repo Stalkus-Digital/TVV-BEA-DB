@@ -1,6 +1,6 @@
 import { err, isErr, ok, type Result } from "@/shared/types";
 import { BaseService, type ServiceContext } from "@/shared/services";
-import { NotFoundError, type AppError } from "@/shared/errors";
+import { NotFoundError, ValidationError, type AppError } from "@/shared/errors";
 import {
   PackageStatus,
   getPackageService,
@@ -8,12 +8,14 @@ import {
   type Package,
 } from "@/modules/package";
 import { getDestinationService, type Destination } from "@/modules/destination";
+import { isMarketRootSlug, type MarketRootSlug } from "@/modules/destination/constants/market-roots";
 import { toPackageDetail, toPackageSummary } from "../transformers/package.transformer";
 import type { WebsitePackageDetailDTO, WebsitePackageSummaryDTO } from "../dto/website-package.dto";
 import { WebsiteConfigService } from "./website-config.service";
 
 const DEFAULT_PRICE_PAX = { adults: 2 };
 const RELATED_PACKAGES_LIMIT = 4;
+const MARKET_ROOT_SCAN_PAGE_SIZE = 500;
 
 /**
  * The one place this module calls Package/Destination Engine — always
@@ -27,22 +29,61 @@ export class WebsitePackageService extends BaseService {
     super(context);
   }
 
-  async listPackages(filter: { destinationSlug?: string; tripType?: string; page?: number; pageSize?: number } = {}): Promise<
-    Result<{ items: WebsitePackageSummaryDTO[]; total: number; page: number; pageSize: number }, AppError>
-  > {
+  async listPackages(
+    filter: {
+      destinationSlug?: string;
+      tripType?: string;
+      marketRoot?: string;
+      page?: number;
+      pageSize?: number;
+    } = {}
+  ): Promise<Result<{ items: WebsitePackageSummaryDTO[]; total: number; page: number; pageSize: number }, AppError>> {
+    const page = filter.page ?? 1;
+    const pageSize = filter.pageSize ?? 20;
+
     let destinationId: string | undefined;
+    let marketDestinationIds: Set<string> | null = null;
+
+    if (filter.marketRoot) {
+      if (!isMarketRootSlug(filter.marketRoot)) {
+        return err(new ValidationError(`marketRoot must be one of: andaman, domestic, international`));
+      }
+      const ids = await this.collectMarketDestinationIds(filter.marketRoot);
+      if (isErr(ids)) return ids;
+      marketDestinationIds = ids.value;
+    }
+
     if (filter.destinationSlug) {
       const destination = await getDestinationService().getBySlug(filter.destinationSlug);
       if (isErr(destination)) return destination;
       destinationId = destination.value.id;
+      if (marketDestinationIds && !marketDestinationIds.has(destinationId)) {
+        return ok({ items: [], total: 0, page, pageSize });
+      }
+    }
+
+    if (marketDestinationIds && !destinationId) {
+      const result = await getPackageService().list({
+        tripType: filter.tripType as import("@/modules/package/constants/trip-type").PackageTripType | undefined,
+        status: PackageStatus.PUBLISHED,
+        page: 1,
+        pageSize: MARKET_ROOT_SCAN_PAGE_SIZE,
+      });
+      if (isErr(result)) return result;
+
+      const filtered = result.value.items.filter((pkg) => marketDestinationIds!.has(pkg.destinationId));
+      const start = (page - 1) * pageSize;
+      const pageItems = filtered.slice(start, start + pageSize);
+      const items = await Promise.all(pageItems.map((pkg) => this.toSummaryDTO(pkg)));
+      return ok({ items, total: filtered.length, page, pageSize });
     }
 
     const result = await getPackageService().list({
       destinationId,
       tripType: filter.tripType as import("@/modules/package/constants/trip-type").PackageTripType | undefined,
       status: PackageStatus.PUBLISHED,
-      page: filter.page,
-      pageSize: filter.pageSize,
+      page,
+      pageSize,
     });
     if (isErr(result)) return result;
 
@@ -103,6 +144,30 @@ export class WebsitePackageService extends BaseService {
     const computed = await getPackagePricingService().compute(pkg.id, DEFAULT_PRICE_PAX);
     const fromPrice = isErr(computed) ? pricing.value.basePrice : computed.value.total;
     return toPackageSummary(pkg, destination, fromPrice, pricing.value.currency);
+  }
+
+  /** Destination IDs under a market root (children + nested descendants — not the root itself). */
+  private async collectMarketDestinationIds(marketRoot: MarketRootSlug): Promise<Result<Set<string>, AppError>> {
+    const root = await getDestinationService().getBySlug(marketRoot);
+    if (isErr(root)) return root;
+
+    const ids = new Set<string>();
+    const queue = [root.value.id];
+    let safety = 0;
+
+    while (queue.length > 0 && safety < 200) {
+      safety += 1;
+      const parentId = queue.shift()!;
+      const children = await getDestinationService().getChildren(parentId);
+      if (isErr(children)) return children;
+      for (const child of children.value) {
+        if (ids.has(child.id)) continue;
+        ids.add(child.id);
+        queue.push(child.id);
+      }
+    }
+
+    return ok(ids);
   }
 
   private async listRelated(pkg: Package): Promise<WebsitePackageSummaryDTO[]> {

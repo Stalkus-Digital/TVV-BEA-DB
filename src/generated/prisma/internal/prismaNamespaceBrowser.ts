@@ -254,6 +254,7 @@ export const PackageScalarFieldEnum = {
   slug: 'slug',
   destinationId: 'destinationId',
   sourceType: 'sourceType',
+  tripType: 'tripType',
   durationDays: 'durationDays',
   durationNights: 'durationNights',
   durationText: 'durationText',

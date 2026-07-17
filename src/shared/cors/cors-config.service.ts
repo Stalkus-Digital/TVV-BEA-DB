@@ -34,7 +34,7 @@ export class CorsConfigService {
   private readonly allowedOrigins: ReadonlySet<string>;
 
   private constructor(values: CorsConfigValues) {
-    this.allowedOrigins = new Set(
+    const origins = new Set(
       values.allowedOrigins
         .split(",")
         .map((origin) => origin.trim())
@@ -42,8 +42,9 @@ export class CorsConfigService {
     );
     // Ensure production website can call the API even if Vercel env still
     // only lists localhost (common misconfig after the default was localhost-only).
-    this.allowedOrigins.add("https://tvv-frontend-final.vercel.app");
-    this.allowedOrigins.add("http://localhost:3001");
+    origins.add("https://tvv-frontend-final.vercel.app");
+    origins.add("http://localhost:3001");
+    this.allowedOrigins = origins;
   }
 
   static getInstance(): CorsConfigService {

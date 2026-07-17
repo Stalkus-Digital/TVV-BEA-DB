@@ -13,3 +13,7 @@ export async function listWebsiteDestinationsHandler(params: {
 export async function getWebsiteDestinationDetailHandler(slug: string): Promise<Result<WebsiteDestinationDetailDTO, AppError>> {
   return getWebsiteDestinationService().getDestinationDetail(slug);
 }
+
+export async function getWebsiteDestinationTreeHandler(): Promise<Result<import("../dto/website-destination-tree.dto").WebsiteDestinationTreeNodeDTO[], AppError>> {
+  return getWebsiteDestinationService().getDestinationTree();
+}

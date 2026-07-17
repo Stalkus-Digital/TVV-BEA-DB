@@ -91,7 +91,10 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const authResult = await resolveAuthContext(request.headers.get("authorization"));
+  const authResult = await resolveAuthContext(
+    request.headers.get("authorization"),
+    request.headers.get("x-api-key"),
+  );
   if (isErr(authResult)) {
     const response = jsonError(authResult.error);
     attachRequestContextHeaders(response.headers, requestContext);

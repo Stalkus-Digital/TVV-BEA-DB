@@ -14,6 +14,7 @@ import { PrismaAirportRepository, PrismaCityRepository, PrismaCountryRepository,
 import { PrismaDestinationCategoryRepository } from "./repositories/destination-category.repository.prisma";
 import { PrismaDestinationRepository } from "./repositories/destination.repository.prisma";
 import { DestinationCategoryService } from "./services/destination-category.service";
+import { ensureDestinationMarketRoots } from "./bootstrap/ensure-market-roots";
 import { DestinationService } from "./services/destination.service";
 import { GeographyService } from "./services/geography.service";
 
@@ -90,6 +91,9 @@ if (!moduleRegistry.getModule(destinationModule.name)) {
   moduleRegistry.registerModule(destinationModule);
   destinationModule.register(container);
   healthCheckRegistry.register(new DestinationModuleHealthCheck());
+  void ensureDestinationMarketRoots().catch((error) => {
+    createLogger("destination.bootstrap").error("Failed to seed market root destinations", { error });
+  });
 }
 
 export function getGeographyService(): GeographyService {

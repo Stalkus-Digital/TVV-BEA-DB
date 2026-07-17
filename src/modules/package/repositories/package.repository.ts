@@ -2,6 +2,7 @@ import { DEFAULT_PAGINATION, ok, toPaginatedResult, type PaginatedResult, type P
 import type { BaseRepository } from "@/shared/repositories";
 import type { AppError } from "@/shared/errors";
 import type { Package, PackageSourceType, PackageStatus } from "../types/package";
+import type { PackageTripType } from "../constants/trip-type";
 import { PrismaStore } from "@/shared/database/prisma-store";
 import { prisma } from "@/shared/database/prisma-client";
 
@@ -9,6 +10,7 @@ export interface PackageListFilter extends PaginationParams {
   destinationId?: string;
   status?: PackageStatus;
   sourceType?: PackageSourceType;
+  tripType?: PackageTripType;
   isTemplate?: boolean;
 }
 

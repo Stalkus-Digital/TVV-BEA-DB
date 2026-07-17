@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     maxPrice: numberOrUndefined(searchParams.get("maxPrice")),
     categoryId: searchParams.get("categoryId") ?? undefined,
     packageType: searchParams.get("packageType") ?? undefined,
+    tripType: searchParams.get("tripType") ?? undefined,
     page: numberOrUndefined(searchParams.get("page")),
     pageSize: numberOrUndefined(searchParams.get("pageSize")),
   });

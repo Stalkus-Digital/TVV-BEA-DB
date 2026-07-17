@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, Circle, Globe, HelpCircle, Image as ImageIcon, MapPin, Network } from "lucide-react";
 import { WidgetLoading } from "@/features/admin-dashboard/components/WidgetState";
 import { adminQueryKeys } from "@/shared/lib/query-client";
-import { fetchAllDestinations } from "../api/destinations";
+import { fetchMarketRootDestinations } from "../api/destinations";
 import {
   useAddFaqMutation,
   useAddGalleryImageMutation,
@@ -49,8 +49,8 @@ export function DestinationBuilderPage() {
   const createMutation = useCreateDestinationMutation();
   const updateMutation = useUpdateDestinationMutation(destinationId ?? "");
   const parentOptionsQuery = useQuery({
-    queryKey: adminQueryKeys.destinations.all,
-    queryFn: () => fetchAllDestinations(),
+    queryKey: [...adminQueryKeys.destinations.all, "roots"],
+    queryFn: () => fetchMarketRootDestinations(),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -118,13 +118,11 @@ export function DestinationBuilderPage() {
     });
   };
 
-  const canCreate = name.trim().length > 0;
+  const canCreate = name.trim().length > 0 && Boolean(parentDestinationId);
 
   // geoQuery removed, rely on individual queries in the steps
   const parentOptions =
-    parentOptionsQuery.data
-      ?.filter((d) => d.id !== destinationId)
-      .map((d) => ({ id: d.id, name: d.name })) ?? [];
+    parentOptionsQuery.data?.map((d) => ({ id: d.id, name: d.name })) ?? [];
 
   return (
     <div className="flex h-full bg-background rounded-lg border border-border overflow-hidden shadow-sm">
@@ -552,20 +550,21 @@ function GeographyStep({
       </div>
       {!locked && (
         <div>
-          <label className="block text-sm font-medium mb-1">Parent destination (optional)</label>
+          <label className="block text-sm font-medium mb-1">Parent destination *</label>
           <select
             value={parentDestinationId}
             onChange={(e) => onParentChange(e.target.value)}
             className="w-full px-3 py-2 border border-border rounded-md text-sm"
+            required
           >
-            <option value="">None (Top-level destination)</option>
+            <option value="">Select market — Andaman, Domestic, or International</option>
             {parentOptions.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.name}
               </option>
             ))}
           </select>
-          <p className="text-xs text-muted-foreground mt-1">Set at create only — hierarchy from backend.</p>
+          <p className="text-xs text-muted-foreground mt-1">Required — choose which market this destination belongs under.</p>
         </div>
       )}
       {locked && (

@@ -46,6 +46,7 @@ export class WebsiteSearchService extends BaseService {
 
     const candidates = await getPackageService().list({
       destinationId,
+      tripType: query.tripType as import("@/modules/package/constants/trip-type").PackageTripType | undefined,
       status: PackageStatus.PUBLISHED,
       sourceType: query.packageType as never,
       pageSize: 200,

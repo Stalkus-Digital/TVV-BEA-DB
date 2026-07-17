@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { err, isErr, ok, type PaginatedResult, type Result } from "@/shared/types";
 import { BaseService, type ServiceContext } from "@/shared/services";
-import { ConflictError, NotFoundError, type AppError } from "@/shared/errors";
+import { ConflictError, NotFoundError, ValidationError, type AppError } from "@/shared/errors";
+import { isMarketRootSlug, MARKET_ROOT_SLUGS } from "../constants/market-roots";
 import { DestinationStatus, type Destination, type DestinationBreadcrumb } from "../types/destination";
 import type { DestinationListFilter, DestinationRepository } from "../repositories/destination.repository";
 import {
@@ -32,6 +33,16 @@ export class DestinationService extends BaseService {
     return ok(result.value.items);
   }
 
+  async listMarketRoots(): Promise<Result<Destination[], AppError>> {
+    const roots: Destination[] = [];
+    for (const slug of MARKET_ROOT_SLUGS) {
+      const result = await this.repository.findBySlug(slug);
+      if (isErr(result)) return result;
+      if (result.value) roots.push(result.value);
+    }
+    return ok(roots);
+  }
+
   async getById(id: string): Promise<Result<Destination, AppError>> {
     const result = await this.repository.findById(id);
     if (isErr(result)) return result;
@@ -54,10 +65,22 @@ export class DestinationService extends BaseService {
     if (isErr(existing)) return existing;
     if (existing.value) return err(new ConflictError(`Destination slug "${validated.value.slug}" is already in use`));
 
-    if (validated.value.parentDestinationId) {
-      const parentCheck = await this.assertNoCycle(validated.value.parentDestinationId, null);
-      if (isErr(parentCheck)) return parentCheck;
+    if (isMarketRootSlug(validated.value.slug)) {
+      return err(new ConflictError(`Slug "${validated.value.slug}" is reserved for a market root destination`));
     }
+
+    if (!validated.value.parentDestinationId) {
+      return err(new ValidationError("parentDestinationId is required — choose Andaman, Domestic, or International"));
+    }
+
+    const parentResult = await this.repository.findById(validated.value.parentDestinationId);
+    if (isErr(parentResult)) return parentResult;
+    if (!parentResult.value) {
+      return err(new NotFoundError(`parentDestinationId "${validated.value.parentDestinationId}" not found`));
+    }
+
+    const parentCheck = await this.assertNoCycle(validated.value.parentDestinationId, null);
+    if (isErr(parentCheck)) return parentCheck;
 
     this.logger.info("Creating destination", { slug: validated.value.slug });
     const now = new Date().toISOString();
@@ -87,6 +110,9 @@ export class DestinationService extends BaseService {
   async delete(id: string): Promise<Result<void, AppError>> {
     const existing = await this.getById(id);
     if (isErr(existing)) return existing;
+    if (isMarketRootSlug(existing.value.slug)) {
+      return err(new ConflictError("Market root destinations cannot be deleted"));
+    }
     this.logger.info("Deleting destination", { id });
     return this.repository.delete(id);
   }

@@ -12,6 +12,7 @@ export async function PUT(req: Request, context: any) {
       durationDays, 
       durationNights, 
       sourceType, 
+      tripType,
       basePrice,
       currency,
       minPax,
@@ -35,6 +36,7 @@ export async function PUT(req: Request, context: any) {
           title,
           destinationId,
           sourceType,
+          tripType: tripType || null,
           durationDays: Number(durationDays),
           durationNights: Number(durationNights),
           content: {

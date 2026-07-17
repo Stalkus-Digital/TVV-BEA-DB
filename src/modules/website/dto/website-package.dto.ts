@@ -1,3 +1,4 @@
+import type { PackageTripType } from "@/modules/package/constants/trip-type";
 import type { WebsiteBreadcrumbDTO, WebsiteSeoDTO } from "./website-seo.dto";
 import type { WebsiteDestinationSummaryDTO } from "./website-destination.dto";
 
@@ -18,6 +19,8 @@ export interface WebsitePackageSummaryDTO {
   fromPrice: number | null;
   currency: string | null;
   heroImage: string | null;
+  tripType: PackageTripType | null;
+  tripTypeLabel: string | null;
 }
 
 export interface WebsitePackageItemDTO {

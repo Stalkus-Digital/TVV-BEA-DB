@@ -54,6 +54,11 @@ export async function fetchAllDestinations(
   return items;
 }
 
+export async function fetchMarketRootDestinations(): Promise<Destination[]> {
+  const result = await adminApiClient.get<Destination[]>(`${adminEndpoints.destinations}/roots`);
+  return result ?? [];
+}
+
 export async function fetchDestination(id: string): Promise<Destination> {
   const result = await adminApiClient.get<Destination>(destinationPath(id));
   if (!result) throw new Error("Destination not found");

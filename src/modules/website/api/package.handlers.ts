@@ -5,6 +5,7 @@ import type { WebsitePackageDetailDTO, WebsitePackageSummaryDTO } from "../dto/w
 
 export async function listWebsitePackagesHandler(filter: {
   destinationSlug?: string;
+  tripType?: string;
   page?: number;
   pageSize?: number;
 }): Promise<Result<{ items: WebsitePackageSummaryDTO[]; total: number; page: number; pageSize: number }, AppError>> {

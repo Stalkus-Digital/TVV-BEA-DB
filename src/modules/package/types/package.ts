@@ -1,3 +1,5 @@
+import type { PackageTripType } from "../constants/trip-type";
+
 export const PackageStatus = {
   DRAFT: "DRAFT",
   PUBLISHED: "PUBLISHED",
@@ -60,6 +62,7 @@ export interface Package {
   slug: string;
   destinationId: string;
   sourceType: PackageSourceType;
+  tripType: PackageTripType | null;
   durationDays: number;
   durationNights: number;
   durationText: string | null;

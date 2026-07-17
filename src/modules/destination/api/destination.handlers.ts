@@ -14,6 +14,10 @@ export async function listFeaturedDestinationsHandler(): Promise<Result<Destinat
   return getDestinationService().listFeatured();
 }
 
+export async function listMarketRootDestinationsHandler(): Promise<Result<Destination[], AppError>> {
+  return getDestinationService().listMarketRoots();
+}
+
 export async function getDestinationHandler(id: string): Promise<Result<Destination, AppError>> {
   return getDestinationService().getById(id);
 }

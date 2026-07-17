@@ -31,6 +31,7 @@ export function PackageSingleForm() {
 
   const [title, setTitle] = useState("");
   const [destinationId, setDestinationId] = useState("");
+  const [tripType, setTripType] = useState("HONEYMOON");
   const [sourceType, setSourceType] = useState<PackageSourceType>(PackageSourceType.MANUAL);
   const [durationDays, setDurationDays] = useState(1);
   const [durationNights, setDurationNights] = useState(0);
@@ -73,6 +74,7 @@ export function PackageSingleForm() {
       const pricing = previewData.pricing;
       setTitle(packageData?.title || "");
       setDestinationId(packageData.destinationId || "");
+      setTripType(packageData.tripType || "HONEYMOON");
       setSourceType(packageData.sourceType || PackageSourceType.MANUAL);
       setDurationDays(packageData.durationDays || 1);
       setDurationNights(packageData.durationNights || 0);
@@ -166,6 +168,7 @@ export function PackageSingleForm() {
     const payload = { 
       title, 
       destinationId, 
+      tripType,
       sourceType, 
       durationDays, 
       durationNights, 
@@ -191,7 +194,9 @@ export function PackageSingleForm() {
     }
   };
 
-  const destinations = destinationsQuery.data || [];
+  const destinations = (destinationsQuery.data || []).filter(
+    (d) => !["andaman", "domestic", "international"].includes(d.slug),
+  );
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   return (
@@ -202,7 +207,7 @@ export function PackageSingleForm() {
             <Link href="/packages" className="text-xs text-muted-foreground hover:text-foreground mb-2 block">← Back to packages</Link>
             <h1 className="text-2xl font-bold">{editId ? "Edit Package" : "Create Package"}</h1>
           </div>
-          <button onClick={handleSubmit} disabled={isSaving || !title || !destinationId} className="px-6 py-2.5 bg-primary text-primary-foreground font-medium rounded-lg disabled:opacity-50 transition-colors">
+          <button onClick={handleSubmit} disabled={isSaving || !title || !destinationId || !tripType} className="px-6 py-2.5 bg-primary text-primary-foreground font-medium rounded-lg disabled:opacity-50 transition-colors">
             {isSaving ? "Saving..." : editId ? "Update Package" : "Create Package"}
           </button>
         </div>
@@ -221,6 +226,16 @@ export function PackageSingleForm() {
                 <select value={destinationId} onChange={(e) => setDestinationId(e.target.value)} className="w-full px-4 py-2 border border-border rounded-lg" required>
                   <option value="">Select a destination...</option>
                   {destinations.map((d) => (<option key={d.id} value={d.id}>{d.name}</option>))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">By trip type</label>
+                <select value={tripType} onChange={(e) => setTripType(e.target.value)} className="w-full px-4 py-2 border border-border rounded-lg" required>
+                  <option value="HONEYMOON">Honeymoon packages</option>
+                  <option value="FAMILY">Family tours packages</option>
+                  <option value="LUXURY">Luxury packages</option>
+                  <option value="ADVENTURE">Adventure packages</option>
+                  <option value="GROUP">Group packages</option>
                 </select>
               </div>
               <div className="space-y-2">

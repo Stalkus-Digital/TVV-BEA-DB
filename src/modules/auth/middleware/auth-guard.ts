@@ -47,8 +47,18 @@ function looksLikeJwt(token: string): boolean {
  * format here but will not actually authenticate correctly until the
  * database migration lands. See docs/22's Remaining TODOs.
  */
-export async function resolveAuthContext(authorizationHeader: string | null): Promise<Result<AuthContext, AppError>> {
-  const token = extractBearerToken(authorizationHeader);
+function extractApiKeyToken(authorizationHeader: string | null, apiKeyHeader: string | null): string | null {
+  const bearer = extractBearerToken(authorizationHeader);
+  if (bearer?.trim()) return bearer.trim();
+  const apiKey = apiKeyHeader?.trim();
+  return apiKey || null;
+}
+
+export async function resolveAuthContext(
+  authorizationHeader: string | null,
+  apiKeyHeader: string | null = null,
+): Promise<Result<AuthContext, AppError>> {
+  const token = extractApiKeyToken(authorizationHeader, apiKeyHeader);
   if (!token) return err(new UnauthorizedError("Missing or malformed Authorization header"));
 
   if (looksLikeJwt(token)) {

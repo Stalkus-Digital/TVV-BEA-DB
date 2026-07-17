@@ -27,7 +27,7 @@ export class WebsitePackageService extends BaseService {
     super(context);
   }
 
-  async listPackages(filter: { destinationSlug?: string; page?: number; pageSize?: number } = {}): Promise<
+  async listPackages(filter: { destinationSlug?: string; tripType?: string; page?: number; pageSize?: number } = {}): Promise<
     Result<{ items: WebsitePackageSummaryDTO[]; total: number; page: number; pageSize: number }, AppError>
   > {
     let destinationId: string | undefined;
@@ -39,6 +39,7 @@ export class WebsitePackageService extends BaseService {
 
     const result = await getPackageService().list({
       destinationId,
+      tripType: filter.tripType as import("@/modules/package/constants/trip-type").PackageTripType | undefined,
       status: PackageStatus.PUBLISHED,
       page: filter.page,
       pageSize: filter.pageSize,

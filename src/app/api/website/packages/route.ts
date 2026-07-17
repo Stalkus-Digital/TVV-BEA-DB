@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const result = await listWebsitePackagesHandler({
     destinationSlug: searchParams.get("destinationSlug") ?? undefined,
+    tripType: searchParams.get("tripType") ?? undefined,
     page: searchParams.get("page") ? Number(searchParams.get("page")) : undefined,
     pageSize: searchParams.get("pageSize") ? Number(searchParams.get("pageSize")) : undefined,
   });

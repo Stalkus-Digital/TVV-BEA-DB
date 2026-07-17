@@ -154,6 +154,7 @@ model Package {
   slug              String   @unique
   destinationId     String
   sourceType        String
+  tripType          String?
   durationDays      Int
   durationNights    Int
   durationText      String?
@@ -171,6 +172,7 @@ model Package {
 
   @@index([destinationId])
   @@index([status])
+  @@index([tripType])
   @@map("packages")
 }
 

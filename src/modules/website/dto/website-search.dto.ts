@@ -9,6 +9,7 @@ export interface WebsiteSearchQuery {
   maxPrice?: number;
   categoryId?: string;
   packageType?: string;
+  tripType?: string;
   page?: number;
   pageSize?: number;
 }

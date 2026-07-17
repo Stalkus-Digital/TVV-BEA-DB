@@ -1,4 +1,5 @@
-import type { Package, PackageDayWithItems, PackagePricing } from "@/modules/package";
+import type { PackageTripType } from "@/modules/package/constants/trip-type";
+import { packageTripTypeLabel } from "@/modules/package/constants/trip-type";
 import type { Destination } from "@/modules/destination";
 import { buildSeoDTO } from "../seo/seo-builder";
 import type {
@@ -34,6 +35,8 @@ export function toPackageSummary(
     fromPrice,
     currency,
     heroImage: pkg.seo?.ogImageUrl ?? null,
+    tripType: pkg.tripType ?? null,
+    tripTypeLabel: packageTripTypeLabel(pkg.tripType),
   };
 }
 

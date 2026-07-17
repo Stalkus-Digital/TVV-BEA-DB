@@ -12,6 +12,7 @@ function toDomain(row: PrismaPackageRow): Package {
   return {
     ...row,
     sourceType: row.sourceType as Package["sourceType"],
+    tripType: (row.tripType as Package["tripType"]) ?? null,
     status: row.status as Package["status"],
     seo: row.seo as unknown as Package["seo"],
     faqs: row.faqs as unknown as Package["faqs"],
@@ -31,6 +32,7 @@ function toWhere(filter: PackageListFilter): Prisma.PackageWhereInput {
   }
 
   if (filter.sourceType) where.sourceType = filter.sourceType;
+  if (filter.tripType) where.tripType = filter.tripType;
   if (filter.isTemplate !== undefined) where.isTemplate = filter.isTemplate;
   return where;
 }

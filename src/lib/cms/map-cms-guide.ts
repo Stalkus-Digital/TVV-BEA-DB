@@ -28,6 +28,10 @@ function asContent(raw: unknown): CmsGuideContent {
   return raw as CmsGuideContent;
 }
 
+function asImageUrl(value: unknown): string {
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
 function estimateReadTime(html: string): string {
   const words = html
     .replace(/<[^>]+>/g, " ")
@@ -55,7 +59,7 @@ export function mapCmsGuideToPublic(guide: CmsGuideRow, options: { includeBody?:
     readTime: content.readTime || estimateReadTime(body),
     publishedAt: (guide.publishedAt ?? guide.createdAt ?? new Date()).toISOString(),
     updatedAt: guide.updatedAt?.toISOString(),
-    image: content.coverImage || PLACEHOLDER_IMAGE,
+    image: asImageUrl(content.coverImage) || PLACEHOLDER_IMAGE,
     author: content.author || "TVV Editorial",
     seo: {
       title: content.metaTitle || guide.title,

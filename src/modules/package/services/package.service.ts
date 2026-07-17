@@ -83,6 +83,7 @@ export class PackageService extends BaseService {
     const now = new Date().toISOString();
     return this.packages.create({
       ...value,
+      tripType: value.tripType ?? null,
       durationText: value.durationText ?? null,
       isTemplate: false,
       sourceTemplateId: null,

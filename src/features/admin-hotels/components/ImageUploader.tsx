@@ -7,7 +7,8 @@ interface ImageUploaderProps {
   maxFiles?: number;
   hint?: string;
   value?: (File | string)[];
-  onChange: (files: (File | string)[]) => void;
+  // any[] so File[] setState (ActivityForm/HotelForm) and mixed gallery state both typecheck
+  onChange: (files: any[]) => void;
 }
 
 export function ImageUploader({

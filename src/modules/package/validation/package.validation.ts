@@ -1,6 +1,7 @@
 import { err, ok, type Result } from "@/shared/types";
 import { ValidationError } from "@/shared/errors";
 import { PackageSourceType, type PackageSeo } from "../types/package";
+import type { PackageTripType } from "../constants/trip-type";
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
@@ -52,6 +53,7 @@ export interface CreatePackageInput {
   slug: string;
   destinationId: string;
   sourceType: PackageSourceType;
+  tripType?: PackageTripType | null;
   durationDays: number;
   durationNights: number;
   durationText?: string | null;

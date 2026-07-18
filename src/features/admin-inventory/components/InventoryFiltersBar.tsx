@@ -1,18 +1,19 @@
 "use client";
 
 import Link from "next/link";
-
-import { useState, useRef } from "react";
-import { Plus, RefreshCw, Search, Upload, Loader2 } from "lucide-react";
-import { INVENTORY_KINDS, INVENTORY_KIND_LABELS, InventoryStatus, INVENTORY_STATUS_LABELS } from "../constants";
-import type { InventoryListFilters } from "../types";
+import { useRef, useState } from "react";
+import { Download, Loader2, Plus, RefreshCw, Search, Upload } from "lucide-react";
+import { CATALOG_ENTITY_LABELS, CATALOG_ENTITY_TYPES } from "../catalog/constants";
+import type { CatalogListFilters } from "../catalog/types";
+import { InventoryStatus, INVENTORY_STATUS_LABELS } from "../constants";
+import { downloadCatalogExport } from "../utils/catalog-io";
 
 interface InventoryFiltersBarProps {
-  filters: InventoryListFilters;
+  filters: CatalogListFilters;
   searchInput: string;
   destinations: { id: string; name: string }[];
   onSearchChange: (value: string) => void;
-  onFiltersChange: (patch: Partial<InventoryListFilters>) => void;
+  onFiltersChange: (patch: Partial<CatalogListFilters>) => void;
   onRefresh: () => void;
   isRefreshing?: boolean;
 }
@@ -28,6 +29,7 @@ export function InventoryFiltersBar({
 }: InventoryFiltersBarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -47,11 +49,28 @@ export function InventoryFiltersBar({
       if (!res.ok) {
         throw new Error(result.error || "Upload failed");
       }
-      
-      alert(`Upload complete!\nSuccessful: ${result.successful}\nFailed: ${result.failed}\n${result.errors.length > 0 ? "Errors:\n" + result.errors.slice(0, 5).join('\n') + (result.errors.length > 5 ? '\n...' : '') : ''}`);
+
+      const byTypeSummary = result.byType
+        ? Object.entries(result.byType as Record<string, { successful: number; failed: number }>)
+            .map(([type, counts]) => `${type}: ${counts.successful} ok / ${counts.failed} failed`)
+            .join("\n")
+        : "";
+
+      alert(
+        `Import complete!\nSuccessful: ${result.successful}\nFailed: ${result.failed}${
+          byTypeSummary ? `\n\n${byTypeSummary}` : ""
+        }${
+          result.errors?.length > 0
+            ? "\n\nErrors:\n" +
+              result.errors.slice(0, 5).join("\n") +
+              (result.errors.length > 5 ? "\n..." : "")
+            : ""
+        }`
+      );
       onRefresh();
-    } catch (err: any) {
-      alert("Error uploading file: " + err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Upload failed";
+      alert("Error uploading file: " + message);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
@@ -60,8 +79,25 @@ export function InventoryFiltersBar({
     }
   };
 
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      await downloadCatalogExport({
+        kind: filters.kind,
+        destinationId: filters.destinationId,
+        status: filters.status,
+        search: filters.search ?? searchInput,
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Export failed";
+      alert("Error exporting catalog: " + message);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
       <div className="flex flex-1 flex-wrap items-center gap-2">
         <div className="relative min-w-[200px] flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -76,13 +112,18 @@ export function InventoryFiltersBar({
 
         <select
           value={filters.kind ?? ""}
-          onChange={(e) => onFiltersChange({ kind: (e.target.value || undefined) as InventoryListFilters["kind"], page: 1 })}
+          onChange={(e) =>
+            onFiltersChange({
+              kind: (e.target.value || undefined) as CatalogListFilters["kind"],
+              page: 1,
+            })
+          }
           className="px-3 py-2 text-sm border border-border rounded-md bg-white text-slate-900"
         >
           <option value="">All types</option>
-          {INVENTORY_KINDS.map((kind) => (
+          {CATALOG_ENTITY_TYPES.map((kind) => (
             <option key={kind} value={kind}>
-              {INVENTORY_KIND_LABELS[kind]}
+              {CATALOG_ENTITY_LABELS[kind]}
             </option>
           ))}
         </select>
@@ -91,7 +132,6 @@ export function InventoryFiltersBar({
           value={filters.destinationId ?? ""}
           onChange={(e) => onFiltersChange({ destinationId: e.target.value || undefined, page: 1 })}
           className="px-3 py-2 text-sm border border-border rounded-md bg-white text-slate-900 max-w-[180px]"
-          title="Client-side filter — no destinationId on list API"
         >
           <option value="">All destinations</option>
           {destinations.map((d) => (
@@ -104,10 +144,9 @@ export function InventoryFiltersBar({
         <select
           value={filters.status ?? ""}
           onChange={(e) =>
-            onFiltersChange({ status: (e.target.value || undefined) as InventoryListFilters["status"], page: 1 })
+            onFiltersChange({ status: (e.target.value || undefined) as CatalogListFilters["status"], page: 1 })
           }
           className="px-3 py-2 text-sm border border-border rounded-md bg-white text-slate-900"
-          title="Client-side filter — no status on list API"
         >
           <option value="">All statuses</option>
           {Object.values(InventoryStatus).map((status) => (
@@ -115,12 +154,16 @@ export function InventoryFiltersBar({
               {INVENTORY_STATUS_LABELS[status]}
             </option>
           ))}
+          <option value="PUBLISHED">Published</option>
         </select>
 
         <select
           value={`${filters.sortBy ?? "updatedAt"}:${filters.sortDir ?? "desc"}`}
           onChange={(e) => {
-            const [sortBy, sortDir] = e.target.value.split(":") as [InventoryListFilters["sortBy"], InventoryListFilters["sortDir"]];
+            const [sortBy, sortDir] = e.target.value.split(":") as [
+              CatalogListFilters["sortBy"],
+              CatalogListFilters["sortDir"],
+            ];
             onFiltersChange({ sortBy, sortDir, page: 1 });
           }}
           className="px-3 py-2 text-sm border border-border rounded-md bg-white text-slate-900"
@@ -139,10 +182,11 @@ export function InventoryFiltersBar({
           type="button"
           onClick={onRefresh}
           disabled={isRefreshing}
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-border rounded-md hover:bg-muted disabled:opacity-50"
+          aria-label="Refresh"
+          title="Refresh"
+          className="inline-flex items-center justify-center p-2 border border-border rounded-md hover:bg-muted disabled:opacity-50"
         >
           <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-          Refresh
         </button>
         <input
           type="file"
@@ -158,7 +202,16 @@ export function InventoryFiltersBar({
           className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-border rounded-md hover:bg-muted disabled:opacity-50"
         >
           {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-          {isUploading ? "Uploading..." : "Upload Excel"}
+          {isUploading ? "Importing…" : "Import"}
+        </button>
+        <button
+          type="button"
+          onClick={() => void handleExport()}
+          disabled={isExporting}
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-border rounded-md hover:bg-muted disabled:opacity-50"
+        >
+          {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+          {isExporting ? "Exporting…" : "Export"}
         </button>
         <Link
           href="/inventory/new"

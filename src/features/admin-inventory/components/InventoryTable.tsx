@@ -2,21 +2,21 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { WidgetEmpty, WidgetError, WidgetLoading } from "@/features/admin-dashboard/components/WidgetState";
-import { INVENTORY_KIND_LABELS } from "../constants";
-import type { PaginatedInventory } from "../types";
+import { CATALOG_ENTITY_LABELS } from "../catalog/constants";
+import type { CatalogListRow, PaginatedCatalog } from "../catalog/types";
 import { formatInventoryDate } from "../utils";
 import { InventoryStatusBadge } from "./InventoryStatusBadge";
 
 interface InventoryTableProps {
-  data?: PaginatedInventory;
+  data?: PaginatedCatalog;
   isLoading: boolean;
   isError: boolean;
   errorMessage?: string;
   onRetry: () => void;
-  onSelect: (id: string) => void;
+  onSelect: (row: CatalogListRow) => void;
   page: number;
   onPageChange: (page: number) => void;
-  onDelete: (id: string) => void;
+  onDelete: (row: CatalogListRow) => void;
   isDeleting?: string | null;
 }
 
@@ -33,15 +33,15 @@ export function InventoryTable({
   isDeleting,
 }: InventoryTableProps) {
   if (isLoading && !data) {
-    return <WidgetLoading label="Loading inventory…" />;
+    return <WidgetLoading label="Loading catalog…" />;
   }
 
   if (isError) {
-    return <WidgetError message={errorMessage ?? "Failed to load inventory"} onRetry={onRetry} />;
+    return <WidgetError message={errorMessage ?? "Failed to load catalog"} onRetry={onRetry} />;
   }
 
   if (!data || data.items.length === 0) {
-    return <WidgetEmpty message="No inventory items found. Add an item or adjust your filters." />;
+    return <WidgetEmpty message="No catalog items found. Add an item or adjust your filters." />;
   }
 
   return (
@@ -64,12 +64,12 @@ export function InventoryTable({
           <tbody>
             {data.items.map((row) => (
               <tr
-                key={row.id}
-                onClick={() => onSelect(row.id)}
+                key={`${row.entityType}:${row.id}`}
+                onClick={() => onSelect(row)}
                 className="border-b border-slate-200 hover:bg-slate-50 cursor-pointer transition-colors"
               >
                 <td className="px-4 py-3 font-medium">{row.title}</td>
-                <td className="px-4 py-3 text-muted-foreground">{INVENTORY_KIND_LABELS[row.kind]}</td>
+                <td className="px-4 py-3 text-muted-foreground">{CATALOG_ENTITY_LABELS[row.entityType]}</td>
                 <td className="px-4 py-3 text-muted-foreground">{row.supplierLabel}</td>
                 <td className="px-4 py-3 text-muted-foreground">{row.destinationName}</td>
                 <td className="px-4 py-3">
@@ -82,7 +82,10 @@ export function InventoryTable({
                   <button
                     type="button"
                     disabled={isDeleting === row.id || row.status === "ARCHIVED"}
-                    onClick={(e) => { e.stopPropagation(); onDelete(row.id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(row);
+                    }}
                     className="text-red-500 hover:text-red-700 disabled:opacity-30 disabled:hover:text-red-500 transition-colors text-xs font-medium bg-red-50 px-2 py-1 rounded"
                   >
                     {isDeleting === row.id ? "Deleting..." : "Delete"}

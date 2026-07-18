@@ -52,7 +52,7 @@ export function ImageUploader({
           </span>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          PNG, JPG, GIF up to 5MB
+          JPG, PNG, WEBP, or GIF up to 5MB (no HEIC)
           {typeof maxFiles === "number" ? ` · max ${maxFiles}` : ""}
         </p>
       </label>
@@ -61,7 +61,7 @@ export function ImageUploader({
         type="file"
         multiple={multiple}
         className="hidden"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
         disabled={atLimit}
         onChange={(e) => {
           if (!e.target.files) return;

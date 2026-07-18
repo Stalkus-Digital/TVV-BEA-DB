@@ -176,7 +176,7 @@ export function HotelRoomFields({ rooms, onChange }: HotelRoomFieldsProps) {
               />
 
               <ImageUploader
-                label="Room images"
+                label={`Room ${index + 1} images`}
                 multiple
                 value={room.images}
                 onChange={(files) => updateRoom(index, { images: files })}

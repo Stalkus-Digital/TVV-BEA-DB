@@ -11,6 +11,7 @@ import { useDestinationsQuery } from "@/features/admin-quotes/hooks/useDestinati
 import { adminApiClient } from "@/lib/admin-api/client";
 import { adminEndpoints } from "@/lib/admin-api/endpoints";
 import { uploadFiles } from "@/lib/admin-api/upload";
+import { ApiError } from "@/lib/admin-api/errors";
 
 function slugify(text: string) {
   return text
@@ -24,10 +25,17 @@ function slugify(text: string) {
     .replace(/-+$/, "");
 }
 
+function errorMessage(error: unknown): string {
+  if (error instanceof ApiError) return error.message;
+  if (error instanceof Error && error.message) return error.message;
+  return "Unknown error";
+}
+
 async function resolveRoomImages(rooms: HotelRoomDraft[]) {
   const resolved = [];
   for (const room of rooms) {
-    if (!room.name.trim()) continue;
+    const name = (room.name ?? "").trim();
+    if (!name) continue;
     const existingUrls = room.images.filter((item): item is string => typeof item === "string");
     const newFiles = room.images.filter((item): item is File => item instanceof File);
     let uploaded: string[] = [];
@@ -43,13 +51,13 @@ async function resolveRoomImages(rooms: HotelRoomDraft[]) {
     }
     resolved.push({
       id: room.id,
-      name: room.name.trim(),
-      category: room.category.trim() || undefined,
-      capacity: room.capacity || 1,
-      price: room.price || 0,
-      discountPrice: room.discountPrice > 0 ? room.discountPrice : null,
-      extraPersonCharge: room.extraPersonCharge > 0 ? room.extraPersonCharge : null,
-      refundable: room.refundable,
+      name,
+      category: (room.category ?? "").trim() || undefined,
+      capacity: Number(room.capacity) >= 1 ? Number(room.capacity) : 1,
+      price: Number(room.price) >= 0 ? Number(room.price) : 0,
+      discountPrice: Number(room.discountPrice) > 0 ? Number(room.discountPrice) : null,
+      extraPersonCharge: Number(room.extraPersonCharge) > 0 ? Number(room.extraPersonCharge) : null,
+      refundable: Boolean(room.refundable),
       description: room.description || undefined,
       rules: room.rules || undefined,
       images: ordered.length > 0 ? ordered : existingUrls,
@@ -125,6 +133,11 @@ export function HotelForm() {
     setIsSubmitting(true);
 
     try {
+      const incompleteRoom = roomTypes.find((room) => !(room.name ?? "").trim());
+      if (incompleteRoom) {
+        throw new Error("Every room needs a Room type name before saving.");
+      }
+
       const bannerFiles = bannerImage.filter((item): item is File => item instanceof File);
       const existingBanner = bannerImage.find((item): item is string => typeof item === "string") ?? null;
       let uploadedBannerUrls: string[] = [];
@@ -193,7 +206,7 @@ export function HotelForm() {
       alert(`Hotel ${editId ? "Updated" : "Created"} Successfully!`);
     } catch (error) {
       console.error(error);
-      alert(`Error ${editId ? "updating" : "creating"} hotel`);
+      alert(`Error ${editId ? "updating" : "creating"} hotel: ${errorMessage(error)}`);
     } finally {
       setIsSubmitting(false);
     }

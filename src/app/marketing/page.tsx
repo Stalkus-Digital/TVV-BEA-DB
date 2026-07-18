@@ -1,10 +1,6 @@
-import { Suspense } from "react";
-import { MarketingDashboardPage } from "@/features/admin-marketing/components/MarketingDashboardPage";
+import { redirect } from "next/navigation";
 
+/** Marketing hub is retired — Landing Pages live under CMS. */
 export default function Page() {
-  return (
-    <Suspense fallback={null}>
-      <MarketingDashboardPage />
-    </Suspense>
-  );
+  redirect("/cms");
 }

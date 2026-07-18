@@ -4,7 +4,6 @@ import {
   PackageSearch,
   Users,
   Contact,
-  FileText,
   Megaphone,
   Wand2,
   Settings,
@@ -25,14 +24,6 @@ import {
   Image as ImageIcon,
   Link2,
   Layout,
-  Activity,
-  Radar,
-  HardDrive,
-  Server,
-  BarChart3,
-  Bell,
-  TrendingUp,
-  KeySquare
 } from "lucide-react";
 
 const navGroups = [
@@ -79,22 +70,22 @@ const navGroups = [
   //   ]
   // },
 
-  {
-    title: "Marketing",
-    links: [
-      { name: "Marketing Dashboard", href: "/marketing", icon: BarChart3 },
-      { name: "Campaigns", href: "/marketing/campaigns", icon: Megaphone },
-      { name: "Landing Pages", href: "/marketing/landing-pages", icon: Layout },
-      { name: "Forms", href: "/marketing/forms", icon: FileText },
-      { name: "SEO Dashboard", href: "/marketing/seo", icon: Globe },
-      { name: "Content Performance", href: "/marketing/content", icon: TrendingUp },
-    ]
-  },
+  // {
+  //   title: "Marketing",
+  //   links: [
+  //     { name: "Marketing Dashboard", href: "/marketing", icon: BarChart3 },
+  //     { name: "Campaigns", href: "/marketing/campaigns", icon: Megaphone },
+  //     { name: "Forms", href: "/marketing/forms", icon: FileText },
+  //     { name: "SEO Dashboard", href: "/marketing/seo", icon: Globe },
+  //     { name: "Content Performance", href: "/marketing/content", icon: TrendingUp },
+  //   ]
+  // },
   {
     title: "CMS",
     links: [
       { name: "Content Dashboard", href: "/cms", icon: LayoutDashboard },
       { name: "Home Sections", href: "/cms/home", icon: Megaphone },
+      { name: "Landing Pages", href: "/cms/landing-pages", icon: Layers },
       { name: "SEO Pages", href: "/cms/seo", icon: Globe },
       { name: "FAQ Management", href: "/cms/faqs", icon: HelpCircle },
       { name: "Media Browser", href: "/cms/media", icon: ImageIcon },

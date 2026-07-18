@@ -10,6 +10,7 @@ import { CmsPageShell } from "./CmsPageShell";
 const SECTION_ICONS: Record<string, LucideIcon> = {
   "/cms": Layout,
   "/cms/home": Megaphone,
+  "/cms/landing-pages": Layout,
   "/cms/seo": Globe,
   "/cms/faqs": FileText,
   "/cms/media": Image,

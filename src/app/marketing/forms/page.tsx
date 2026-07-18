@@ -1,10 +1,5 @@
-import { Suspense } from "react";
-import { FormsPage } from "@/features/admin-marketing/components/FormsPage";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return (
-    <Suspense fallback={null}>
-      <FormsPage />
-    </Suspense>
-  );
+  redirect("/cms");
 }

@@ -1,10 +1,5 @@
-import { Suspense } from "react";
-import { CampaignsPage } from "@/features/admin-marketing/components/CampaignsPage";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return (
-    <Suspense fallback={null}>
-      <CampaignsPage />
-    </Suspense>
-  );
+  redirect("/cms");
 }

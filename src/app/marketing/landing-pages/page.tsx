@@ -1,10 +1,6 @@
-import { Suspense } from "react";
-import { LandingPagesPage } from "@/features/admin-marketing/components/LandingPagesPage";
+import { redirect } from "next/navigation";
 
+/** Landing Pages moved from Marketing to CMS. */
 export default function Page() {
-  return (
-    <Suspense fallback={null}>
-      <LandingPagesPage />
-    </Suspense>
-  );
+  redirect("/cms/landing-pages");
 }

@@ -1,10 +1,5 @@
-import { Suspense } from "react";
-import { SeoDashboardPage } from "@/features/admin-marketing/components/SeoDashboardPage";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return (
-    <Suspense fallback={null}>
-      <SeoDashboardPage />
-    </Suspense>
-  );
+  redirect("/cms");
 }

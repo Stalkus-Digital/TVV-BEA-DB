@@ -35,6 +35,8 @@ export async function GET(request: NextRequest) {
       message: enquiry.message,
       destinationSlug: enquiry.destinationSlug,
       packageSlug: enquiry.packageSlug,
+      hotelSlug: enquiry.hotelSlug,
+      activitySlug: enquiry.activitySlug,
       customerId: enquiry.customerId,
       source: enquiry.source,
       status: enquiry.status,

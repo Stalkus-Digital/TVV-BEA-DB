@@ -69,6 +69,10 @@ export async function createEnquiry(data: { name: string; email: string; phone?:
   return result;
 }
 
+export async function deleteEnquiry(id: string): Promise<void> {
+  await adminApiClient.delete(enquiryPath(id));
+}
+
 export async function fetchEnquiryNotes(enquiryId: string): Promise<EnquiryNote[]> {
   const result = await adminApiClient.get<EnquiryNote[]>(notesPath(enquiryId));
   return result ?? [];

@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   PackageSearch,
   Users,
-  Contact,
   Megaphone,
   Wand2,
   Settings,
@@ -32,8 +31,7 @@ const navGroups = [
     title: "Overview",
     links: [
       { name: "Dashboard", href: "/", icon: LayoutDashboard },
-      { name: "CRM", href: "/crm", icon: Users },
-      { name: "Customers", href: "/customers", icon: Contact },
+      { name: "CRM & Leads", href: "/crm", icon: Users },
     ]
   },
   {

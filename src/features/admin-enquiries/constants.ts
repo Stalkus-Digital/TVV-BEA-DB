@@ -11,6 +11,8 @@ export const ENQUIRY_TYPE_LABELS: Record<EnquiryType, string> = {
   GENERAL: "General",
   PACKAGE: "Package",
   DESTINATION: "Destination",
+  HOTEL: "Hotel",
+  ACTIVITY: "Activity",
   CALLBACK: "Callback",
   CORPORATE: "Corporate",
 };

@@ -5,6 +5,7 @@ import {
   assignEnquiry,
   createEnquiry,
   createEnquiryNote,
+  deleteEnquiry,
   deleteEnquiryNote,
   updateEnquiryNote,
   updateEnquiryStatus,
@@ -72,6 +73,19 @@ export function useCreateEnquiryMutation() {
     mutationFn: (data: { name: string; email: string; phone?: string; sourceUrl?: string }) => createEnquiry(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "enquiries"] });
+    },
+  });
+}
+
+export function useDeleteEnquiryMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteEnquiry(id),
+    onSuccess: (_data, id) => {
+      void queryClient.invalidateQueries({ queryKey: ["admin", "enquiries"] });
+      void queryClient.removeQueries({ queryKey: adminQueryKeys.enquiries.detail(id) });
+      void queryClient.removeQueries({ queryKey: adminQueryKeys.enquiries.notes(id) });
+      void queryClient.invalidateQueries({ queryKey: adminQueryKeys.dashboard.activity });
     },
   });
 }

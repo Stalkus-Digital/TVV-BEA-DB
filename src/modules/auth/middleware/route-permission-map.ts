@@ -42,6 +42,7 @@ export const PUBLIC_EXACT_PATHS = [
   "/api/v1/auth/login",
   "/api/v1/auth/register",
   "/api/enquiries",
+  "/api/external/enquiries",
   "/api/storage/download",
   "/api/seed",
 ];

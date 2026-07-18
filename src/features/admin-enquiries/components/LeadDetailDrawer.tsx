@@ -1,17 +1,18 @@
 "use client";
 
-import { X } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 import { useMemo } from "react";
 import { ENQUIRY_STATUS_LABELS, ENQUIRY_TYPE_LABELS } from "../constants";
 import {
   useAssignEnquiryMutation,
+  useDeleteEnquiryMutation,
   useUpdateEnquiryStatusMutation,
 } from "../hooks/useEnquiryMutations";
 import { useEnquiryNotesQuery } from "../hooks/useEnquiryNotesQuery";
 import { useEnquiryQuery } from "../hooks/useEnquiryQuery";
 import { useStaffUsersQuery } from "../hooks/useStaffUsersQuery";
 import { EnquiryStatus, type Enquiry } from "../types";
-import { enquiryContextLabel, formatEnquiryDate } from "../utils";
+import { enquiryContextLabel, formatEnquiryDate, parseEnquiryMessage } from "../utils";
 import { EnquiryStatusBadge } from "./EnquiryStatusBadge";
 import { NotesSection } from "./NotesSection";
 import { WidgetError, WidgetLoading } from "@/features/admin-dashboard/components/WidgetState";
@@ -63,6 +64,7 @@ export function LeadDetailDrawer({ enquiryId, onClose }: LeadDetailDrawerProps) 
               staffLoading={staffQuery.isLoading}
               staffError={staffQuery.isError}
               notes={notesQuery.data ?? []}
+              onDeleted={onClose}
             />
           )}
         </div>
@@ -78,6 +80,7 @@ function LeadDetailContent({
   staffLoading,
   staffError,
   notes,
+  onDeleted,
 }: {
   enquiry: Enquiry;
   staffNameById: Map<string, string>;
@@ -85,13 +88,26 @@ function LeadDetailContent({
   staffLoading: boolean;
   staffError: boolean;
   notes: { id: string; body: string; createdAt: string; authorUserId: string | null }[];
+  onDeleted: () => void;
 }) {
   const updateStatus = useUpdateEnquiryStatusMutation(enquiry.id);
   const assign = useAssignEnquiryMutation(enquiry.id);
+  const deleteMutation = useDeleteEnquiryMutation();
+  const details = parseEnquiryMessage(enquiry.message);
 
   const assignedLabel = enquiry.assignedToUserId
     ? staffNameById.get(enquiry.assignedToUserId) ?? enquiry.assignedToUserId
     : "Unassigned";
+
+  async function handleDelete() {
+    if (!confirm(`Delete lead “${enquiry.name}”? This cannot be undone.`)) return;
+    try {
+      await deleteMutation.mutateAsync(enquiry.id);
+      onDeleted();
+    } catch {
+      // error shown below
+    }
+  }
 
   return (
     <>
@@ -103,8 +119,22 @@ function LeadDetailContent({
         <dl className="grid grid-cols-1 gap-2 text-sm">
           <DetailRow label="Email" value={enquiry.email} />
           <DetailRow label="Phone" value={enquiry.phone ?? "—"} />
-          <DetailRow label="Type" value={ENQUIRY_TYPE_LABELS[enquiry.type]} />
+          <DetailRow label="Type" value={ENQUIRY_TYPE_LABELS[enquiry.type] ?? enquiry.type} />
           <DetailRow label="Context" value={enquiryContextLabel(enquiry)} />
+          {details.destination && <DetailRow label="Destination" value={details.destination} />}
+          {details.tripType && <DetailRow label="Trip type" value={details.tripType} />}
+          {details.fromCity && <DetailRow label="From city" value={details.fromCity} />}
+          {(details.travelDates || details.startDate) && (
+            <DetailRow label="Travel dates" value={String(details.travelDates || details.startDate)} />
+          )}
+          {details.duration && <DetailRow label="Duration" value={details.duration} />}
+          {(details.partySize || details.guests || details.guestCount) && (
+            <DetailRow
+              label="Party"
+              value={details.partySize || `${details.guests ?? details.guestCount} guests`}
+            />
+          )}
+          {details.budget && <DetailRow label="Budget" value={details.budget} />}
           <DetailRow label="Source" value={enquiry.source ?? "—"} />
           <DetailRow label="Created" value={formatEnquiryDate(enquiry.createdAt)} />
           <DetailRow label="Last updated" value={formatEnquiryDate(enquiry.updatedAt)} />
@@ -112,10 +142,12 @@ function LeadDetailContent({
         </dl>
       </section>
 
-      {enquiry.message && (
+      {(details.text || (enquiry.message && !details.destination && !details.tripType)) && (
         <section className="space-y-2">
           <h4 className="text-sm font-semibold">Message</h4>
-          <p className="text-sm whitespace-pre-wrap rounded-lg border border-border bg-muted/30 p-3">{enquiry.message}</p>
+          <p className="text-sm whitespace-pre-wrap rounded-lg border border-border bg-muted/30 p-3">
+            {details.text || enquiry.message}
+          </p>
         </section>
       )}
 
@@ -134,7 +166,9 @@ function LeadDetailContent({
           ))}
         </select>
         {updateStatus.isError && (
-          <p className="text-xs text-destructive">{updateStatus.error instanceof Error ? updateStatus.error.message : "Status update failed"}</p>
+          <p className="text-xs text-destructive">
+            {updateStatus.error instanceof Error ? updateStatus.error.message : "Status update failed"}
+          </p>
         )}
       </section>
 
@@ -160,20 +194,25 @@ function LeadDetailContent({
           <p className="text-xs text-muted-foreground">No staff users found.</p>
         )}
         {assign.isError && (
-          <p className="text-xs text-destructive">{assign.error instanceof Error ? assign.error.message : "Assignment failed"}</p>
+          <p className="text-xs text-destructive">
+            {assign.error instanceof Error ? assign.error.message : "Assignment failed"}
+          </p>
         )}
       </section>
 
       <section className="space-y-3">
         <h4 className="text-sm font-semibold">Activity</h4>
-        <p className="text-xs text-muted-foreground">Full status history API is not available — showing created/updated timestamps and notes.</p>
+        <p className="text-xs text-muted-foreground">
+          Full status history API is not available — showing created/updated timestamps and notes.
+        </p>
         <ul className="space-y-2 text-sm">
           <li className="rounded-md border border-border px-3 py-2">
             Lead created · {formatEnquiryDate(enquiry.createdAt)}
           </li>
           {enquiry.updatedAt !== enquiry.createdAt && (
             <li className="rounded-md border border-border px-3 py-2">
-              Status/assignment updated · {formatEnquiryDate(enquiry.updatedAt)} ({ENQUIRY_STATUS_LABELS[enquiry.status]})
+              Status/assignment updated · {formatEnquiryDate(enquiry.updatedAt)} (
+              {ENQUIRY_STATUS_LABELS[enquiry.status]})
             </li>
           )}
           {notes.map((note) => (
@@ -186,6 +225,23 @@ function LeadDetailContent({
       </section>
 
       <NotesSection enquiryId={enquiry.id} staffNameById={staffNameById} />
+
+      <section className="border-t border-border pt-4">
+        <button
+          type="button"
+          onClick={() => void handleDelete()}
+          disabled={deleteMutation.isPending}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-destructive/40 px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50"
+        >
+          <Trash2 className="h-4 w-4" />
+          {deleteMutation.isPending ? "Deleting…" : "Delete contact"}
+        </button>
+        {deleteMutation.isError && (
+          <p className="mt-2 text-xs text-destructive">
+            {deleteMutation.error instanceof Error ? deleteMutation.error.message : "Delete failed"}
+          </p>
+        )}
+      </section>
     </>
   );
 }

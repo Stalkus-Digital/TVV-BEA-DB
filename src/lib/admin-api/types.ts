@@ -57,13 +57,49 @@ export interface ActivityItem {
   meta?: string;
 }
 
+export type DashboardKpiIcon =
+  | "package"
+  | "building2"
+  | "bedDouble"
+  | "ship"
+  | "plane"
+  | "activity"
+  | "mapPin"
+  | "calendar"
+  | "hotel"
+  | "compass"
+  | "creditCard"
+  | "percent"
+  | "bookOpen"
+  | "layoutTemplate"
+  | "inbox"
+  | "messageSquareQuote"
+  | "fileText";
+
+export interface DashboardKpiCard {
+  id: string;
+  title: string;
+  value: string;
+  hint: string;
+  icon: DashboardKpiIcon;
+  numericValue: number | null;
+}
+
+export interface DashboardKpiSection {
+  id: string;
+  title: string;
+  description: string;
+  cards: DashboardKpiCard[];
+}
+
 export interface DashboardKpis {
-  totalRevenue: number;
-  revenueVariance: number;
-  activeBookings: number;
-  newLeads: number;
-  conversionRate: number;
+  pageTitle: string;
+  pageDescription: string;
   revenueCurrency: string;
+  revenueVariance: number;
+  totalRevenue: number;
+  sections: DashboardKpiSection[];
+  revenueChart: RevenueMonthPoint[];
 }
 
 export interface RevenueMonthPoint {

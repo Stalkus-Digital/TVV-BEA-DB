@@ -1,17 +1,47 @@
 "use client";
 
 import {
+  Activity,
+  Building2,
   Calendar,
+  Compass,
   CreditCard,
   FileText,
   Inbox,
   MapPin,
-  PackageSearch,
-  Users,
-  Warehouse,
+  MessageSquareQuote,
+  Package,
+  Plane,
+  Ship,
+  BedDouble,
+  LayoutTemplate,
+  Hotel,
+  Percent,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
+import type { DashboardKpiIcon, DashboardKpis } from "@/lib/admin-api/types";
 import { WidgetError, WidgetLoading } from "./WidgetState";
+
+const ICON_MAP: Record<DashboardKpiIcon, LucideIcon> = {
+  package: Package,
+  building2: Building2,
+  bedDouble: BedDouble,
+  ship: Ship,
+  plane: Plane,
+  activity: Activity,
+  mapPin: MapPin,
+  calendar: Calendar,
+  hotel: Hotel,
+  compass: Compass,
+  creditCard: CreditCard,
+  percent: Percent,
+  bookOpen: BookOpen,
+  layoutTemplate: LayoutTemplate,
+  inbox: Inbox,
+  messageSquareQuote: MessageSquareQuote,
+  fileText: FileText,
+};
 
 export interface KpiCardProps {
   title: string;
@@ -47,74 +77,67 @@ export function KpiCard({ title, value, hint, icon: Icon, isLoading, isError, er
   );
 }
 
-function formatCount(value: number | undefined): string {
-  if (value === undefined) return "—";
-  return value.toLocaleString("en-IN");
-}
-
-function formatCurrency(amount: number | undefined, currency: string): string {
-  if (amount === undefined) return "—";
-  return new Intl.NumberFormat("en-IN", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
-}
-
 interface KpiGridProps {
   isLoading: boolean;
   isError: boolean;
   errorMessage?: string;
   onRetry?: () => void;
-  data?: {
-    totalRevenue: number;
-    revenueVariance: number;
-    activeBookings: number;
-    newLeads: number;
-    conversionRate: number;
-    revenueCurrency?: string;
-  };
+  data?: DashboardKpis;
 }
 
 export function KpiGrid({ isLoading, isError, errorMessage, onRetry, data }: KpiGridProps) {
-  const cards = [
-    {
-      title: "Total Revenue",
-      value: formatCurrency(data?.totalRevenue, data?.revenueCurrency ?? "INR"),
-      hint: data?.revenueVariance ? `+${data.revenueVariance}% from last month` : "Calculated from confirmed bookings",
-      icon: CreditCard,
-    },
-    { 
-      title: "Active Bookings", 
-      value: formatCount(data?.activeBookings), 
-      hint: "Trips currently in progress/pending", 
-      icon: Calendar 
-    },
-    { 
-      title: "New Leads", 
-      value: formatCount(data?.newLeads), 
-      hint: "Unassigned recent inquiries",
-      icon: Inbox 
-    },
-    { 
-      title: "Conversion Rate", 
-      value: data?.conversionRate !== undefined ? `${data.conversionRate.toFixed(1)}%` : "—", 
-      hint: "Bookings per lead ratio",
-      icon: FileText 
-    },
-  ];
+  const sections = data?.sections ?? [];
+
+  if (!isLoading && !isError && sections.length === 0) {
+    return (
+      <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
+        No KPI sections returned from the API.
+      </div>
+    );
+  }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {cards.map((card) => (
-        <KpiCard
-          key={card.title}
-          title={card.title}
-          value={card.value}
-          hint={card.hint}
-          icon={card.icon}
-          isLoading={isLoading}
-          isError={isError}
-          errorMessage={errorMessage}
-          onRetry={onRetry}
-        />
-      ))}
+    <div className="space-y-8">
+      {(isLoading || isError ? [{ id: "loading", title: "Loading", description: "", cards: [] }] : sections).map(
+        (section) => (
+          <section key={section.id} className="space-y-3">
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight">
+                {isLoading || isError ? "Management KPIs" : section.title}
+              </h2>
+              {!isLoading && !isError && section.description && (
+                <p className="text-sm text-muted-foreground">{section.description}</p>
+              )}
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {isLoading || isError
+                ? Array.from({ length: 4 }).map((_, index) => (
+                    <KpiCard
+                      key={`${section.id}-${index}`}
+                      title="…"
+                      value="—"
+                      icon={Package}
+                      isLoading={isLoading}
+                      isError={isError}
+                      errorMessage={errorMessage}
+                      onRetry={onRetry}
+                    />
+                  ))
+                : section.cards.map((card) => (
+                    <KpiCard
+                      key={card.id}
+                      title={card.title}
+                      value={card.value}
+                      hint={card.hint}
+                      icon={ICON_MAP[card.icon] ?? Package}
+                      isLoading={false}
+                      isError={false}
+                    />
+                  ))}
+            </div>
+          </section>
+        ),
+      )}
     </div>
   );
 }

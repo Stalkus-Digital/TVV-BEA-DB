@@ -49,9 +49,12 @@ async function sumBookingRevenue(): Promise<{ amount: number; currency: string }
 }
 
 export async function fetchDashboardKpis(): Promise<DashboardKpis> {
-  const result = await adminApiClient.get<DashboardKpis>(adminEndpoints.dashboardMetrics);
+  const result = await adminApiClient.get<DashboardKpis>(adminEndpoints.dashboardKpis);
   if (!result) {
     throw new Error("Failed to load KPIs");
+  }
+  if (!Array.isArray(result.sections)) {
+    throw new Error("Dashboard KPIs response missing sections");
   }
   return result;
 }

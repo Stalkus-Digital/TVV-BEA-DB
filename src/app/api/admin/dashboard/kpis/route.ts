@@ -1,42 +1,17 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/shared/database/prisma-client";
+import { readAuthContextFromHeaders } from "@/modules/auth";
+import { getManagementDashboardService } from "@/modules/crm/services/management-dashboard.service";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const [
-      totalCustomers,
-      totalEnquiries,
-      totalQuotes,
-      totalBookings,
-      activePackages,
-      activeDestinations,
-      revenueAgg
-    ] = await Promise.all([
-      prisma.customerProfile.count(),
-      prisma.lead.count(),
-      prisma.quote.count(),
-      prisma.booking.count(),
-      prisma.package.count({ where: { status: "PUBLISHED" } }),
-      prisma.destination.count({ where: { status: "PUBLISHED" } }),
-      prisma.bookingPayment.aggregate({
-        _sum: { amount: true },
-        where: { status: "COMPLETED" }
-      })
-    ]);
+    const context = readAuthContextFromHeaders(request.headers);
+    if (!context || (!context.roles.includes("ADMIN") && !context.roles.includes("SUPER_ADMIN"))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    return NextResponse.json({
-      data: {
-        totalCustomers,
-        totalEnquiries,
-        totalQuotes,
-        totalBookings,
-        activePackages,
-        inventoryCount: 0, // Placeholder if no generic inventory count
-        activeDestinations,
-        revenueCollected: revenueAgg._sum.amount || 0,
-        revenueCurrency: "INR",
-      }
-    });
+    const service = getManagementDashboardService();
+    const kpis = await service.getKpis();
+    return NextResponse.json(kpis);
   } catch (error) {
     console.error("Dashboard KPI Error:", error);
     return NextResponse.json({ error: "Failed to fetch KPIs" }, { status: 500 });

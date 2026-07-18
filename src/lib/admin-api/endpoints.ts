@@ -16,6 +16,7 @@ export const adminEndpoints = {
   destinations: "/api/destinations",
   systemHealth: "/api/system/health",
   dashboardMetrics: "/api/admin/dashboard/metrics",
+  dashboardKpis: "/api/admin/dashboard/kpis",
   storage: {
     upload: "/api/storage/upload",
   },

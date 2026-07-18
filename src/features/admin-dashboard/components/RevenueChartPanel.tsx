@@ -18,9 +18,10 @@ export function RevenueChartPanel({
   errorMessage,
   onRetry,
   points = [],
-  currency = "INR",
+  currency,
 }: RevenueChartPanelProps) {
   const maxAmount = Math.max(...points.map((point) => point.amount), 0);
+  const currencyLabel = currency?.trim() || "";
 
   return (
     <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6">
@@ -44,7 +45,7 @@ export function RevenueChartPanel({
                 <div
                   className="w-full rounded-t-md bg-primary/80"
                   style={{ height }}
-                  title={`${point.label}: ${point.amount.toLocaleString("en-IN")} ${currency}`}
+                  title={`${point.label}: ${point.amount.toLocaleString("en-IN")}${currencyLabel ? ` ${currencyLabel}` : ""}`}
                 />
                 <div className="text-[11px] text-muted-foreground text-center truncate w-full">{point.label}</div>
               </div>

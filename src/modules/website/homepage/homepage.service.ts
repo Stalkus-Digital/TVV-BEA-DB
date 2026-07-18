@@ -9,16 +9,12 @@ import type { HeroBannerDTO, HomepageResponseDTO, QuickLinkDTO } from "../dto/we
 import type { WebsitePackageService } from "../services/website-package.service";
 import { WebsiteConfigService } from "../services/website-config.service";
 import { CmsConfigService } from "../services/cms-config.service";
+import { heroBannerFromSections, resolveHomeSections } from "./home-sections";
 
 const FEATURED_LIMIT = 6;
 const LATEST_LIMIT = 8;
 const POPULAR_DESTINATIONS_LIMIT = 6;
 
-/**
- * heroBanner and quickLinks are static/config-driven — there is no CMS
- * (Sprint 9) to author them from. Everything else is a real read through
- * Package/Destination's public services.
- */
 const STATIC_HERO_BANNER: HeroBannerDTO = {
   headline: "Discover Your Next Adventure",
   subheadline: "Handpicked holiday packages across India's most beautiful destinations",
@@ -52,10 +48,6 @@ export class HomepageService extends BaseService {
     if (isErr(featuredDestinationsResult)) return featuredDestinationsResult;
     if (isErr(latestPackagesResult)) return latestPackagesResult;
 
-    // toSummaryDTO resolves destination name + live price per package —
-    // deliberately not the bare transformer call, so homepage cards are
-    // never shown with an empty destination/price (that gap was found and
-    // fixed during verification, not left in).
     const featuredPackages = await Promise.all(
       featuredPackagesResult.value.items.map((pkg) => this.websitePackages.toSummaryDTO(pkg))
     );
@@ -67,9 +59,6 @@ export class HomepageService extends BaseService {
         .map((pkg) => this.websitePackages.toSummaryDTO(pkg))
     );
 
-    // Provisional proxy for "popular" — no booking-count analytics exist
-    // before Booking Engine. Flagged in docs/09_WEBSITE_API.md, not
-    // presented as if backed by real popularity data.
     const popularResult = await getDestinationService().list({ pageSize: POPULAR_DESTINATIONS_LIMIT });
     const popularDestinations = isErr(popularResult) ? [] : popularResult.value.items.map(toDestinationSummary);
 
@@ -85,16 +74,15 @@ export class HomepageService extends BaseService {
     );
 
     const cmsConfigResult = await CmsConfigService.getInstance().getConfig("HOME_SECTIONS");
-    let heroBanner = STATIC_HERO_BANNER;
-    let quickLinks = STATIC_QUICK_LINKS;
+    const config = !isErr(cmsConfigResult) ? cmsConfigResult.value : null;
+    const { sections, heroBanner: storedBanner, quickLinks: storedLinks } = resolveHomeSections(config);
 
-    if (!isErr(cmsConfigResult) && cmsConfigResult.value) {
-      const config = cmsConfigResult.value;
-      if (config.heroBanner) heroBanner = config.heroBanner;
-      if (config.quickLinks) quickLinks = config.quickLinks;
-    }
+    const heroBanner =
+      storedBanner ?? heroBannerFromSections(sections, STATIC_HERO_BANNER);
+    const quickLinks = storedLinks ?? STATIC_QUICK_LINKS;
 
     return ok({
+      sections,
       heroBanner,
       featuredPackages,
       featuredDestinations,

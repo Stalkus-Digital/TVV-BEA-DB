@@ -45,7 +45,15 @@ export interface WebsiteDestinationSummary {
   shortDescription: string | null;
 }
 
+export interface HomeSection {
+  id: string;
+  type: string;
+  enabled: boolean;
+  data: Record<string, unknown>;
+}
+
 export interface HomepageResponse {
+  sections: HomeSection[];
   heroBanner: HeroBanner;
   featuredPackages: WebsitePackageSummary[];
   featuredDestinations: WebsiteDestinationSummary[];

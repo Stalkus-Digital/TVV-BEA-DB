@@ -15,15 +15,20 @@ export interface QuickLinkDTO {
   url: string;
 }
 
+export interface HomeSectionDTO {
+  id: string;
+  type: string;
+  enabled: boolean;
+  data: Record<string, unknown>;
+}
+
 /**
- * heroBanner is a static, config-driven placeholder — there is no CMS
- * (Sprint 9) to author it from yet. popularDestinations is a provisional
- * proxy (currently: same source as featured, first N) — real popularity
- * needs booking-count analytics that don't exist before Booking Engine.
- * Both are flagged in docs/09_WEBSITE_API.md, not silently presented as if
- * backed by real content/analytics.
+ * Public homepage payload.
+ * `sections` is the page-composition source of truth for the frontend.
+ * `heroBanner` / catalog shelves remain for legacy clients and shelf data.
  */
 export interface HomepageResponseDTO {
+  sections: HomeSectionDTO[];
   heroBanner: HeroBannerDTO;
   featuredPackages: WebsitePackageSummaryDTO[];
   featuredDestinations: WebsiteDestinationSummaryDTO[];

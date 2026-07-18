@@ -80,7 +80,10 @@ export function buildDashboardStats(
     publishedPackageCount: homepage?.featuredPackages.length ?? packages.filter((p) => p.status === "PUBLISHED").length,
     destinationFaqCount,
     packageFaqCount,
-    heroConfigured: Boolean(homepage?.heroBanner.headline),
+    heroConfigured: Boolean(
+      homepage?.sections?.some((s) => s.type === "hero" && s.enabled) ||
+        homepage?.heroBanner?.headline
+    ),
     menuItemCount: navigation?.menu.length ?? 0,
     footerLinkCount,
   };

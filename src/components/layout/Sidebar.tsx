@@ -33,7 +33,6 @@ const navGroups = [
       { name: "Dashboard", href: "/", icon: LayoutDashboard },
       { name: "CRM", href: "/crm", icon: Users },
       { name: "Customers", href: "/customers", icon: Contact },
-      // { name: "Quotes", href: "/quotes", icon: FileText },
     ]
   },
   {

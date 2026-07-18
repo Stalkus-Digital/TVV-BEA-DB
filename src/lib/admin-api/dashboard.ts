@@ -6,7 +6,6 @@ import type {
   DashboardKpis,
   EnquirySummary,
   PaginatedResult,
-  QuoteSummary,
   RevenueMonthPoint,
   SystemHealthResponse,
 } from "./types";
@@ -67,7 +66,6 @@ export async function fetchSystemHealth(): Promise<SystemHealthResponse> {
 
 function toActivityItems(
   enquiries: EnquirySummary[],
-  quotes: QuoteSummary[],
   bookings: BookingSummary[]
 ): ActivityItem[] {
   const enquiryItems: ActivityItem[] = enquiries.map((item) => ({
@@ -80,15 +78,6 @@ function toActivityItems(
     meta: item.type,
   }));
 
-  const quoteItems: ActivityItem[] = quotes.map((item) => ({
-    id: item.id,
-    kind: "quote",
-    title: item.title,
-    subtitle: item.quoteNumber,
-    status: item.status,
-    createdAt: item.createdAt,
-  }));
-
   const bookingItems: ActivityItem[] = bookings.map((item) => ({
     id: item.id,
     kind: "booking",
@@ -98,19 +87,18 @@ function toActivityItems(
     createdAt: item.createdAt,
   }));
 
-  return [...enquiryItems, ...quoteItems, ...bookingItems]
+  return [...enquiryItems, ...bookingItems]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 8);
 }
 
 export async function fetchRecentActivity(): Promise<ActivityItem[]> {
-  const [enquiries, quotes, bookings] = await Promise.all([
+  const [enquiries, bookings] = await Promise.all([
     adminApiClient.get<PaginatedResult<EnquirySummary>>(adminEndpoints.enquiries, { params: { page: 1, pageSize: 5 } }),
-    adminApiClient.get<PaginatedResult<QuoteSummary>>(adminEndpoints.quotes, { params: { page: 1, pageSize: 5 } }),
     adminApiClient.get<PaginatedResult<BookingSummary>>(adminEndpoints.bookings, { params: { page: 1, pageSize: 5 } }),
   ]);
 
-  return toActivityItems(enquiries?.items ?? [], quotes?.items ?? [], bookings?.items ?? []);
+  return toActivityItems(enquiries?.items ?? [], bookings?.items ?? []);
 }
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

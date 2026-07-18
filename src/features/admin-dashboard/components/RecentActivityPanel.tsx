@@ -48,7 +48,7 @@ export function RecentActivityPanel({ isLoading, isError, errorMessage, onRetry,
     <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6">
       <div className="flex flex-col space-y-1.5 pb-4">
         <h3 className="font-semibold leading-none tracking-tight">Recent Activity</h3>
-        <p className="text-sm text-muted-foreground">Latest enquiries, quotes, and bookings.</p>
+        <p className="text-sm text-muted-foreground">Latest enquiries and bookings.</p>
       </div>
 
       {isLoading ? (

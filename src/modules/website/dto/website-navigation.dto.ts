@@ -17,4 +17,6 @@ export interface NavigationResponseDTO {
   footer: { columns: FooterColumnDTO[] };
   quickLinks: QuickLinkDTO[];
   popularDestinations: WebsiteDestinationSummaryDTO[];
+  /** Links from CMS Pages → Add to nav */
+  customNavLinks?: MenuItemDTO[];
 }

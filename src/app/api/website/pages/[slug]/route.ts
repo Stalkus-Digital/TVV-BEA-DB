@@ -1,32 +1,59 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/shared/database/prisma-client";
+import { jsonSuccess, jsonError } from "@/api/http";
 
-export async function GET(request: Request, context: any) {
-  const params = await context.params;
-  const slug = params.slug;
+type PageContent = {
+  body?: string;
+  excerpt?: string;
+  heroEyebrow?: string;
+  heroSubtitle?: string;
+  heroImage?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+};
+
+function asContent(raw: unknown): PageContent {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  return raw as PageContent;
+}
+
+export async function GET(_request: Request, context: { params: Promise<{ slug: string }> }) {
+  const { slug } = await context.params;
 
   try {
     const page = await prisma.cmsPage.findUnique({
-      where: { slug }
+      where: { slug },
     });
 
-    if (!page) {
+    if (!page || page.status !== "PUBLISHED") {
       return NextResponse.json({ error: "Page not found" }, { status: 404 });
     }
 
-    if (page.status !== "PUBLISHED") {
-      return NextResponse.json({ error: "Page not available" }, { status: 404 });
-    }
+    const content = asContent(page.content);
+    const seoTitle = content.metaTitle?.trim() || page.title;
+    const seoDescription =
+      content.metaDescription?.trim() || content.excerpt?.trim() || content.heroSubtitle?.trim() || "";
 
-    // Format matches CmsPagePayload in frontend
-    return NextResponse.json({
+    return jsonSuccess({
       page: {
         slug: page.slug,
+        heroEyebrow: content.heroEyebrow ?? null,
         heroTitle: page.title,
-        content: page.content
-      }
+        heroSubtitle: content.heroSubtitle ?? content.excerpt ?? null,
+        heroImage: content.heroImage ?? null,
+        body: typeof content.body === "string" ? content.body : "",
+        seoTitle,
+        seoDescription,
+        seoOgImage: content.heroImage ?? null,
+      },
+      seo: {
+        title: seoTitle,
+        description: seoDescription,
+        ogImage: content.heroImage ?? undefined,
+      },
     });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to load page";
+    return jsonError(new Error(message));
   }
 }

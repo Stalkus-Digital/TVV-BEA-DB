@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       data: {
         title,
         slug,
-        content: content || [],
+        content: content && typeof content === "object" ? content : {},
         status: status || "DRAFT",
       }
     });

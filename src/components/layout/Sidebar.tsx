@@ -24,6 +24,7 @@ import {
   Image as ImageIcon,
   Link2,
   Layout,
+  FileText,
 } from "lucide-react";
 
 const navGroups = [
@@ -92,6 +93,7 @@ const navGroups = [
       { name: "Footer Content", href: "/cms/footer", icon: Layout },
       { name: "Enquiries", href: "/cms/enquiries", icon: Inbox },
       { name: "Guides (Blogs)", href: "/cms/guides", icon: BookOpen },
+      { name: "Pages", href: "/cms/pages", icon: FileText },
     ]
   }
 ];

@@ -71,6 +71,8 @@ export interface NavigationResponse {
   footer: { columns: FooterColumn[] };
   quickLinks: QuickLink[];
   popularDestinations: WebsiteDestinationSummary[];
+  /** CMS Pages → Add to nav (merged into public header as top-level links) */
+  customNavLinks?: MenuItem[];
 }
 
 export type StorageCategory =

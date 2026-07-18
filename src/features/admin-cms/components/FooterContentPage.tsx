@@ -1,27 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useUpdateCmsConfigMutation } from "../hooks/useCmsMutations";
 import { useWebsiteNavigationQuery } from "../hooks/useCmsQueries";
 import { CmsPageShell } from "./CmsPageShell";
+import { adminApiClient } from "@/lib/admin-api/client";
+
+interface PublishedPage {
+  id: string;
+  title: string;
+  slug: string;
+  status: string;
+}
 
 export function FooterContentPage() {
   const navigationQuery = useWebsiteNavigationQuery();
   const configMutation = useUpdateCmsConfigMutation();
   const [isEditing, setIsEditing] = useState(false);
   const [footerForm, setFooterForm] = useState<{ title: string; links: { label: string; url: string }[] }[]>([]);
+  const [insertTarget, setInsertTarget] = useState({ colIdx: 0, pageSlug: "" });
+  const [publishedPages, setPublishedPages] = useState<PublishedPage[]>([]);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await adminApiClient.get<{ items: PublishedPage[] }>("/api/cms/pages");
+        setPublishedPages((res?.items ?? []).filter((p) => p.status === "PUBLISHED"));
+      } catch {
+        setPublishedPages([]);
+      }
+    })();
+  }, []);
 
   async function saveFooter(e: React.FormEvent) {
     e.preventDefault();
     try {
       await configMutation.mutateAsync({
         key: "FOOTER",
-        value: { columns: footerForm.filter(c => c.title) }
+        value: { columns: footerForm.filter((c) => c.title) },
       });
       setIsEditing(false);
-    } catch (err) {
+    } catch {
       alert("Failed to save footer columns");
     }
+  }
+
+  function insertCmsPageIntoColumn(colIdx: number, slug: string) {
+    const page = publishedPages.find((p) => p.slug === slug);
+    if (!page) return;
+    setFooterForm((prev) => {
+      const next = prev.map((col, i) =>
+        i === colIdx
+          ? {
+              ...col,
+              links: [...col.links, { label: page.title, url: `/p/${page.slug}` }],
+            }
+          : col
+      );
+      return next;
+    });
   }
 
   return (
@@ -39,8 +76,14 @@ export function FooterContentPage() {
         <h2 className="text-lg font-semibold">Footer Columns</h2>
         {!isEditing && (
           <button
+            type="button"
             onClick={() => {
-              setFooterForm(navigationQuery.data?.footer?.columns?.map(c => ({ title: c.title, links: c.links.map(l => ({ ...l })) })) ?? []);
+              setFooterForm(
+                navigationQuery.data?.footer?.columns?.map((c) => ({
+                  title: c.title,
+                  links: c.links.map((l) => ({ ...l })),
+                })) ?? []
+              );
               setIsEditing(true);
             }}
             className="text-sm text-primary hover:underline"
@@ -52,31 +95,147 @@ export function FooterContentPage() {
 
       {isEditing ? (
         <form onSubmit={saveFooter} className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-6">
+          {publishedPages.length > 0 && footerForm.length > 0 ? (
+            <div className="flex flex-wrap items-end gap-2 rounded-md border border-dashed border-border bg-muted/30 px-3 py-3">
+              <div>
+                <label className="block text-[11px] font-medium text-muted-foreground mb-1">Column</label>
+                <select
+                  className="bg-background border border-input rounded-md px-2 py-1.5 text-sm"
+                  value={insertTarget.colIdx}
+                  onChange={(e) =>
+                    setInsertTarget((prev) => ({ ...prev, colIdx: Number(e.target.value) }))
+                  }
+                >
+                  {footerForm.map((col, i) => (
+                    <option key={i} value={i}>
+                      {col.title || `Column ${i + 1}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+                  Insert CMS page
+                </label>
+                <select
+                  className="bg-background border border-input rounded-md px-2 py-1.5 text-sm"
+                  value={insertTarget.pageSlug}
+                  onChange={(e) => {
+                    const slug = e.target.value;
+                    if (!slug) return;
+                    insertCmsPageIntoColumn(insertTarget.colIdx, slug);
+                    setInsertTarget((prev) => ({ ...prev, pageSlug: "" }));
+                  }}
+                >
+                  <option value="">Choose a page…</option>
+                  {publishedPages.map((p) => (
+                    <option key={p.id} value={p.slug}>
+                      {p.title} (/p/{p.slug})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          ) : null}
+
           {footerForm.map((column, colIdx) => (
             <div key={colIdx} className="space-y-3 p-4 border border-border rounded-md relative">
-              <button type="button" onClick={() => setFooterForm(footerForm.filter((_, i) => i !== colIdx))} className="absolute top-4 right-4 text-xs text-destructive hover:underline">Remove Column</button>
+              <button
+                type="button"
+                onClick={() => setFooterForm(footerForm.filter((_, i) => i !== colIdx))}
+                className="absolute top-4 right-4 text-xs text-destructive hover:underline"
+              >
+                Remove Column
+              </button>
               <div>
                 <label className="block text-xs font-medium mb-1">Column Title</label>
-                <input required value={column.title} onChange={e => { const newForm = [...footerForm]; newForm[colIdx].title = e.target.value; setFooterForm(newForm); }} className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm" />
+                <input
+                  required
+                  value={column.title}
+                  onChange={(e) => {
+                    const newForm = [...footerForm];
+                    newForm[colIdx].title = e.target.value;
+                    setFooterForm(newForm);
+                  }}
+                  className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
+                />
               </div>
               <div className="space-y-2">
                 <label className="block text-xs font-medium">Links</label>
                 {column.links.map((link, linkIdx) => (
                   <div key={linkIdx} className="flex gap-2">
-                    <input required placeholder="Label" value={link.label} onChange={e => { const newForm = [...footerForm]; newForm[colIdx].links[linkIdx].label = e.target.value; setFooterForm(newForm); }} className="flex-1 bg-background border border-input rounded-md px-3 py-2 text-sm" />
-                    <input required placeholder="URL" value={link.url} onChange={e => { const newForm = [...footerForm]; newForm[colIdx].links[linkIdx].url = e.target.value; setFooterForm(newForm); }} className="flex-1 bg-background border border-input rounded-md px-3 py-2 text-sm" />
-                    <button type="button" onClick={() => { const newForm = [...footerForm]; newForm[colIdx].links = newForm[colIdx].links.filter((_, i) => i !== linkIdx); setFooterForm(newForm); }} className="px-3 py-2 bg-destructive text-destructive-foreground rounded-md text-sm">X</button>
+                    <input
+                      required
+                      placeholder="Label"
+                      value={link.label}
+                      onChange={(e) => {
+                        const newForm = [...footerForm];
+                        newForm[colIdx].links[linkIdx].label = e.target.value;
+                        setFooterForm(newForm);
+                      }}
+                      className="flex-1 bg-background border border-input rounded-md px-3 py-2 text-sm"
+                    />
+                    <input
+                      required
+                      placeholder="URL"
+                      value={link.url}
+                      onChange={(e) => {
+                        const newForm = [...footerForm];
+                        newForm[colIdx].links[linkIdx].url = e.target.value;
+                        setFooterForm(newForm);
+                      }}
+                      className="flex-1 bg-background border border-input rounded-md px-3 py-2 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newForm = [...footerForm];
+                        newForm[colIdx].links = newForm[colIdx].links.filter((_, i) => i !== linkIdx);
+                        setFooterForm(newForm);
+                      }}
+                      className="px-3 py-2 bg-destructive text-destructive-foreground rounded-md text-sm"
+                    >
+                      X
+                    </button>
                   </div>
                 ))}
-                <button type="button" onClick={() => { const newForm = [...footerForm]; newForm[colIdx].links.push({ label: "", url: "" }); setFooterForm(newForm); }} className="text-xs text-primary hover:underline">+ Add Link</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newForm = [...footerForm];
+                    newForm[colIdx].links.push({ label: "", url: "" });
+                    setFooterForm(newForm);
+                  }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  + Add Link
+                </button>
               </div>
             </div>
           ))}
-          <button type="button" onClick={() => setFooterForm([...footerForm, { title: "", links: [] }])} className="text-sm text-primary hover:underline">+ Add Column</button>
-          
+          <button
+            type="button"
+            onClick={() => setFooterForm([...footerForm, { title: "", links: [] }])}
+            className="text-sm text-primary hover:underline"
+          >
+            + Add Column
+          </button>
+
           <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-md">Cancel</button>
-            <button type="submit" disabled={configMutation.isPending} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary-hover">Save</button>
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-md"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={configMutation.isPending}
+              className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary-hover"
+            >
+              Save
+            </button>
           </div>
         </form>
       ) : (

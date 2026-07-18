@@ -10,7 +10,7 @@ export const CMS_SECTIONS = [
   { href: "/cms/navigation", label: "Navigation Menus", description: "Website top navigation" },
   { href: "/cms/footer", label: "Footer Content", description: "Footer columns and links" },
   { href: "/cms/redirects", label: "Redirect Management", description: "URL redirects" },
-  { href: "/cms/pages", label: "Static Pages", description: "Static content pages" },
+  { href: "/cms/pages", label: "Pages", description: "Custom pages with rich text editor" },
   { href: "/cms/guides", label: "Guides (Blogs)", description: "Blog and guide articles" },
 ] as const;
 

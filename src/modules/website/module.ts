@@ -6,10 +6,12 @@ import { NavigationService } from "./navigation/navigation.service";
 import { WebsiteSearchService } from "./search/website-search.service";
 import { WebsiteDestinationService } from "./services/website-destination.service";
 import { WebsitePackageService } from "./services/website-package.service";
+import { WebsiteHotelService } from "./services/website-hotel.service";
 import { LandingPageService } from "./services/landing-page.service";
 
 export const WEBSITE_PACKAGE_SERVICE_TOKEN = createToken<WebsitePackageService>("website.service.package");
 export const WEBSITE_DESTINATION_SERVICE_TOKEN = createToken<WebsiteDestinationService>("website.service.destination");
+export const WEBSITE_HOTEL_SERVICE_TOKEN = createToken<WebsiteHotelService>("website.service.hotel");
 export const HOMEPAGE_SERVICE_TOKEN = createToken<HomepageService>("website.service.homepage");
 export const NAVIGATION_SERVICE_TOKEN = createToken<NavigationService>("website.service.navigation");
 export const WEBSITE_SEARCH_SERVICE_TOKEN = createToken<WebsiteSearchService>("website.service.search");
@@ -34,6 +36,10 @@ export const websiteModule: ModuleDefinition = {
     c.registerFactory(
       WEBSITE_DESTINATION_SERVICE_TOKEN,
       () => new WebsiteDestinationService({ logger: createLogger("website.destination") })
+    );
+    c.registerFactory(
+      WEBSITE_HOTEL_SERVICE_TOKEN,
+      () => new WebsiteHotelService({ logger: createLogger("website.hotel") })
     );
     c.registerFactory(
       HOMEPAGE_SERVICE_TOKEN,
@@ -69,6 +75,9 @@ export function getWebsitePackageService(): WebsitePackageService {
 }
 export function getWebsiteDestinationService(): WebsiteDestinationService {
   return container.resolve(WEBSITE_DESTINATION_SERVICE_TOKEN);
+}
+export function getWebsiteHotelService(): WebsiteHotelService {
+  return container.resolve(WEBSITE_HOTEL_SERVICE_TOKEN);
 }
 export function getHomepageService(): HomepageService {
   return container.resolve(HOMEPAGE_SERVICE_TOKEN);

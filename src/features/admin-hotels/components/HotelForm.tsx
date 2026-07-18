@@ -6,10 +6,57 @@ import Link from "next/link";
 import { DescriptionEditor } from "./DescriptionEditor";
 import { ImageUploader } from "./ImageUploader";
 import { RatingComponent } from "./RatingComponent";
+import { HotelRoomFields, type HotelRoomDraft } from "./HotelRoomFields";
 import { useDestinationsQuery } from "@/features/admin-quotes/hooks/useDestinationsQuery";
 import { adminApiClient } from "@/lib/admin-api/client";
 import { adminEndpoints } from "@/lib/admin-api/endpoints";
 import { uploadFiles } from "@/lib/admin-api/upload";
+
+function slugify(text: string) {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w\-]+/g, "")
+    .replace(/\-\-+/g, "-")
+    .replace(/^-+/, "")
+    .replace(/-+$/, "");
+}
+
+async function resolveRoomImages(rooms: HotelRoomDraft[]) {
+  const resolved = [];
+  for (const room of rooms) {
+    if (!room.name.trim()) continue;
+    const existingUrls = room.images.filter((item): item is string => typeof item === "string");
+    const newFiles = room.images.filter((item): item is File => item instanceof File);
+    let uploaded: string[] = [];
+    if (newFiles.length > 0) {
+      const results = await uploadFiles(newFiles, "GALLERY_IMAGE");
+      uploaded = results.map((r) => r.url);
+    }
+    const ordered: string[] = [];
+    let uploadIdx = 0;
+    for (const item of room.images) {
+      if (typeof item === "string") ordered.push(item);
+      else if (uploadIdx < uploaded.length) ordered.push(uploaded[uploadIdx++]);
+    }
+    resolved.push({
+      id: room.id,
+      name: room.name.trim(),
+      category: room.category.trim() || undefined,
+      capacity: room.capacity || 1,
+      price: room.price || 0,
+      discountPrice: room.discountPrice > 0 ? room.discountPrice : null,
+      extraPersonCharge: room.extraPersonCharge > 0 ? room.extraPersonCharge : null,
+      refundable: room.refundable,
+      description: room.description || undefined,
+      rules: room.rules || undefined,
+      images: ordered.length > 0 ? ordered : existingUrls,
+    });
+  }
+  return resolved;
+}
 
 export function HotelForm() {
   const router = useRouter();
@@ -25,17 +72,18 @@ export function HotelForm() {
   const [points, setPoints] = useState("");
   const [policies, setPolicies] = useState("");
   const [rules, setRules] = useState("");
-  const [bannerImage, setBannerImage] = useState<File[]>([]);
-  const [hotelImages, setHotelImages] = useState<File[]>([]);
-  const [existingBannerUrl, setExistingBannerUrl] = useState<string | null>(null);
-  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [bannerImage, setBannerImage] = useState<(File | string)[]>([]);
+  const [hotelImages, setHotelImages] = useState<(File | string)[]>([]);
+  const [existingSlug, setExistingSlug] = useState<string | null>(null);
+  const [roomTypes, setRoomTypes] = useState<HotelRoomDraft[]>([]);
 
   const [isLoading, setIsLoading] = useState(!!editId);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (editId) {
-      adminApiClient.get<any>(`${adminEndpoints.inventory}/${editId}`)
+      adminApiClient
+        .get<any>(`${adminEndpoints.inventory}/${editId}`)
         .then((data) => {
           if (data) {
             setName(data.title || "");
@@ -46,8 +94,25 @@ export function HotelForm() {
             setPoints(data.details?.points || "");
             setPolicies(data.details?.policies || "");
             setRules(data.details?.rules || "");
-            setExistingBannerUrl(data.details?.bannerImage || null);
-            setExistingImageUrls(data.details?.images || []);
+            setExistingSlug(data.details?.slug || null);
+            setBannerImage(data.details?.bannerImage ? [data.details.bannerImage] : []);
+            setHotelImages(Array.isArray(data.details?.images) ? data.details.images : []);
+            const rooms = Array.isArray(data.details?.roomTypes) ? data.details.roomTypes : [];
+            setRoomTypes(
+              rooms.map((room: any) => ({
+                id: room.id || crypto.randomUUID(),
+                name: room.name || "",
+                category: room.category || "",
+                capacity: Number(room.capacity) || 2,
+                price: Number(room.price) || 0,
+                discountPrice: Number(room.discountPrice) || 0,
+                extraPersonCharge: Number(room.extraPersonCharge) || 0,
+                refundable: Boolean(room.refundable),
+                description: room.description || "",
+                rules: room.rules || "",
+                images: Array.isArray(room.images) ? room.images : [],
+              })),
+            );
           }
         })
         .catch(console.error)
@@ -60,40 +125,66 @@ export function HotelForm() {
     setIsSubmitting(true);
 
     try {
+      const bannerFiles = bannerImage.filter((item): item is File => item instanceof File);
+      const existingBanner = bannerImage.find((item): item is string => typeof item === "string") ?? null;
       let uploadedBannerUrls: string[] = [];
-      if (bannerImage.length > 0) {
-        const results = await uploadFiles(bannerImage, "GALLERY_IMAGE");
-        uploadedBannerUrls = results.map(r => r.url);
+      if (bannerFiles.length > 0) {
+        const results = await uploadFiles(bannerFiles, "GALLERY_IMAGE");
+        uploadedBannerUrls = results.map((r) => r.url);
       }
 
+      const hotelImageFiles = hotelImages.filter((item): item is File => item instanceof File);
+      const existingHotelUrls = hotelImages.filter((item): item is string => typeof item === "string");
       let uploadedHotelUrls: string[] = [];
-      if (hotelImages.length > 0) {
-        const results = await uploadFiles(hotelImages, "GALLERY_IMAGE");
-        uploadedHotelUrls = results.map(r => r.url);
+      if (hotelImageFiles.length > 0) {
+        const results = await uploadFiles(hotelImageFiles, "GALLERY_IMAGE");
+        uploadedHotelUrls = results.map((r) => r.url);
       }
+      const orderedHotelImages: string[] = [];
+      let hotelUploadIdx = 0;
+      for (const item of hotelImages) {
+        if (typeof item === "string") orderedHotelImages.push(item);
+        else if (hotelUploadIdx < uploadedHotelUrls.length) orderedHotelImages.push(uploadedHotelUrls[hotelUploadIdx++]);
+      }
+
+      const resolvedRooms = await resolveRoomImages(roomTypes);
+      const slug =
+        existingSlug ||
+        `${slugify(name) || "hotel"}-${Math.random().toString(36).slice(2, 7)}`;
+
+      const details = {
+        rating,
+        shortDescription,
+        longDescription,
+        points,
+        policies,
+        rules,
+        slug,
+        bannerImage: uploadedBannerUrls[0] ?? existingBanner,
+        images: orderedHotelImages.length > 0 ? orderedHotelImages : existingHotelUrls,
+        roomTypes: resolvedRooms,
+      };
 
       const payload = {
         kind: "HOTEL",
         title: name,
         destinationId: location || undefined,
         status: "ACTIVE",
-        details: {
-          rating,
-          shortDescription,
-          longDescription,
-          points,
-          policies,
-          rules,
-          bannerImage: bannerImage.length > 0 ? uploadedBannerUrls[0] : existingBannerUrl,
-          images: hotelImages.length > 0 ? uploadedHotelUrls : existingImageUrls,
-        }
+        details,
       };
 
-      let res;
+      let res: any;
       if (editId) {
         res = await adminApiClient.patch(`${adminEndpoints.inventory}/${editId}`, payload);
       } else {
         res = await adminApiClient.post(adminEndpoints.inventory, payload);
+        // Create always persists as DRAFT in inventory service — publish immediately.
+        if (res?.id) {
+          await adminApiClient.patch(`${adminEndpoints.inventory}/${res.id}`, {
+            status: "ACTIVE",
+            details,
+          });
+        }
       }
 
       if (!res) throw new Error(`Failed to ${editId ? "update" : "create"} hotel`);
@@ -122,7 +213,6 @@ export function HotelForm() {
           <div className="p-12 text-center text-muted-foreground">Loading hotel data...</div>
         ) : (
           <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-8">
-            {/* Basic Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-medium">Name</label>
@@ -145,7 +235,9 @@ export function HotelForm() {
                 >
                   <option value="">Select location</option>
                   {destinationsQuery.data?.map((d) => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -158,59 +250,19 @@ export function HotelForm() {
               </div>
             </div>
 
-            {/* Editors */}
-            <DescriptionEditor
-              label="Short Description"
-              value={shortDescription}
-              onChange={setShortDescription}
-              rows={4}
-            />
+            <DescriptionEditor label="Short Description" value={shortDescription} onChange={setShortDescription} rows={4} />
+            <DescriptionEditor label="Long Description" value={longDescription} onChange={setLongDescription} rows={8} />
+            <DescriptionEditor label="Points" value={points} onChange={setPoints} rows={5} />
+            <DescriptionEditor label="Policies" value={policies} onChange={setPolicies} rows={5} />
+            <DescriptionEditor label="Rules" value={rules} onChange={setRules} rows={5} />
 
-            <DescriptionEditor
-              label="Long Description"
-              value={longDescription}
-              onChange={setLongDescription}
-              rows={8}
-            />
-
-            <DescriptionEditor
-              label="Points"
-              value={points}
-              onChange={setPoints}
-              rows={5}
-            />
-
-            <DescriptionEditor
-              label="Policies"
-              value={policies}
-              onChange={setPolicies}
-              rows={5}
-            />
-
-            <DescriptionEditor
-              label="Rules"
-              value={rules}
-              onChange={setRules}
-              rows={5}
-            />
-
-            {/* Media */}
             <div className="space-y-6">
-              <ImageUploader
-                label="Banner Image"
-                multiple={false}
-                value={bannerImage}
-                onChange={setBannerImage}
-              />
-              <ImageUploader
-                label="Hotel Images"
-                multiple={true}
-                value={hotelImages}
-                onChange={setHotelImages}
-              />
+              <ImageUploader label="Banner Image" multiple={false} value={bannerImage} onChange={setBannerImage} />
+              <ImageUploader label="Hotel Images" multiple={true} value={hotelImages} onChange={setHotelImages} />
             </div>
 
-            {/* Submit */}
+            <HotelRoomFields rooms={roomTypes} onChange={setRoomTypes} />
+
             <div className="pt-4">
               <button
                 type="submit"

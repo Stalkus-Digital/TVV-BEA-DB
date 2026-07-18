@@ -10,5 +10,6 @@ export {
   getNavigationService,
   getWebsiteDestinationService,
   getWebsitePackageService,
+  getWebsiteHotelService,
   getWebsiteSearchService,
 } from "./module";

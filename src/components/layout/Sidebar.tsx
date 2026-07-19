@@ -51,6 +51,7 @@ const navGroups = [
   {
     title: "Bookings Management",
     links: [
+      { name: "All Bookings", href: "/bookings", icon: Receipt },
       { name: "Hotel Bookings", href: "/bookings/hotels", icon: Receipt },
       { name: "Holiday Bookings", href: "/bookings/holidays", icon: Luggage },
       { name: "Activity Bookings", href: "/bookings/activities", icon: Calendar },

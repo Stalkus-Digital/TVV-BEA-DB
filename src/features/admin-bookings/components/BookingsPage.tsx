@@ -19,7 +19,7 @@ export function BookingsPage() {
   const [searchInput, setSearchInput] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"HOTEL" | "PACKAGE" | "ACTIVITY">("PACKAGE");
+  const [activeTab, setActiveTab] = useState<"ALL" | "HOTEL" | "PACKAGE" | "ACTIVITY">("ALL");
   const debouncedSearch = useDebouncedValue(searchInput);
 
   const queryFilters: BookingListFilters = { ...filters, search: debouncedSearch };
@@ -54,7 +54,7 @@ export function BookingsPage() {
     <div className="space-y-0 -m-6 flex flex-col min-h-[calc(100vh-6rem)]">
       <div className="p-6 border-b border-border bg-card shrink-0 space-y-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Bookings</h1>
+          <h1 className="text-2xl font-bold tracking-tight">All Bookings</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Manage customer bookings, travellers, payments, and lifecycle status.
           </p>
@@ -74,17 +74,22 @@ export function BookingsPage() {
       </div>
 
       <div className="flex px-6 border-b border-border bg-card">
-        {(["HOTEL", "PACKAGE", "ACTIVITY"] as const).map((tab) => (
+        {([
+          { id: "ALL", label: "All" },
+          { id: "HOTEL", label: "Hotel" },
+          { id: "PACKAGE", label: "Holiday" },
+          { id: "ACTIVITY", label: "Activity" },
+        ] as const).map((tab) => (
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === tab
+              activeTab === tab.id
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            {tab === "HOTEL" ? "Hotel Bookings" : tab === "PACKAGE" ? "Holiday Bookings" : "Activity Bookings"}
+            {tab.label}
           </button>
         ))}
       </div>

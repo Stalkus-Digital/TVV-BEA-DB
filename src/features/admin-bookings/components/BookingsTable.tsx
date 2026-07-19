@@ -19,7 +19,7 @@ interface BookingsTableProps {
   onDelete: (id: string) => void;
   onVoucher: (id: string) => void;
   isDeleting?: string | null;
-  activeTab?: "HOTEL" | "PACKAGE" | "ACTIVITY";
+  activeTab?: "ALL" | "HOTEL" | "PACKAGE" | "ACTIVITY";
 }
 
 export function BookingsTable({
@@ -35,23 +35,35 @@ export function BookingsTable({
   onDelete,
   onVoucher,
   isDeleting,
-  activeTab = "PACKAGE",
+  activeTab = "ALL",
 }: BookingsTableProps) {
   if (isLoading) return <WidgetLoading label="Loading bookings…" />;
   if (isError) return <WidgetError message={errorMessage ?? "Failed to load bookings"} onRetry={onRetry} />;
-  const filteredItems = data?.items.filter((booking) => {
-    try {
-      const notes = booking.internalNotes ? JSON.parse(booking.internalNotes) : {};
-      const type = notes.externalBookingType || "PACKAGE";
-      return type === activeTab;
-    } catch {
-      return activeTab === "PACKAGE";
-    }
-  }) || [];
+  // Server sets bookingCategory from items / packageId / externalBookingType / PACKAGE default.
+  // ALL shows every row so the dashboard KPI count is always inspectable here.
+  const filteredItems =
+    activeTab === "ALL"
+      ? data?.items ?? []
+      : data?.items.filter((booking: any) => (booking.bookingCategory ?? "PACKAGE") === activeTab) || [];
 
   if (!filteredItems.length) return <WidgetEmpty message="No bookings match your filters" />;
 
   const renderTableHeaders = () => {
+    if (activeTab === "ALL") {
+      return (
+        <tr>
+          <th className="px-6 py-4 font-semibold">ID</th>
+          <th className="px-6 py-4 font-semibold">Type</th>
+          <th className="px-6 py-4 font-semibold">Contact Name</th>
+          <th className="px-6 py-4 font-semibold">Email</th>
+          <th className="px-6 py-4 font-semibold">Phone</th>
+          <th className="px-6 py-4 font-semibold">Total</th>
+          <th className="px-6 py-4 font-semibold">Created</th>
+          <th className="px-6 py-4 font-semibold">Status</th>
+          <th className="px-6 py-4 font-semibold text-right">Action</th>
+        </tr>
+      );
+    }
     if (activeTab === "HOTEL") {
       return (
         <tr>
@@ -135,6 +147,27 @@ export function BookingsTable({
         </button>
       </td>
     );
+
+    if (activeTab === "ALL") {
+      const category = booking.bookingCategory ?? "PACKAGE";
+      return (
+        <tr key={booking.id} className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => onSelect(booking.id)}>
+          <td className="px-6 py-4 font-mono text-xs whitespace-nowrap">{booking.bookingNumber}</td>
+          <td className="px-6 py-4 whitespace-nowrap">
+            <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
+              {category === "HOTEL" ? "Hotel" : category === "ACTIVITY" ? "Activity" : "Holiday"}
+            </span>
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap">{contactName}</td>
+          <td className="px-6 py-4 whitespace-nowrap">{email}</td>
+          <td className="px-6 py-4 whitespace-nowrap">{phone}</td>
+          <td className="px-6 py-4 whitespace-nowrap tabular-nums">{total}</td>
+          <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">{formatBookingDate(booking.createdAt)}</td>
+          <td className="px-6 py-4 whitespace-nowrap"><BookingStatusBadge status={booking.status} /></td>
+          {Actions}
+        </tr>
+      );
+    }
 
     if (activeTab === "HOTEL") {
       return (

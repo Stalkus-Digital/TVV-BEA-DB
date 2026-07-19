@@ -56,6 +56,7 @@ export class UserService extends BaseService {
       passwordHash,
       fullName: value.fullName,
       isActive: true,
+      emailVerifiedAt: now,
       failedLoginAttempts: 0,
       lockedUntil: null,
       lastLoginAt: null,

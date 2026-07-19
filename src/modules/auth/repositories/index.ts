@@ -6,5 +6,6 @@ export * from "./session.repository";
 export * from "./refresh-token.repository";
 export * from "./login-history.repository";
 export * from "./password-reset.repository";
+export * from "./email-verification.repository";
 export * from "./audit-log.repository";
 export * from "./api-key.repository";

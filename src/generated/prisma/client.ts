@@ -227,6 +227,11 @@ export type LoginHistory = Prisma.LoginHistoryModel
  */
 export type PasswordReset = Prisma.PasswordResetModel
 /**
+ * Model EmailVerification
+ * Same selector/validator + SHA-256 pattern as PasswordReset / RefreshToken.
+ */
+export type EmailVerification = Prisma.EmailVerificationModel
+/**
  * Model AuditLog
  * 
  */

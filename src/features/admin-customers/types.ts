@@ -3,6 +3,7 @@ export interface PublicUser {
   email: string;
   fullName: string;
   isActive: boolean;
+  emailVerifiedAt: string | null;
   failedLoginAttempts: number;
   lockedUntil: string | null;
   lastLoginAt: string | null;
@@ -15,6 +16,7 @@ export interface CustomerSummary {
   email: string;
   fullName: string;
   isActive: boolean;
+  emailVerified: boolean;
   lastLoginAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -40,6 +42,7 @@ export type SortDirection = "asc" | "desc";
 
 export interface CustomerListFilters {
   search?: string;
+  emailVerified?: "all" | "verified" | "unverified";
   sortBy?: CustomerSortField;
   sortDir?: SortDirection;
   page?: number;

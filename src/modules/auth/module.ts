@@ -5,6 +5,7 @@ import { RoleName } from "./types/role";
 import type {
   ApiKeyRepository,
   AuditLogRepository,
+  EmailVerificationRepository,
   LoginHistoryRepository,
   PasswordResetRepository,
   PermissionRepository,
@@ -16,6 +17,7 @@ import type {
 } from "./repositories";
 import { PrismaApiKeyRepository } from "./repositories/api-key.repository.prisma";
 import { PrismaAuditLogRepository } from "./repositories/audit-log.repository.prisma";
+import { PrismaEmailVerificationRepository } from "./repositories/email-verification.repository.prisma";
 import { PrismaLoginHistoryRepository } from "./repositories/login-history.repository.prisma";
 import { PrismaPasswordResetRepository } from "./repositories/password-reset.repository.prisma";
 import { PrismaPermissionRepository } from "./repositories/permission.repository.prisma";
@@ -43,6 +45,7 @@ export const SESSION_REPOSITORY_TOKEN = createToken<SessionRepository>("auth.rep
 export const REFRESH_TOKEN_REPOSITORY_TOKEN = createToken<RefreshTokenRepository>("auth.repository.refreshToken");
 export const LOGIN_HISTORY_REPOSITORY_TOKEN = createToken<LoginHistoryRepository>("auth.repository.loginHistory");
 export const PASSWORD_RESET_REPOSITORY_TOKEN = createToken<PasswordResetRepository>("auth.repository.passwordReset");
+export const EMAIL_VERIFICATION_REPOSITORY_TOKEN = createToken<EmailVerificationRepository>("auth.repository.emailVerification");
 export const AUDIT_LOG_REPOSITORY_TOKEN = createToken<AuditLogRepository>("auth.repository.auditLog");
 export const API_KEY_REPOSITORY_TOKEN = createToken<ApiKeyRepository>("auth.repository.apiKey");
 
@@ -74,6 +77,7 @@ export const authModule: ModuleDefinition = {
     c.registerFactory(REFRESH_TOKEN_REPOSITORY_TOKEN, () => new PrismaRefreshTokenRepository());
     c.registerFactory(LOGIN_HISTORY_REPOSITORY_TOKEN, () => new PrismaLoginHistoryRepository());
     c.registerFactory(PASSWORD_RESET_REPOSITORY_TOKEN, () => new PrismaPasswordResetRepository());
+    c.registerFactory(EMAIL_VERIFICATION_REPOSITORY_TOKEN, () => new PrismaEmailVerificationRepository());
     c.registerFactory(AUDIT_LOG_REPOSITORY_TOKEN, () => new PrismaAuditLogRepository());
     c.registerFactory(API_KEY_REPOSITORY_TOKEN, () => new PrismaApiKeyRepository());
 
@@ -99,6 +103,7 @@ export const authModule: ModuleDefinition = {
           c.resolve(REFRESH_TOKEN_REPOSITORY_TOKEN),
           c.resolve(LOGIN_HISTORY_REPOSITORY_TOKEN),
           c.resolve(PASSWORD_RESET_REPOSITORY_TOKEN),
+          c.resolve(EMAIL_VERIFICATION_REPOSITORY_TOKEN),
           c.resolve(ROLE_SERVICE_TOKEN),
           c.resolve(PERMISSION_SERVICE_TOKEN),
           c.resolve(SESSION_SERVICE_TOKEN),
@@ -183,6 +188,7 @@ export function ensureAuthModuleSeeded(): Promise<void> {
         passwordHash,
         fullName: "System Administrator",
         isActive: true,
+        emailVerifiedAt: now,
         failedLoginAttempts: 0,
         lockedUntil: null,
         lastLoginAt: null,

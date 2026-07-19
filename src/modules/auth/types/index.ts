@@ -6,6 +6,7 @@ export * from "./session";
 export * from "./refresh-token";
 export * from "./login-history";
 export * from "./password-reset";
+export * from "./email-verification";
 export * from "./audit-log";
 export * from "./api-key";
 export * from "./auth-context";

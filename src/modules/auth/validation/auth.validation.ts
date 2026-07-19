@@ -110,3 +110,25 @@ export function validateResetPassword(input: unknown): Result<ResetPasswordInput
 
   return ok({ token: body.token, newPassword: newPassword.value });
 }
+
+export interface VerifyEmailInput {
+  token: string;
+}
+
+export function validateVerifyEmail(input: unknown): Result<VerifyEmailInput, ValidationError> {
+  if (typeof input !== "object" || input === null) return err(new ValidationError("Request body must be an object"));
+  const body = input as Record<string, unknown>;
+  if (!isNonEmptyString(body.token)) return err(new ValidationError("token is required"));
+  return ok({ token: body.token });
+}
+
+export interface ResendVerificationInput {
+  email: string;
+}
+
+export function validateResendVerification(input: unknown): Result<ResendVerificationInput, ValidationError> {
+  if (typeof input !== "object" || input === null) return err(new ValidationError("Request body must be an object"));
+  const email = validateEmail((input as Record<string, unknown>).email);
+  if (!email.ok) return email;
+  return ok({ email: email.value });
+}

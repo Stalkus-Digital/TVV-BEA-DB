@@ -2,6 +2,7 @@ import { randomBytes, createHash } from "node:crypto";
 import { err, isErr, ok, type Result } from "@/shared/types";
 import { BaseService, type ServiceContext } from "@/shared/services";
 import { ConflictError, ForbiddenError, NotFoundError, UnauthorizedError, type AppError } from "@/shared/errors";
+import { EmailService } from "@/modules/email/email.service";
 import { AuditEventType } from "../types/audit-log";
 import { LoginEventType } from "../types/login-history";
 import { RoleName } from "../types/role";
@@ -10,9 +11,18 @@ import type { UserRepository } from "../repositories/user.repository";
 import type { RefreshTokenRepository } from "../repositories/refresh-token.repository";
 import type { LoginHistoryRepository } from "../repositories/login-history.repository";
 import type { PasswordResetRepository } from "../repositories/password-reset.repository";
+import type { EmailVerificationRepository } from "../repositories/email-verification.repository";
 import { hashPassword, verifyPassword } from "./password.service";
 import { isAccountLocked, recordFailedAttempt, resetLockState } from "./login-attempt-policy";
-import { validateChangePassword, validateLogin, validateRegister, validateRequestPasswordReset, validateResetPassword } from "../validation/auth.validation";
+import {
+  validateChangePassword,
+  validateLogin,
+  validateRegister,
+  validateRequestPasswordReset,
+  validateResendVerification,
+  validateResetPassword,
+  validateVerifyEmail,
+} from "../validation/auth.validation";
 import type { RoleService } from "../roles/role.service";
 import type { PermissionService } from "../permissions/permission.service";
 import type { SessionService } from "../sessions/session.service";
@@ -29,9 +39,11 @@ export interface LoginResult {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
-  user: { id: string; email: string; fullName: string };
+  user: { id: string; email: string; fullName: string; emailVerified: boolean };
   roles: RoleName[];
 }
+
+export const EMAIL_NOT_VERIFIED = "EMAIL_NOT_VERIFIED";
 
 function selectorValidatorPair(): { validator: string; hash: string } {
   const validator = randomBytes(32).toString("hex");
@@ -46,12 +58,15 @@ function selectorValidatorPair(): { validator: string; hash: string } {
  * BookingPaymentService/BookingTimelineService/etc.
  */
 export class AuthService extends BaseService {
+  private readonly emailService: EmailService;
+
   constructor(
     context: ServiceContext,
     private readonly users: UserRepository,
     private readonly refreshTokens: RefreshTokenRepository,
     private readonly loginHistory: LoginHistoryRepository,
     private readonly passwordResets: PasswordResetRepository,
+    private readonly emailVerifications: EmailVerificationRepository,
     private readonly roleService: RoleService,
     private readonly permissionService: PermissionService,
     private readonly sessionService: SessionService,
@@ -60,9 +75,10 @@ export class AuthService extends BaseService {
     private readonly config: AuthConfigService
   ) {
     super(context);
+    this.emailService = new EmailService(context);
   }
 
-  /** Public self-service signup â€” always assigns CUSTOMER. Internal staff accounts are created via POST /api/users (admin-gated, see user.service.ts), not here. */
+  /** Public self-service signup — always assigns CUSTOMER. Internal staff accounts are created via POST /api/users (admin-gated, see user.service.ts), not here. */
   async register(input: unknown): Promise<Result<User, AppError>> {
     const validated = validateRegister(input);
     if (isErr(validated)) return validated;
@@ -79,6 +95,7 @@ export class AuthService extends BaseService {
       passwordHash,
       fullName: value.fullName,
       isActive: true,
+      emailVerifiedAt: null,
       failedLoginAttempts: 0,
       lockedUntil: null,
       lastLoginAt: null,
@@ -91,7 +108,14 @@ export class AuthService extends BaseService {
     if (isErr(customerRole)) return customerRole;
     await this.roleService.assignToUser(created.value.id, customerRole.value.id);
 
-    await this.auditLogService.record({ eventType: AuditEventType.USER_CREATED, actorUserId: created.value.id, targetUserId: created.value.id, details: { email: value.email, source: "self-registration" } });
+    await this.issueAndSendVerificationEmail(created.value);
+
+    await this.auditLogService.record({
+      eventType: AuditEventType.USER_CREATED,
+      actorUserId: created.value.id,
+      targetUserId: created.value.id,
+      details: { email: value.email, source: "self-registration" },
+    });
     this.logger.info("User registered", { userId: created.value.id, email: value.email });
     return ok(created.value);
   }
@@ -132,6 +156,19 @@ export class AuthService extends BaseService {
       return err(new UnauthorizedError("Invalid email or password"));
     }
 
+    const roles = await this.roleService.getRolesForUser(user.id);
+    if (isErr(roles)) return roles;
+    const isCustomerOnly = roles.value.some((r) => r.name === RoleName.CUSTOMER) && !roles.value.some((r) => r.name !== RoleName.CUSTOMER);
+    if (isCustomerOnly && !user.emailVerifiedAt) {
+      await this.recordLoginAttempt(user.id, email, LoginEventType.FAILED_INACTIVE, requestContext);
+      return err(
+        new ForbiddenError("Please verify your email before signing in", {
+          code: EMAIL_NOT_VERIFIED,
+          email: user.email,
+        })
+      );
+    }
+
     await this.users.update(user.id, { ...resetLockState(), lastLoginAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
     await this.recordLoginAttempt(user.id, email, LoginEventType.SUCCESS, requestContext);
     await this.auditLogService.record({ eventType: AuditEventType.LOGIN, actorUserId: user.id, ipAddress: requestContext.ipAddress });
@@ -169,9 +206,8 @@ export class AuthService extends BaseService {
     if (suppliedHash !== token.tokenHash) return err(new UnauthorizedError("Invalid refresh token"));
 
     if (token.revokedAt) {
-      // Reuse of a rotated-out token â€” treat as theft: kill the whole session.
       await this.sessionService.revoke(token.sessionId);
-      this.logger.warn("Refresh token reuse detected â€” session revoked", { sessionId: token.sessionId, tokenId });
+      this.logger.warn("Refresh token reuse detected — session revoked", { sessionId: token.sessionId, tokenId });
       return err(new UnauthorizedError("Refresh token has been revoked"));
     }
     if (new Date(token.expiresAt).getTime() < Date.now()) return err(new UnauthorizedError("Refresh token expired"));
@@ -188,7 +224,6 @@ export class AuthService extends BaseService {
     const rotated = await this.issueTokens(userResult.value, session.value.rememberMe, requestContext, session.value.id);
     if (isErr(rotated)) return rotated;
 
-    // Mark the used token consumed and link it to whatever replaced it.
     const newRefreshTokenId = rotated.value.refreshToken.split(".")[0];
     await this.refreshTokens.update(token.id, { revokedAt: new Date().toISOString(), replacedByTokenId: newRefreshTokenId });
 
@@ -212,15 +247,6 @@ export class AuthService extends BaseService {
     return ok(undefined);
   }
 
-  /**
-   * No email provider is wired anywhere in this project (Provider-First
-   * Architecture, and none was requested this sprint) â€” the raw reset
-   * token is logged server-side only (this.logger.info), never returned in
-   * the API response, so this endpoint cannot be used to enumerate valid
-   * emails. This makes the flow correct-but-not-yet-actually-deliverable to
-   * a real user; see docs/22's Remaining TODOs â€” wiring a real email send
-   * here is the very next step before this feature is customer-usable.
-   */
   async requestPasswordReset(input: unknown): Promise<Result<void, AppError>> {
     const validated = validateRequestPasswordReset(input);
     if (isErr(validated)) return validated;
@@ -238,14 +264,18 @@ export class AuthService extends BaseService {
         createdAt: new Date().toISOString(),
       });
       if (isErr(created)) return created;
-      this.logger.info("Password reset requested â€” token generated (no email provider wired, logging for dev use only)", {
-        userId: userResult.value.id,
-        resetToken: `${created.value.id}.${validator}`,
-      });
+
+      const rawToken = `${created.value.id}.${validator}`;
+      const resetUrl = `${this.config.get("frontendUrl").replace(/\/$/, "")}/reset-password?token=${encodeURIComponent(rawToken)}`;
+      const sent = await this.emailService.sendPasswordReset(userResult.value.email, resetUrl);
+      if (isErr(sent)) {
+        this.logger.warn("Password reset email failed to send — token logged for recovery", {
+          userId: userResult.value.id,
+          resetToken: rawToken,
+        });
+      }
     }
 
-    // Always succeeds from the caller's point of view, whether or not the
-    // email matched a real account â€” never leak which emails are registered.
     return ok(undefined);
   }
 
@@ -275,12 +305,93 @@ export class AuthService extends BaseService {
     return ok(undefined);
   }
 
+  async verifyEmail(input: unknown): Promise<Result<{ email: string }, AppError>> {
+    const validated = validateVerifyEmail(input);
+    if (isErr(validated)) return validated;
+
+    const [verificationId, validator] = validated.value.token.split(".");
+    if (!verificationId || !validator) return err(new UnauthorizedError("Invalid or expired verification token"));
+
+    const verificationResult = await this.emailVerifications.findById(verificationId);
+    if (isErr(verificationResult)) return verificationResult;
+    const verification = verificationResult.value;
+    if (!verification) return err(new UnauthorizedError("Invalid or expired verification token"));
+
+    const suppliedHash = createHash("sha256").update(validator).digest("hex");
+    if (suppliedHash !== verification.tokenHash) return err(new UnauthorizedError("Invalid or expired verification token"));
+    if (verification.usedAt) return err(new UnauthorizedError("This verification token has already been used"));
+    if (new Date(verification.expiresAt).getTime() < Date.now()) return err(new UnauthorizedError("This verification token has expired"));
+
+    const now = new Date().toISOString();
+    const updated = await this.users.update(verification.userId, { emailVerifiedAt: now, updatedAt: now });
+    if (isErr(updated)) return updated;
+    await this.emailVerifications.update(verification.id, { usedAt: now });
+
+    this.logger.info("Email verified", { userId: verification.userId });
+    return ok({ email: updated.value.email });
+  }
+
+  async resendVerification(input: unknown): Promise<Result<void, AppError>> {
+    const validated = validateResendVerification(input);
+    if (isErr(validated)) return validated;
+
+    const userResult = await this.users.findByEmail(validated.value.email);
+    if (isErr(userResult)) return userResult;
+
+    if (userResult.value && !userResult.value.emailVerifiedAt) {
+      await this.issueAndSendVerificationEmail(userResult.value);
+    }
+
+    return ok(undefined);
+  }
+
+  async getMeProfile(userId: string): Promise<Result<{ fullName: string; emailVerified: boolean }, AppError>> {
+    const userResult = await this.users.findById(userId);
+    if (isErr(userResult)) return userResult;
+    if (!userResult.value) return err(new NotFoundError(`User "${userId}" not found`));
+    return ok({
+      fullName: userResult.value.fullName,
+      emailVerified: Boolean(userResult.value.emailVerifiedAt),
+    });
+  }
+
+  private async issueAndSendVerificationEmail(user: User): Promise<void> {
+    const { validator, hash } = selectorValidatorPair();
+    const created = await this.emailVerifications.create({
+      userId: user.id,
+      tokenHash: hash,
+      expiresAt: new Date(Date.now() + this.config.get("emailVerificationTtlSeconds") * 1000).toISOString(),
+      usedAt: null,
+      createdAt: new Date().toISOString(),
+    });
+    if (isErr(created)) {
+      this.logger.error("Failed to create email verification token", { userId: user.id, error: created.error });
+      return;
+    }
+
+    const rawToken = `${created.value.id}.${validator}`;
+    const verifyUrl = `${this.config.get("frontendUrl").replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(rawToken)}`;
+    const sent = await this.emailService.sendEmailVerification(user.email, verifyUrl);
+    if (isErr(sent)) {
+      this.logger.warn("Verification email failed to send — token logged for recovery", {
+        userId: user.id,
+        verificationToken: rawToken,
+      });
+    }
+  }
+
   private async issueTokens(user: User, rememberMe: boolean, requestContext: RequestContext, existingSessionId?: string): Promise<Result<LoginResult, AppError>> {
     const ttlSeconds = rememberMe ? this.config.get("refreshTokenRememberMeTtlSeconds") : this.config.get("refreshTokenTtlSeconds");
 
     let sessionId = existingSessionId;
     if (!sessionId) {
-      const created = await this.sessionService.create({ userId: user.id, deviceInfo: requestContext.deviceInfo, ipAddress: requestContext.ipAddress, rememberMe, ttlSeconds });
+      const created = await this.sessionService.create({
+        userId: user.id,
+        deviceInfo: requestContext.deviceInfo,
+        ipAddress: requestContext.ipAddress,
+        rememberMe,
+        ttlSeconds,
+      });
       if (isErr(created)) return created;
       sessionId = created.value.id;
     }
@@ -308,15 +419,37 @@ export class AuthService extends BaseService {
       accessToken,
       refreshToken: `${refreshTokenRecord.value.id}.${validator}`,
       expiresIn: accessTokenTtl,
-      user: { id: user.id, email: user.email, fullName: user.fullName },
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        emailVerified: Boolean(user.emailVerifiedAt),
+      },
       roles: roleNames,
     });
   }
 
-  private async recordLoginAttempt(userId: string | null, email: string, eventType: (typeof LoginEventType)[keyof typeof LoginEventType], requestContext: RequestContext): Promise<void> {
-    await this.loginHistory.create({ userId, email, eventType, ipAddress: requestContext.ipAddress, deviceInfo: requestContext.deviceInfo, occurredAt: new Date().toISOString() });
+  private async recordLoginAttempt(
+    userId: string | null,
+    email: string,
+    eventType: (typeof LoginEventType)[keyof typeof LoginEventType],
+    requestContext: RequestContext
+  ): Promise<void> {
+    await this.loginHistory.create({
+      userId,
+      email,
+      eventType,
+      ipAddress: requestContext.ipAddress,
+      deviceInfo: requestContext.deviceInfo,
+      occurredAt: new Date().toISOString(),
+    });
     if (eventType !== LoginEventType.SUCCESS) {
-      await this.auditLogService.record({ eventType: AuditEventType.FAILED_LOGIN, actorUserId: userId, details: { email, reason: eventType }, ipAddress: requestContext.ipAddress });
+      await this.auditLogService.record({
+        eventType: AuditEventType.FAILED_LOGIN,
+        actorUserId: userId,
+        details: { email, reason: eventType },
+        ipAddress: requestContext.ipAddress,
+      });
     }
   }
 }

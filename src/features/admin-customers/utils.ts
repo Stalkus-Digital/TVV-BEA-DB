@@ -92,6 +92,7 @@ export function buildCustomerSummary(
     email: user.email,
     fullName: user.fullName,
     isActive: user.isActive,
+    emailVerified: Boolean(user.emailVerifiedAt),
     lastLoginAt: user.lastLoginAt,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
@@ -119,6 +120,15 @@ export function applyCustomerSearch(items: CustomerSummary[], search?: string): 
       item.phone?.toLowerCase().includes(query) ||
       item.id.toLowerCase().includes(query)
   );
+}
+
+export function applyEmailVerifiedFilter(
+  items: CustomerSummary[],
+  emailVerified?: CustomerListFilters["emailVerified"]
+): CustomerSummary[] {
+  if (!emailVerified || emailVerified === "all") return items;
+  if (emailVerified === "verified") return items.filter((item) => item.emailVerified);
+  return items.filter((item) => !item.emailVerified);
 }
 
 function sortValue(item: CustomerSummary, field: CustomerSortField): string | number {
@@ -173,7 +183,8 @@ export function buildCustomerList(
 ) {
   const summaries = buildCustomerSummaries(users, bundle);
   const searched = applyCustomerSearch(summaries, filters.search);
-  const sorted = sortCustomers(searched, filters.sortBy ?? "lastActivity", filters.sortDir ?? "desc");
+  const verifiedFiltered = applyEmailVerifiedFilter(searched, filters.emailVerified);
+  const sorted = sortCustomers(verifiedFiltered, filters.sortBy ?? "lastActivity", filters.sortDir ?? "desc");
   return paginateCustomers(sorted, filters.page ?? 1, filters.pageSize ?? 20);
 }
 

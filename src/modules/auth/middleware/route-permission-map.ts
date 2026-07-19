@@ -39,12 +39,13 @@ export const PUBLIC_EXACT_PATHS = [
   "/api/auth/refresh",
   "/api/auth/request-password-reset",
   "/api/auth/reset-password",
+  "/api/auth/verify-email",
+  "/api/auth/resend-verification",
   "/api/v1/auth/login",
   "/api/v1/auth/register",
   "/api/enquiries",
   "/api/external/enquiries",
   "/api/storage/download",
-  "/api/seed",
 ];
 
 /**
@@ -73,10 +74,25 @@ export const PUBLIC_PREFIXES = [
  * Path prefix → the permission resource that guards write/read access to
  * it. Geography is folded into DESTINATION (same module ownership, per
  * docs/06: "two hierarchies... both owned by Destination Engine").
- * `/api/suppliers` has no dedicated resource in this sprint's 9-resource
- * list — authenticated-only (any valid identity may read it), not
- * permission-checked, same "no PERMISSIONS-resource CRUD this sprint"
- * scope boundary already applied to /api/permissions below.
+ *
+ * AUTH-003: /api/cms/* maps to WEBSITE — reusing the existing resource
+ * rather than adding a new one, since WEBSITE was reserved for exactly
+ * this "future admin-side website-content-management surface" (see
+ * types/permission.ts). /api/marketing/* and /api/admin/ai/* had no
+ * dedicated resource at all and were falling back to "any authenticated
+ * identity" — closed with two new resources, MARKETING and AI.
+ *
+ * AUTH-003 also reconsidered `/api/suppliers`, `/api/supplier/*`, and
+ * `/api/supplier-runtime/*` and deliberately left all three unmapped —
+ * this is not an oversight carried forward, it was re-examined and the
+ * prior sprint's scope boundary ("no PERMISSIONS-resource CRUD this
+ * sprint", same one already applied to /api/permissions below) still
+ * stands. Whether the internal supplier registry/runtime needs its own
+ * permission tier — and if so, under what resource name, since `SUPPLIER`
+ * already names an external-partner *role* (see types/role.ts) and reusing
+ * it for a resource would conflate two different things — is an open
+ * product decision, not an engineering one. Authenticated-only (the
+ * fail-closed default) for now.
  */
 const RESOURCE_PREFIX_MAP: { prefix: string; resource: PermissionResource }[] = [
   { prefix: "/api/inventory", resource: PermissionResource.INVENTORY },
@@ -91,6 +107,9 @@ const RESOURCE_PREFIX_MAP: { prefix: string; resource: PermissionResource }[] = 
   { prefix: "/api/permissions", resource: PermissionResource.ROLES },
   { prefix: "/api/audit-logs", resource: PermissionResource.SETTINGS },
   { prefix: "/api/api-keys", resource: PermissionResource.SETTINGS },
+  { prefix: "/api/cms", resource: PermissionResource.WEBSITE },
+  { prefix: "/api/marketing", resource: PermissionResource.MARKETING },
+  { prefix: "/api/admin/ai", resource: PermissionResource.AI },
 ];
 
 const METHOD_ACTION_MAP: Record<string, PermissionAction> = {

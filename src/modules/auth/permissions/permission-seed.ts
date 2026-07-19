@@ -5,7 +5,7 @@ export function permissionKey(resource: PermissionResource, action: PermissionAc
   return `${resource}:${action}`;
 }
 
-/** Granular CRUD × 9 resources = 36 permissions, seeded once at module registration. */
+/** Granular CRUD × 11 resources = 44 permissions, seeded once at module registration. */
 export const PERMISSION_SEED_DATA: { resource: PermissionResource; action: PermissionAction; description: string }[] = Object.values(
   PermissionResource
 ).flatMap((resource) =>
@@ -80,7 +80,19 @@ export const ROLE_PERMISSION_MATRIX: Record<RoleName, string[]> = {
     ...grant(PermissionResource.BOOKING, READ_ONLY),
     ...grant(PermissionResource.USERS, READ_ONLY),
   ],
-  [RoleName.MARKETING]: [...grant(PermissionResource.WEBSITE), ...grant(PermissionResource.DESTINATION, READ_ONLY), ...grant(PermissionResource.PACKAGE, READ_ONLY)],
+  // AUTH-003: MARKETING resource grant added so this role keeps the
+  // /api/marketing/* access it already had under the old fail-closed
+  // default (CMS access via WEBSITE was already full CRUD and needed no
+  // change). AI is deliberately not granted here — nothing about this
+  // role's existing scope (website content, marketing) implies package
+  // generation, so it stays minimum-required rather than carried forward
+  // just because the old default happened to allow it.
+  [RoleName.MARKETING]: [
+    ...grant(PermissionResource.WEBSITE),
+    ...grant(PermissionResource.MARKETING),
+    ...grant(PermissionResource.DESTINATION, READ_ONLY),
+    ...grant(PermissionResource.PACKAGE, READ_ONLY),
+  ],
   [RoleName.SUPPLIER]: [...grant(PermissionResource.INVENTORY, READ_ONLY), ...grant(PermissionResource.BOOKING, READ_ONLY)],
   [RoleName.AGENT]: [
     ...grant(PermissionResource.QUOTE, [PermissionAction.CREATE, PermissionAction.READ]),

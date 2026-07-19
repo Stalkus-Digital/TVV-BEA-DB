@@ -11,6 +11,7 @@ const DEFAULT_PAGE_SIZE = 20;
 function toDomain(row: PrismaUserRow): User {
   return {
     ...row,
+    emailVerifiedAt: row.emailVerifiedAt?.toISOString() ?? null,
     lockedUntil: row.lockedUntil?.toISOString() ?? null,
     lastLoginAt: row.lastLoginAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),

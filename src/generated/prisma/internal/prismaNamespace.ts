@@ -421,6 +421,7 @@ export const ModelName = {
   RefreshToken: 'RefreshToken',
   LoginHistory: 'LoginHistory',
   PasswordReset: 'PasswordReset',
+  EmailVerification: 'EmailVerification',
   AuditLog: 'AuditLog',
   ApiKey: 'ApiKey',
   CustomerProfile: 'CustomerProfile',
@@ -457,7 +458,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "loginHistory" | "passwordReset" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "notification" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent" | "guide" | "ferryRoute" | "ferrySchedule" | "review"
+    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "loginHistory" | "passwordReset" | "emailVerification" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "notification" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent" | "guide" | "ferryRoute" | "ferrySchedule" | "review"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3199,6 +3200,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    EmailVerification: {
+      payload: Prisma.$EmailVerificationPayload<ExtArgs>
+      fields: Prisma.EmailVerificationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmailVerificationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmailVerificationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>
+        }
+        findFirst: {
+          args: Prisma.EmailVerificationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmailVerificationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>
+        }
+        findMany: {
+          args: Prisma.EmailVerificationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>[]
+        }
+        create: {
+          args: Prisma.EmailVerificationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>
+        }
+        createMany: {
+          args: Prisma.EmailVerificationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EmailVerificationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>[]
+        }
+        delete: {
+          args: Prisma.EmailVerificationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>
+        }
+        update: {
+          args: Prisma.EmailVerificationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmailVerificationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmailVerificationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EmailVerificationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>[]
+        }
+        upsert: {
+          args: Prisma.EmailVerificationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>
+        }
+        aggregate: {
+          args: Prisma.EmailVerificationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmailVerification>
+        }
+        groupBy: {
+          args: Prisma.EmailVerificationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailVerificationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmailVerificationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailVerificationCountAggregateOutputType> | number
+        }
+      }
+    }
     AuditLog: {
       payload: Prisma.$AuditLogPayload<ExtArgs>
       fields: Prisma.AuditLogFieldRefs
@@ -5270,6 +5345,7 @@ export const UserScalarFieldEnum = {
   passwordHash: 'passwordHash',
   fullName: 'fullName',
   isActive: 'isActive',
+  emailVerifiedAt: 'emailVerifiedAt',
   failedLoginAttempts: 'failedLoginAttempts',
   lockedUntil: 'lockedUntil',
   lastLoginAt: 'lastLoginAt',
@@ -5366,6 +5442,18 @@ export const PasswordResetScalarFieldEnum = {
 } as const
 
 export type PasswordResetScalarFieldEnum = (typeof PasswordResetScalarFieldEnum)[keyof typeof PasswordResetScalarFieldEnum]
+
+
+export const EmailVerificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  tokenHash: 'tokenHash',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type EmailVerificationScalarFieldEnum = (typeof EmailVerificationScalarFieldEnum)[keyof typeof EmailVerificationScalarFieldEnum]
 
 
 export const AuditLogScalarFieldEnum = {
@@ -5939,6 +6027,7 @@ export type GlobalOmitConfig = {
   refreshToken?: Prisma.RefreshTokenOmit
   loginHistory?: Prisma.LoginHistoryOmit
   passwordReset?: Prisma.PasswordResetOmit
+  emailVerification?: Prisma.EmailVerificationOmit
   auditLog?: Prisma.AuditLogOmit
   apiKey?: Prisma.ApiKeyOmit
   customerProfile?: Prisma.CustomerProfileOmit

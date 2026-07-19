@@ -527,6 +527,9 @@ model User {
   passwordHash        String
   fullName            String
   isActive            Boolean   @default(true)
+  /// Null until the customer confirms their inbox via the verification link.
+  /// Staff accounts are created with this set; website self-signup starts null.
+  emailVerifiedAt     DateTime?
   failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
   lastLoginAt         DateTime?
@@ -623,6 +626,19 @@ model PasswordReset {
 
   @@index([userId])
   @@map("password_resets")
+}
+
+/// Same selector/validator + SHA-256 pattern as PasswordReset / RefreshToken.
+model EmailVerification {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime
+
+  @@index([userId])
+  @@map("email_verifications")
 }
 
 model AuditLog {

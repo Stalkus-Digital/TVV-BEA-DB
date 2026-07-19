@@ -5,6 +5,9 @@
  * rather than a separate table, matching this project's precedent of
  * embedding small always-accessed-with-parent state on the owning entity
  * (Destination.seo, Package.faqs) rather than a needless join.
+ *
+ * emailVerifiedAt is null for website self-signup until the customer
+ * confirms their inbox; staff accounts are created already verified.
  */
 export interface User {
   id: string;
@@ -12,6 +15,7 @@ export interface User {
   passwordHash: string;
   fullName: string;
   isActive: boolean;
+  emailVerifiedAt: string | null;
   failedLoginAttempts: number;
   lockedUntil: string | null;
   lastLoginAt: string | null;

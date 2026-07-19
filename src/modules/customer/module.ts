@@ -7,6 +7,7 @@ import { PrismaNotificationRepository } from "./repositories/notification.reposi
 import { CustomerProfileService } from "./services/customer-profile.service";
 import { CustomerQuoteService } from "./services/customer-quote.service";
 import { CustomerBookingService } from "./services/customer-booking.service";
+import { CustomerPaymentService } from "./services/customer-payment.service";
 import { EnquiryService } from "./services/enquiry.service";
 import { CustomerDocumentService } from "./documents/document.service";
 import { DashboardService } from "./dashboard/dashboard.service";
@@ -19,6 +20,7 @@ export const NOTIFICATION_REPOSITORY_TOKEN = createToken<PrismaNotificationRepos
 export const CUSTOMER_PROFILE_SERVICE_TOKEN = createToken<CustomerProfileService>("customer.service.profile");
 export const CUSTOMER_QUOTE_SERVICE_TOKEN = createToken<CustomerQuoteService>("customer.service.quote");
 export const CUSTOMER_BOOKING_SERVICE_TOKEN = createToken<CustomerBookingService>("customer.service.booking");
+export const CUSTOMER_PAYMENT_SERVICE_TOKEN = createToken<CustomerPaymentService>("customer.service.payment");
 export const ENQUIRY_SERVICE_TOKEN = createToken<EnquiryService>("customer.service.enquiry");
 export const CUSTOMER_DOCUMENT_SERVICE_TOKEN = createToken<CustomerDocumentService>("customer.service.document");
 export const DASHBOARD_SERVICE_TOKEN = createToken<DashboardService>("customer.service.dashboard");
@@ -53,6 +55,7 @@ export const customerModule: ModuleDefinition = {
     );
     c.registerFactory(CUSTOMER_QUOTE_SERVICE_TOKEN, () => new CustomerQuoteService({ logger: createLogger("customer.quote") }));
     c.registerFactory(CUSTOMER_BOOKING_SERVICE_TOKEN, () => new CustomerBookingService({ logger: createLogger("customer.booking") }));
+    c.registerFactory(CUSTOMER_PAYMENT_SERVICE_TOKEN, () => new CustomerPaymentService({ logger: createLogger("customer.payment") }));
     c.registerFactory(
       ENQUIRY_SERVICE_TOKEN,
       () => new EnquiryService({ logger: createLogger("customer.enquiry") }, c.resolve(ENQUIRY_REPOSITORY_TOKEN), c.resolve(SEMBARK_SERVICE_TOKEN))
@@ -91,6 +94,9 @@ export function getCustomerQuoteService(): CustomerQuoteService {
 }
 export function getCustomerBookingService(): CustomerBookingService {
   return container.resolve(CUSTOMER_BOOKING_SERVICE_TOKEN);
+}
+export function getCustomerPaymentService(): CustomerPaymentService {
+  return container.resolve(CUSTOMER_PAYMENT_SERVICE_TOKEN);
 }
 export function getEnquiryService(): EnquiryService {
   return container.resolve(ENQUIRY_SERVICE_TOKEN);

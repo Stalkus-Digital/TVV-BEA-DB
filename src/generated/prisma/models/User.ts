@@ -40,6 +40,7 @@ export type UserMinAggregateOutputType = {
   passwordHash: string | null
   fullName: string | null
   isActive: boolean | null
+  emailVerifiedAt: Date | null
   failedLoginAttempts: number | null
   lockedUntil: Date | null
   lastLoginAt: Date | null
@@ -53,6 +54,7 @@ export type UserMaxAggregateOutputType = {
   passwordHash: string | null
   fullName: string | null
   isActive: boolean | null
+  emailVerifiedAt: Date | null
   failedLoginAttempts: number | null
   lockedUntil: Date | null
   lastLoginAt: Date | null
@@ -66,6 +68,7 @@ export type UserCountAggregateOutputType = {
   passwordHash: number
   fullName: number
   isActive: number
+  emailVerifiedAt: number
   failedLoginAttempts: number
   lockedUntil: number
   lastLoginAt: number
@@ -89,6 +92,7 @@ export type UserMinAggregateInputType = {
   passwordHash?: true
   fullName?: true
   isActive?: true
+  emailVerifiedAt?: true
   failedLoginAttempts?: true
   lockedUntil?: true
   lastLoginAt?: true
@@ -102,6 +106,7 @@ export type UserMaxAggregateInputType = {
   passwordHash?: true
   fullName?: true
   isActive?: true
+  emailVerifiedAt?: true
   failedLoginAttempts?: true
   lockedUntil?: true
   lastLoginAt?: true
@@ -115,6 +120,7 @@ export type UserCountAggregateInputType = {
   passwordHash?: true
   fullName?: true
   isActive?: true
+  emailVerifiedAt?: true
   failedLoginAttempts?: true
   lockedUntil?: true
   lastLoginAt?: true
@@ -215,6 +221,7 @@ export type UserGroupByOutputType = {
   passwordHash: string
   fullName: string
   isActive: boolean
+  emailVerifiedAt: Date | null
   failedLoginAttempts: number
   lockedUntil: Date | null
   lastLoginAt: Date | null
@@ -251,6 +258,7 @@ export type UserWhereInput = {
   passwordHash?: Prisma.StringFilter<"User"> | string
   fullName?: Prisma.StringFilter<"User"> | string
   isActive?: Prisma.BoolFilter<"User"> | boolean
+  emailVerifiedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   failedLoginAttempts?: Prisma.IntFilter<"User"> | number
   lockedUntil?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   lastLoginAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -264,6 +272,7 @@ export type UserOrderByWithRelationInput = {
   passwordHash?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  emailVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   failedLoginAttempts?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -280,6 +289,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   passwordHash?: Prisma.StringFilter<"User"> | string
   fullName?: Prisma.StringFilter<"User"> | string
   isActive?: Prisma.BoolFilter<"User"> | boolean
+  emailVerifiedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   failedLoginAttempts?: Prisma.IntFilter<"User"> | number
   lockedUntil?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   lastLoginAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -293,6 +303,7 @@ export type UserOrderByWithAggregationInput = {
   passwordHash?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  emailVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   failedLoginAttempts?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -314,6 +325,7 @@ export type UserScalarWhereWithAggregatesInput = {
   passwordHash?: Prisma.StringWithAggregatesFilter<"User"> | string
   fullName?: Prisma.StringWithAggregatesFilter<"User"> | string
   isActive?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  emailVerifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   failedLoginAttempts?: Prisma.IntWithAggregatesFilter<"User"> | number
   lockedUntil?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   lastLoginAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
@@ -327,6 +339,7 @@ export type UserCreateInput = {
   passwordHash: string
   fullName: string
   isActive?: boolean
+  emailVerifiedAt?: Date | string | null
   failedLoginAttempts?: number
   lockedUntil?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -340,6 +353,7 @@ export type UserUncheckedCreateInput = {
   passwordHash: string
   fullName: string
   isActive?: boolean
+  emailVerifiedAt?: Date | string | null
   failedLoginAttempts?: number
   lockedUntil?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -353,6 +367,7 @@ export type UserUpdateInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -366,6 +381,7 @@ export type UserUncheckedUpdateInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -379,6 +395,7 @@ export type UserCreateManyInput = {
   passwordHash: string
   fullName: string
   isActive?: boolean
+  emailVerifiedAt?: Date | string | null
   failedLoginAttempts?: number
   lockedUntil?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -392,6 +409,7 @@ export type UserUpdateManyMutationInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -405,6 +423,7 @@ export type UserUncheckedUpdateManyInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -418,6 +437,7 @@ export type UserCountOrderByAggregateInput = {
   passwordHash?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  emailVerifiedAt?: Prisma.SortOrder
   failedLoginAttempts?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
@@ -435,6 +455,7 @@ export type UserMaxOrderByAggregateInput = {
   passwordHash?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  emailVerifiedAt?: Prisma.SortOrder
   failedLoginAttempts?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
@@ -448,6 +469,7 @@ export type UserMinOrderByAggregateInput = {
   passwordHash?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  emailVerifiedAt?: Prisma.SortOrder
   failedLoginAttempts?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
@@ -467,6 +489,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   passwordHash?: boolean
   fullName?: boolean
   isActive?: boolean
+  emailVerifiedAt?: boolean
   failedLoginAttempts?: boolean
   lockedUntil?: boolean
   lastLoginAt?: boolean
@@ -480,6 +503,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   passwordHash?: boolean
   fullName?: boolean
   isActive?: boolean
+  emailVerifiedAt?: boolean
   failedLoginAttempts?: boolean
   lockedUntil?: boolean
   lastLoginAt?: boolean
@@ -493,6 +517,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   passwordHash?: boolean
   fullName?: boolean
   isActive?: boolean
+  emailVerifiedAt?: boolean
   failedLoginAttempts?: boolean
   lockedUntil?: boolean
   lastLoginAt?: boolean
@@ -506,6 +531,7 @@ export type UserSelectScalar = {
   passwordHash?: boolean
   fullName?: boolean
   isActive?: boolean
+  emailVerifiedAt?: boolean
   failedLoginAttempts?: boolean
   lockedUntil?: boolean
   lastLoginAt?: boolean
@@ -513,7 +539,7 @@ export type UserSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "fullName" | "isActive" | "failedLoginAttempts" | "lockedUntil" | "lastLoginAt" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "fullName" | "isActive" | "emailVerifiedAt" | "failedLoginAttempts" | "lockedUntil" | "lastLoginAt" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
@@ -524,6 +550,11 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     passwordHash: string
     fullName: string
     isActive: boolean
+    /**
+     * Null until the customer confirms their inbox via the verification link.
+     * Staff accounts are created with this set; website self-signup starts null.
+     */
+    emailVerifiedAt: Date | null
     failedLoginAttempts: number
     lockedUntil: Date | null
     lastLoginAt: Date | null
@@ -957,6 +988,7 @@ export interface UserFieldRefs {
   readonly passwordHash: Prisma.FieldRef<"User", 'String'>
   readonly fullName: Prisma.FieldRef<"User", 'String'>
   readonly isActive: Prisma.FieldRef<"User", 'Boolean'>
+  readonly emailVerifiedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly failedLoginAttempts: Prisma.FieldRef<"User", 'Int'>
   readonly lockedUntil: Prisma.FieldRef<"User", 'DateTime'>
   readonly lastLoginAt: Prisma.FieldRef<"User", 'DateTime'>

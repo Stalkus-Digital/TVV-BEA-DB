@@ -38,6 +38,7 @@ export function CustomersTable({
             <tr>
               <th className="px-6 py-4 font-semibold">Name</th>
               <th className="px-6 py-4 font-semibold">Email</th>
+              <th className="px-6 py-4 font-semibold">Verified</th>
               <th className="px-6 py-4 font-semibold">Phone</th>
               <th className="px-6 py-4 font-semibold">Role</th>
               <th className="px-6 py-4 font-semibold">Created</th>
@@ -100,6 +101,15 @@ function CustomerRow({
           <Mail className="h-3 w-3 shrink-0" />
           {customer.email}
         </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <span
+          className={`text-xs font-medium rounded-full px-2 py-0.5 ${
+            customer.emailVerified ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+          }`}
+        >
+          {customer.emailVerified ? "Verified" : "Unverified"}
+        </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
         {customer.phone ? (

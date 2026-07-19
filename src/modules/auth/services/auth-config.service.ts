@@ -6,6 +6,8 @@ const authEnvSchema = {
   refreshTokenTtlSeconds: { key: "AUTH_REFRESH_TOKEN_TTL_SECONDS", type: "number", default: 604_800 }, // 7 days
   refreshTokenRememberMeTtlSeconds: { key: "AUTH_REFRESH_TOKEN_REMEMBER_ME_TTL_SECONDS", type: "number", default: 2_592_000 }, // 30 days
   passwordResetTtlSeconds: { key: "AUTH_PASSWORD_RESET_TTL_SECONDS", type: "number", default: 3_600 }, // 1 hour
+  emailVerificationTtlSeconds: { key: "AUTH_EMAIL_VERIFICATION_TTL_SECONDS", type: "number", default: 86_400 }, // 24 hours
+  frontendUrl: { key: "FRONTEND_URL", type: "string", default: "http://localhost:3001" },
   maxFailedLoginAttempts: { key: "AUTH_MAX_FAILED_LOGIN_ATTEMPTS", type: "number", default: 5 },
   accountLockDurationSeconds: { key: "AUTH_ACCOUNT_LOCK_DURATION_SECONDS", type: "number", default: 900 }, // 15 min
 } satisfies EnvSchema;
@@ -16,6 +18,8 @@ export interface AuthConfigValues {
   refreshTokenTtlSeconds: number;
   refreshTokenRememberMeTtlSeconds: number;
   passwordResetTtlSeconds: number;
+  emailVerificationTtlSeconds: number;
+  frontendUrl: string;
   maxFailedLoginAttempts: number;
   accountLockDurationSeconds: number;
 }

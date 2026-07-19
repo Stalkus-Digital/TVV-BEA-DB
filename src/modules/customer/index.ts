@@ -9,6 +9,7 @@ export {
   getCustomerProfileService,
   getCustomerQuoteService,
   getCustomerBookingService,
+  getCustomerPaymentService,
   getEnquiryService,
   getCustomerDocumentService,
   getDashboardService,

@@ -86,16 +86,29 @@ function CustomerDetailContent({
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-base font-semibold">{user.fullName || user.email}</h3>
-          <span
-            className={`text-xs font-medium rounded-full px-2 py-0.5 ${
-              user.isActive ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"
-            }`}
-          >
-            {user.isActive ? "Active" : "Inactive"}
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className={`text-xs font-medium rounded-full px-2 py-0.5 ${
+                user.emailVerifiedAt ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+              }`}
+            >
+              {user.emailVerifiedAt ? "Email verified" : "Email unverified"}
+            </span>
+            <span
+              className={`text-xs font-medium rounded-full px-2 py-0.5 ${
+                user.isActive ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"
+              }`}
+            >
+              {user.isActive ? "Active" : "Inactive"}
+            </span>
+          </div>
         </div>
         <dl className="grid grid-cols-1 gap-2 text-sm">
           <DetailRow label="Email" value={user.email} />
+          <DetailRow
+            label="Email verified"
+            value={user.emailVerifiedAt ? formatCustomerDate(user.emailVerifiedAt) : "Not verified"}
+          />
           <DetailRow label="Phone" value={phone ?? "—"} />
           <DetailRow label="Role" value="— (role API unavailable)" />
           <DetailRow label="Registered" value={formatCustomerDate(user.createdAt)} />

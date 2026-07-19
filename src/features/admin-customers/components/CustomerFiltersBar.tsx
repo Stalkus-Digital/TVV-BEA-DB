@@ -61,6 +61,22 @@ export function CustomerFiltersBar({
         <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
 
         <select
+          value={filters.emailVerified ?? "all"}
+          onChange={(e) =>
+            onFiltersChange({
+              emailVerified: e.target.value as CustomerListFilters["emailVerified"],
+              page: 1,
+            })
+          }
+          className="bg-background border border-input rounded-md px-3 py-2 text-sm"
+          aria-label="Filter by email verification"
+        >
+          <option value="all">All verification</option>
+          <option value="verified">Verified only</option>
+          <option value="unverified">Unverified only</option>
+        </select>
+
+        <select
           value={filters.sortBy ?? "lastActivity"}
           onChange={(e) => onFiltersChange({ sortBy: e.target.value as CustomerSortField, page: 1 })}
           className="bg-background border border-input rounded-md px-3 py-2 text-sm"

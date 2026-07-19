@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { Activity, ArrowRight, Bell, FileText, HardDrive, Radar, Server, Shield, KeySquare } from "lucide-react";
+import { Activity, ArrowRight, Bell, FileText, HardDrive, Plug, Radar, Server, Shield, KeySquare } from "lucide-react";
 import { OPERATIONS_SECTIONS } from "../constants";
 import { useSystemHealthQuery, useSystemMetricsQuery } from "../hooks/useOperationsQueries";
 import { OperationsPageShell } from "./OperationsPageShell";
 
 const SECTION_ICONS: Record<string, LucideIcon> = {
   "/operations": Activity,
+  "/operations/integrations": Plug,
   "/operations/health": Shield,
   "/operations/observability": Radar,
   "/operations/storage": HardDrive,
@@ -25,7 +26,7 @@ export function OperationsDashboardPage() {
   return (
     <OperationsPageShell
       title="Operations Center"
-      description="Platform health, observability, storage, and supplier runtime diagnostics."
+      description="Integrations for APIs and webhooks, plus platform health, observability, storage, and supplier runtime."
       isLoading={healthQuery.isLoading}
       isError={healthQuery.isError}
       errorMessage={healthQuery.error instanceof Error ? healthQuery.error.message : undefined}
@@ -47,14 +48,19 @@ export function OperationsDashboardPage() {
         <div className="grid gap-3 sm:grid-cols-2">
           {OPERATIONS_SECTIONS.filter((s) => s.href !== "/operations").map((section) => {
             const Icon = SECTION_ICONS[section.href] ?? Activity;
+            const isIntegrations = section.href === "/operations/integrations";
             return (
               <Link
                 key={section.href}
                 href={section.href}
-                className="flex items-center justify-between rounded-lg border border-border bg-card p-4 hover:bg-muted transition-colors"
+                className={`flex items-center justify-between rounded-lg border p-4 transition-colors ${
+                  isIntegrations
+                    ? "border-teal-600/40 bg-teal-50/50 hover:bg-teal-50 dark:border-teal-500/30 dark:bg-teal-950/20 dark:hover:bg-teal-950/40"
+                    : "border-border bg-card hover:bg-muted"
+                }`}
               >
                 <div className="flex items-start gap-3">
-                  <Icon className="h-5 w-5 text-primary mt-0.5" />
+                  <Icon className={`h-5 w-5 mt-0.5 ${isIntegrations ? "text-teal-700 dark:text-teal-400" : "text-primary"}`} />
                   <div>
                     <p className="font-medium text-sm">{section.label}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{section.description}</p>

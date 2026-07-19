@@ -2,14 +2,18 @@ import type { LogLevel } from "./types";
 
 export const OPERATIONS_SECTIONS = [
   { href: "/operations", label: "Operations Dashboard", description: "Platform services overview" },
-  { href: "/operations/integrations", label: "Integrations", description: "API keys, payments, TripJack, email, captcha" },
+  {
+    href: "/operations/integrations",
+    label: "Integrations",
+    description: "Connect payment gateways, AI, TripJack, email, webhooks, and OAuth/API secrets",
+  },
   { href: "/operations/health", label: "System Health", description: "Module status and latency" },
   { href: "/operations/observability", label: "Observability", description: "Metrics, performance, audit timeline" },
   { href: "/operations/storage", label: "Storage", description: "Uploads and signed URLs" },
   { href: "/operations/supplier-runtime", label: "Supplier Runtime", description: "Circuit breakers and dispatch metrics" },
   { href: "/operations/logs", label: "System Logs", description: "Captured application logs" },
   { href: "/operations/alerts", label: "Alerts", description: "Active system alerts" },
-  { href: "/settings/api-keys", label: "API Keys", description: "Manage TVV M2M API keys" },
+  { href: "/settings/api-keys", label: "API Keys", description: "Manage TVV-issued M2M API keys for website/external callers" },
 ] as const;
 
 /** Preferred display order for health cards — modules not yet registered are shown separately. */

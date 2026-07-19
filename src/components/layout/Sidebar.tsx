@@ -24,6 +24,7 @@ import {
   Link2,
   Layout,
   FileText,
+  Plug,
 } from "lucide-react";
 
 const navGroups = [
@@ -130,7 +131,14 @@ export function Sidebar() {
         ))}
       </div>
 
-      <div className="p-4 border-t border-border shrink-0">
+      <div className="p-4 border-t border-border shrink-0 space-y-1">
+        <Link
+          href="/operations/integrations"
+          className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        >
+          <Plug className="h-4 w-4" />
+          Integrations
+        </Link>
         <Link
           href="/operations"
           className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"

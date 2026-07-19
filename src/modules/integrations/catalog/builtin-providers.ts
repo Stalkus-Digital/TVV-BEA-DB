@@ -9,8 +9,7 @@ export const BUILTIN_PROVIDERS: BuiltinProviderDefinition[] = [
     key: "openai",
     category: IntegrationCategory.AI,
     name: "OpenAI",
-    description:
-      "OpenAI API for TVV AI Package Studio — builds itineraries from your prompt using TripJack and hotels in inventory. Use a key from platform.openai.com (not Google AI Studio).",
+    description: "",
     fields: [
       { key: "apiKey", label: "OpenAI API Key", kind: "secret", secret: true, required: true, envFallback: "OPENAI_API_KEY", placeholder: "sk-..." },
     ],

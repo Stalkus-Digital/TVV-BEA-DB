@@ -71,13 +71,15 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
 
           {detail && (
             <>
-              <p className="text-sm text-muted-foreground">{detail.description}</p>
+              {detail.description ? (
+                <p className="text-sm text-muted-foreground">{detail.description}</p>
+              ) : null}
               <ol className="list-decimal space-y-1 rounded-md bg-muted/60 px-4 py-3 text-xs text-muted-foreground">
                 <li>
-                  Paste your credentials below, then click <span className="font-semibold text-foreground">Save API key</span>.
+                  Paste your API key below, then click <span className="font-semibold text-foreground">Save API key</span>.
                 </li>
                 <li>
-                  Click <span className="font-semibold text-foreground">Test connection</span> to verify with the provider.
+                  Click <span className="font-semibold text-foreground">Test connection</span>. CONNECTED only shows after a successful test.
                 </li>
               </ol>
 
@@ -121,9 +123,8 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
                       />
                       {providerKey === "openai" && field.key === "apiKey" && (
                         <p className="text-[11px] text-muted-foreground">
-                          Use an OpenAI key from{" "}
-                          <span className="font-medium">platform.openai.com</span> starting with{" "}
-                          <span className="font-mono">sk-</span>. Google AI Studio / Gemini keys will not work.
+                          Key from <span className="font-mono">platform.openai.com</span> (starts with{" "}
+                          <span className="font-mono">sk-</span>).
                         </p>
                       )}
                     </div>
@@ -216,7 +217,11 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
                   { key: providerKey, body: {} },
                   {
                     onSuccess: (result) => {
-                      setMessage(result.ok ? "Connection OK — OpenAI is connected." : null);
+                      setMessage(
+                        result.ok
+                          ? "Connection OK — status is CONNECTED."
+                          : null
+                      );
                     },
                   }
                 );

@@ -221,7 +221,9 @@ function ProviderCard({
       <div className="flex items-start justify-between gap-2">
         <div>
           <h3 className="font-semibold text-sm">{provider.name}</h3>
-          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{provider.description}</p>
+          {provider.description ? (
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{provider.description}</p>
+          ) : null}
         </div>
         <span className={`shrink-0 text-[10px] font-medium rounded-full px-2 py-0.5 ${statusBadge(provider.status)}`}>
           {provider.status}

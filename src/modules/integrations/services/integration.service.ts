@@ -57,11 +57,12 @@ function vaultSecretMeta(
     });
 }
 
-/** Hard rule: never show CONNECTED when the last test failed. */
+/** Hard rule: CONNECTED only after a successful Test (lastTestOk === true). */
 function effectiveStatus(status: string, lastTestOk: boolean | null): string {
   if (status === IntegrationStatus.DISABLED) return status;
+  if (lastTestOk === true) return IntegrationStatus.CONNECTED;
   if (lastTestOk === false) return IntegrationStatus.ERROR;
-  return status;
+  return IntegrationStatus.DISCONNECTED;
 }
 
 export class IntegrationService extends BaseService {

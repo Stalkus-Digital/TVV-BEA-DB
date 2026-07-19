@@ -54,6 +54,7 @@ function toRoomDTO(room: HotelRoomType): WebsiteHotelRoomDTO {
     refundable: Boolean(room.refundable),
     description: room.description?.trim() || null,
     rules: room.rules?.trim() || null,
+    amenities: Array.isArray(room.amenities) ? room.amenities.filter((a) => typeof a === "string" && a.length > 0) : [],
     images: Array.isArray(room.images) ? room.images.filter((u) => typeof u === "string" && u.length > 0) : [],
   };
 }

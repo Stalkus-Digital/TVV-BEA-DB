@@ -9,6 +9,7 @@ export interface HotelRoomType {
   refundable: boolean;
   description?: string;
   rules?: string;
+  amenities?: string[];
   images?: string[];
 }
 

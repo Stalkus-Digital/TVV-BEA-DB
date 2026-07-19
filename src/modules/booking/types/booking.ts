@@ -46,4 +46,13 @@ export interface Booking {
   updatedAt: string;
   items?: BookingItem[];
   travellers?: Traveller[];
+  /**
+   * BOOK-002: derived server-side from each BookingItem's kind (and, for
+   * INVENTORY items, the underlying InventoryItem's kind) — never stored,
+   * never trusted from client input. Replaces the old approach of parsing
+   * `internalNotes` as JSON for an `externalBookingType` tag, which no real
+   * booking-creation path ever populated, so every booking silently landed
+   * in the PACKAGE bucket regardless of what it actually was.
+   */
+  bookingCategory?: "PACKAGE" | "HOTEL" | "ACTIVITY";
 }

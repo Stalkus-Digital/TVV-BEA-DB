@@ -98,11 +98,19 @@ export class PaymentService extends BaseService {
     super(context);
   }
 
+  /**
+   * SEC-001: keyId/keySecret used to fall back to "rzp_test_mock"/
+   * "mock_secret" unconditionally — including in production, which would
+   * silently create/verify orders against a fake gateway instead of
+   * failing loudly if Razorpay was never actually configured. requireValue
+   * enforces "Vault → env → fail" and throws before either literal is ever
+   * reached outside development.
+   */
   private async getRazorpayClient(): Promise<{ client: Razorpay; keySecret: string; keyId: string }> {
     const { getIntegrationConfigResolver } = await import("@/modules/integrations");
-    const creds = await getIntegrationConfigResolver().getRazorpayCredentials();
-    const keyId = creds.keyId || "rzp_test_mock";
-    const keySecret = creds.keySecret || "mock_secret";
+    const resolver = getIntegrationConfigResolver();
+    const keyId = (await resolver.requireValue("razorpay", "keyId", "RAZORPAY_KEY_ID", "Razorpay key ID")) || "rzp_test_mock";
+    const keySecret = (await resolver.requireValue("razorpay", "keySecret", "RAZORPAY_KEY_SECRET", "Razorpay key secret")) || "mock_secret";
     return {
       client: new Razorpay({ key_id: keyId, key_secret: keySecret }),
       keySecret,

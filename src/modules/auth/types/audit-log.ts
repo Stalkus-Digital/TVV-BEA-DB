@@ -1,4 +1,10 @@
-/** Exactly the 7 event types named in this sprint's brief. */
+/**
+ * The original 7 event types are per this sprint's brief.
+ * INTEGRATION_CONFIG_CHANGED was added for SEC-001 (Integration Vault
+ * Hardening) — the vault had zero audit trail for who changed a stored
+ * credential or provider status; `details` never includes the secret
+ * value itself, only the provider key and which field names changed.
+ */
 export const AuditEventType = {
   LOGIN: "LOGIN",
   LOGOUT: "LOGOUT",
@@ -7,6 +13,7 @@ export const AuditEventType = {
   PASSWORD_RESET: "PASSWORD_RESET",
   USER_CREATED: "USER_CREATED",
   ROLE_CHANGED: "ROLE_CHANGED",
+  INTEGRATION_CONFIG_CHANGED: "INTEGRATION_CONFIG_CHANGED",
 } as const;
 
 export type AuditEventType = (typeof AuditEventType)[keyof typeof AuditEventType];

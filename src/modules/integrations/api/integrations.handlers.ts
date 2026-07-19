@@ -40,7 +40,7 @@ export async function updateIntegrationHandler(
     secrets?: Record<string, string>;
     status?: string;
   };
-  return getIntegrationService().update(key, input);
+  return getIntegrationService().update(key, input, auth.value.userId);
 }
 
 export async function testIntegrationHandler(
@@ -63,7 +63,7 @@ export async function setActivePaymentHandler(
   if (provider !== "razorpay" && provider !== "phonepe") {
     return err(new ValidationError("activeProvider must be razorpay or phonepe"));
   }
-  return getIntegrationService().setActivePaymentProvider(provider);
+  return getIntegrationService().setActivePaymentProvider(provider, auth.value.userId);
 }
 
 export async function createFerryOperatorHandler(

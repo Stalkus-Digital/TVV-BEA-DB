@@ -68,6 +68,11 @@ function validateRoomType(input: unknown, index: number): Result<HotelRoomType, 
     return err(new ValidationError(`roomTypes[${index}].images must be an array of strings`));
   }
 
+  const amenities = asStringArray(row.amenities);
+  if (row.amenities !== undefined && row.amenities !== null && amenities === undefined) {
+    return err(new ValidationError(`roomTypes[${index}].amenities must be an array of strings`));
+  }
+
   const id = asString(row.id)?.trim() || crypto.randomUUID();
 
   return ok({
@@ -81,6 +86,7 @@ function validateRoomType(input: unknown, index: number): Result<HotelRoomType, 
     refundable: asBoolean(row.refundable, false),
     description: asString(row.description) ?? undefined,
     rules: asString(row.rules) ?? undefined,
+    amenities: amenities ?? [],
     images: images ?? [],
   });
 }

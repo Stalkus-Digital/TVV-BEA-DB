@@ -15,12 +15,27 @@ export interface HotelRoomDraft {
   refundable: boolean;
   description: string;
   rules: string;
+  /** Comma-separated in the form; split into string[] on save (see resolveRoomImages). */
+  amenities: string;
   images: (File | string)[];
+}
+
+/**
+ * crypto.randomUUID() is only exposed in secure contexts (HTTPS/localhost) —
+ * calling it directly threw an uncaught TypeError on any plain-HTTP admin
+ * deployment, which is what made "Add room" appear to crash. Falls back to
+ * a non-cryptographic but perfectly adequate client-side draft id.
+ */
+export function generateDraftId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `room-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 export function createEmptyRoomDraft(): HotelRoomDraft {
   return {
-    id: crypto.randomUUID(),
+    id: generateDraftId(),
     name: "",
     category: "",
     capacity: 2,
@@ -30,6 +45,7 @@ export function createEmptyRoomDraft(): HotelRoomDraft {
     refundable: false,
     description: "",
     rules: "",
+    amenities: "",
     images: [],
   };
 }
@@ -110,7 +126,7 @@ export function HotelRoomFields({ rooms, onChange }: HotelRoomFieldsProps) {
                   <input
                     type="number"
                     min={1}
-                    value={room.capacity || ""}
+                    value={room.capacity ?? ""}
                     onChange={(e) => updateRoom(index, { capacity: Number(e.target.value) || 1 })}
                     className="w-full px-4 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary"
                   />
@@ -131,7 +147,7 @@ export function HotelRoomFields({ rooms, onChange }: HotelRoomFieldsProps) {
                   <input
                     type="number"
                     min={0}
-                    value={room.price || ""}
+                    value={room.price ?? ""}
                     onChange={(e) => updateRoom(index, { price: Number(e.target.value) || 0 })}
                     placeholder="7500"
                     className="w-full px-4 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary"
@@ -142,7 +158,7 @@ export function HotelRoomFields({ rooms, onChange }: HotelRoomFieldsProps) {
                   <input
                     type="number"
                     min={0}
-                    value={room.discountPrice || ""}
+                    value={room.discountPrice ?? ""}
                     onChange={(e) => updateRoom(index, { discountPrice: Number(e.target.value) || 0 })}
                     placeholder="6317"
                     className="w-full px-4 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary"
@@ -153,7 +169,7 @@ export function HotelRoomFields({ rooms, onChange }: HotelRoomFieldsProps) {
                   <input
                     type="number"
                     min={0}
-                    value={room.extraPersonCharge || ""}
+                    value={room.extraPersonCharge ?? ""}
                     onChange={(e) => updateRoom(index, { extraPersonCharge: Number(e.target.value) || 0 })}
                     placeholder="2016"
                     className="w-full px-4 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary"
@@ -174,6 +190,16 @@ export function HotelRoomFields({ rooms, onChange }: HotelRoomFieldsProps) {
                 onChange={(value) => updateRoom(index, { rules: value })}
                 rows={3}
               />
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Amenities</label>
+                <input
+                  value={room.amenities}
+                  onChange={(e) => updateRoom(index, { amenities: e.target.value })}
+                  placeholder="Wi-Fi, AC, Sea view, Balcony (comma-separated)"
+                  className="w-full px-4 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary"
+                />
+              </div>
 
               <ImageUploader
                 label={`Room ${index + 1} images`}

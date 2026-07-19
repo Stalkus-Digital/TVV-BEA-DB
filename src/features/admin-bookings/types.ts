@@ -42,6 +42,8 @@ export interface Booking {
   updatedAt: string;
   items?: BookingItem[];
   travellers?: Traveller[];
+  /** BOOK-002: derived server-side from BookingItem/InventoryItem kind — the real signal for which Booking Management tab this belongs in. */
+  bookingCategory?: "PACKAGE" | "HOTEL" | "ACTIVITY";
 }
 
 export interface BookingListRow extends Booking {

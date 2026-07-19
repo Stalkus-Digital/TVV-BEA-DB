@@ -9,6 +9,7 @@ export interface WebsiteHotelRoomDTO {
   refundable: boolean;
   description: string | null;
   rules: string | null;
+  amenities: string[];
   images: string[];
 }
 

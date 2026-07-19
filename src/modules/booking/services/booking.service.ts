@@ -196,6 +196,8 @@ export class BookingService extends BaseService {
     const validated = validateCancelBooking(input);
     if (isErr(validated)) return validated;
 
+    const hadPayment = booking.value.paymentStatus === PaymentStatus.PARTIAL || booking.value.paymentStatus === PaymentStatus.PAID;
+
     const now = new Date().toISOString();
     const updated = await this.bookings.update(id, {
       status: BookingStatus.CANCELLED,
@@ -207,7 +209,29 @@ export class BookingService extends BaseService {
 
     await this.statusHistoryService.record(id, booking.value.status, BookingStatus.CANCELLED, validated.value.reason);
     await this.timelineService.record(id, "CANCELLED", now, validated.value.reason);
-    return updated;
+
+    // PAY-001: cancelling a booking that collected money must trigger a
+    // refund of whatever was paid — a refund failure must never block the
+    // cancellation itself (the booking is already cancelled above; a stuck
+    // refund is a finance follow-up, not a reason to leave the booking
+    // un-cancelled), so this is logged, not propagated as an error.
+    if (hadPayment) {
+      const { getPaymentService } = await import("@/modules/payments/module");
+      const refundResult = await getPaymentService().refund(id, { reason: `Booking cancelled: ${validated.value.reason}` });
+      if (isErr(refundResult)) {
+        this.logger.error("Automatic refund on cancellation failed — needs manual follow-up", {
+          bookingId: id,
+          error: refundResult.error.message,
+        });
+      } else {
+        this.logger.info("Automatic refund on cancellation succeeded", {
+          bookingId: id,
+          refundedAmount: refundResult.value.refundedAmount,
+        });
+      }
+    }
+
+    return this.getById(id);
   }
 
   /** Not in the literal API list — added because TICKETED is a stated lifecycle status with no other reachable path. */

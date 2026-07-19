@@ -1,5 +1,9 @@
 import { getIntegrationService } from "../module";
 
+function isProduction(): boolean {
+  return process.env.NODE_ENV === "production";
+}
+
 /**
  * Runtime credential resolver — prefers Integrations vault, then process.env.
  * Safe to call from any module; seeds providers lazily.
@@ -16,6 +20,28 @@ export class IntegrationConfigResolver {
     if (values[fieldKey]) return values[fieldKey];
     if (envFallback && process.env[envFallback]) return process.env[envFallback];
     return undefined;
+  }
+
+  /**
+   * SEC-001: the "Vault → Environment Variables → Fail" chain, for
+   * credentials where silently proceeding without one is itself the
+   * security risk (a payment gateway key, a webhook signing secret). In
+   * production, throws instead of returning undefined when neither the
+   * vault nor the env fallback has a value — callers that currently do
+   * `value || "some-mock-literal"` should switch to this so the mock
+   * literal can never be reached outside development. In non-production,
+   * behaves exactly like getValue() (returns undefined so a caller's own
+   * dev-mock fallback still applies).
+   */
+  async requireValue(providerKey: string, fieldKey: string, envFallback: string | undefined, label: string): Promise<string | undefined> {
+    const value = await this.getValue(providerKey, fieldKey, envFallback);
+    if (!value && isProduction()) {
+      throw new Error(
+        `${label} is not configured in production. Set it via the Integrations admin screen (${providerKey}.${fieldKey})` +
+        (envFallback ? ` or the ${envFallback} environment variable.` : ".")
+      );
+    }
+    return value;
   }
 
   async getActivePaymentProvider(): Promise<"razorpay" | "phonepe"> {

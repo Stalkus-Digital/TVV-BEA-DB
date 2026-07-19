@@ -6,7 +6,7 @@ import Link from "next/link";
 import { DescriptionEditor } from "./DescriptionEditor";
 import { ImageUploader } from "./ImageUploader";
 import { RatingComponent } from "./RatingComponent";
-import { HotelRoomFields, type HotelRoomDraft } from "./HotelRoomFields";
+import { HotelRoomFields, type HotelRoomDraft, generateDraftId } from "./HotelRoomFields";
 import { useDestinationsQuery } from "@/features/admin-quotes/hooks/useDestinationsQuery";
 import { adminApiClient } from "@/lib/admin-api/client";
 import { adminEndpoints } from "@/lib/admin-api/endpoints";
@@ -49,6 +49,11 @@ async function resolveRoomImages(rooms: HotelRoomDraft[]) {
       if (typeof item === "string") ordered.push(item);
       else if (uploadIdx < uploaded.length) ordered.push(uploaded[uploadIdx++]);
     }
+    const amenities = (room.amenities ?? "")
+      .split(",")
+      .map((a) => a.trim())
+      .filter((a) => a.length > 0);
+
     resolved.push({
       id: room.id,
       name,
@@ -60,6 +65,7 @@ async function resolveRoomImages(rooms: HotelRoomDraft[]) {
       refundable: Boolean(room.refundable),
       description: room.description || undefined,
       rules: room.rules || undefined,
+      amenities,
       images: ordered.length > 0 ? ordered : existingUrls,
     });
   }
@@ -108,7 +114,7 @@ export function HotelForm() {
             const rooms = Array.isArray(data.details?.roomTypes) ? data.details.roomTypes : [];
             setRoomTypes(
               rooms.map((room: any) => ({
-                id: room.id || crypto.randomUUID(),
+                id: room.id || generateDraftId(),
                 name: room.name || "",
                 category: room.category || "",
                 capacity: Number(room.capacity) || 2,
@@ -118,6 +124,7 @@ export function HotelForm() {
                 refundable: Boolean(room.refundable),
                 description: room.description || "",
                 rules: room.rules || "",
+                amenities: Array.isArray(room.amenities) ? room.amenities.join(", ") : (room.amenities || ""),
                 images: Array.isArray(room.images) ? room.images : [],
               })),
             );
@@ -192,11 +199,19 @@ export function HotelForm() {
       } else {
         res = await adminApiClient.post(adminEndpoints.inventory, payload);
         // Create always persists as DRAFT in inventory service — publish immediately.
+        // If this second call fails, the DRAFT row from the POST above would
+        // otherwise be silently orphaned and a retry would create a duplicate
+        // hotel — roll it back so a retry starts clean.
         if (res?.id) {
-          await adminApiClient.patch(`${adminEndpoints.inventory}/${res.id}`, {
-            status: "ACTIVE",
-            details,
-          });
+          try {
+            await adminApiClient.patch(`${adminEndpoints.inventory}/${res.id}`, {
+              status: "ACTIVE",
+              details,
+            });
+          } catch (activateError) {
+            await adminApiClient.delete(`${adminEndpoints.inventory}/${res.id}`).catch(() => {});
+            throw activateError;
+          }
         }
       }
 

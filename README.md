@@ -35,7 +35,7 @@ npm run dev                   # http://localhost:3000
 
 Run the backend on **3000** and the frontend on **3001** (`next dev -p 3001` in that repo). `CORS_ALLOWED_ORIGINS` defaults to `http://localhost:3001`, so this pairing works out of the box. Both repos' `dev` script is a bare `next dev`, so start the backend first or pass the port explicitly.
 
-**Seeding:** `npm run db:seed` is currently broken — `prisma.config.ts` points at `prisma/seed.ts`, which does not exist. The working seed scripts are `scripts/seed-geo.ts` (countries/states/cities) and `scripts/seed-pg.js`. `GET /api/seed` also seeds geography, but see [Security notes](#security-notes) before relying on it.
+**Seeding:** `npm run db:seed` is currently broken — `prisma.config.ts` points at `prisma/seed.ts`, which does not exist. Use the CLI seed scripts instead: `scripts/seed-geo.ts` (countries/states/cities) and `scripts/seed-pg.js`. There is no HTTP seeding endpoint — geography seeding is a CLI-only operation.
 
 ## Layout
 
@@ -200,7 +200,7 @@ Read these before deploying.
 
 **`/api/v1/flights/search` is public, unauthenticated and un-rate-limited**, and proxies straight to TripJack — a metered API you pay for. It is public because the allow-list still describes `/api/v1/flights` as a `NOT_IMPLEMENTED` stub, which stopped being true when the route was implemented. The justification decayed; the rule didn't. Either authenticate it, or rate-limit it behind an API key.
 
-**`GET /api/seed` is public and writes to the database.** It is on `PUBLIC_EXACT_PATHS`. Writes are guarded by find-then-create, so it is roughly idempotent, but an unauthenticated public write endpoint should not exist in production.
+**~~`GET /api/seed` is public and writes to the database.~~ Resolved.** The route has been removed entirely (it duplicated `scripts/seed-geo.ts` and had no consumers) rather than gated behind auth, since it was a development bootstrap utility, not a supported API surface. Geography seeding is now CLI-only — see [Quick start](#quick-start).
 
 **Supplier names appear in 74 source files** — `/api/supplier/*`, `/itinerary/tripjack`, admin package components, and the hardcoded `"tripjack"` in the flight search route. The ports-and-adapters structure is real, but "business code never knows a supplier's name" is an aspiration, not an enforced invariant. Worth knowing before assuming a second supplier drops in without edits above the adapter layer.
 

@@ -179,7 +179,30 @@ export function ensureAuthModuleSeeded(): Promise<void> {
 
       const users = container.resolve(USER_REPOSITORY_TOKEN);
       const existingAdmin = await users.findByEmail(BOOTSTRAP_ADMIN_EMAIL);
-      if (!existingAdmin.ok || existingAdmin.value) return;
+      const forceReset = process.env.BOOTSTRAP_ADMIN_RESET === "true";
+
+      if (existingAdmin.ok && existingAdmin.value) {
+        if (!forceReset) return;
+
+        const passwordHash = await hashPassword(BOOTSTRAP_ADMIN_PASSWORD);
+        const now = new Date().toISOString();
+        await users.update(existingAdmin.value.id, {
+          passwordHash,
+          isActive: true,
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          emailVerifiedAt: existingAdmin.value.emailVerifiedAt ?? now,
+          updatedAt: now,
+        });
+        const superAdminRole = await getRoleService().getByName(RoleName.SUPER_ADMIN);
+        if (superAdminRole.ok) {
+          await getRoleService().assignToUser(existingAdmin.value.id, superAdminRole.value.id);
+        }
+        createLogger("auth.bootstrap").warn("Bootstrap SUPER_ADMIN password reset via BOOTSTRAP_ADMIN_RESET", {
+          email: BOOTSTRAP_ADMIN_EMAIL,
+        });
+        return;
+      }
 
       const passwordHash = await hashPassword(BOOTSTRAP_ADMIN_PASSWORD);
       const now = new Date().toISOString();

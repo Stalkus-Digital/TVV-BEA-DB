@@ -26,8 +26,6 @@ export default function HotelsPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingHotelId, setEditingHotelId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -39,16 +37,6 @@ export default function HotelsPage() {
     checkOut: new Date(Date.now() + 86400000).toISOString().split('T')[0],
     rooms: 1,
     guests: 2
-  });
-
-  const [newHotel, setNewHotel] = useState<Partial<HotelProperty>>({
-    name: "",
-    location: "",
-    stars: 3,
-    rooms: 10,
-    avgRate: 5000,
-    status: "ACTIVE",
-    destinationId: null,
   });
 
   const destinationsQuery = useDestinationsQuery();
@@ -96,26 +84,6 @@ export default function HotelsPage() {
     }
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async (hotel: HotelProperty) => {
-      const payload = {
-        title: hotel.name,
-        status: hotel.status,
-        destinationId: hotel.destinationId || null,
-        details: {
-          address: hotel.location,
-          starRating: hotel.stars,
-          rooms: hotel.rooms,
-          avgRate: hotel.avgRate,
-        }
-      };
-      return adminApiClient.patch(`${adminEndpoints.inventory}/${hotel.id}`, payload);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "inventory", "HOTEL"] });
-    }
-  });
-
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       return adminApiClient.delete(`${adminEndpoints.inventory}/${id}`);
@@ -139,38 +107,6 @@ export default function HotelsPage() {
     h.location.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const hotel: HotelProperty = {
-      id: editingHotelId || "",
-      name: newHotel.name || "",
-      location: newHotel.location || "",
-      stars: Number(newHotel.stars) || 3,
-      rooms: Number(newHotel.rooms) || 0,
-      avgRate: Number(newHotel.avgRate) || 0,
-      status: newHotel.status as "ACTIVE" | "MAINTENANCE" || "ACTIVE",
-    };
-
-    if (editingHotelId) {
-      await updateMutation.mutateAsync(hotel);
-    } else {
-      await createMutation.mutateAsync(hotel);
-    }
-
-    setIsModalOpen(false);
-    setEditingHotelId(null);
-
-    // Reset form
-    setNewHotel({
-      name: "",
-      location: "",
-      stars: 3,
-      rooms: 10,
-      avgRate: 5000,
-      status: "ACTIVE",
-    });
-  };
-
   const removeHotel = (id: string) => {
     setConfirmDeleteId(id);
   };
@@ -193,26 +129,6 @@ export default function HotelsPage() {
     } catch (err) {
       setAlertState({ isOpen: true, message: "Failed to publish hotel" });
     }
-  };
-
-  const openAddModal = () => {
-    setEditingHotelId(null);
-    setNewHotel({
-      name: "",
-      location: "",
-      stars: 3,
-      rooms: 10,
-      avgRate: 5000,
-      status: "ACTIVE",
-      destinationId: null,
-    });
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (hotel: HotelProperty) => {
-    setEditingHotelId(hotel.id);
-    setNewHotel(hotel);
-    setIsModalOpen(true);
   };
 
   const handleLiveSearch = async (e: React.FormEvent) => {
@@ -517,8 +433,6 @@ export default function HotelsPage() {
               )}
             </div>
           </div>
-
-          {/* Add Hotel Modal removed */}
         </>
       )}
 

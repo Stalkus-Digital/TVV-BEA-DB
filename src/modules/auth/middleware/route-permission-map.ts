@@ -15,6 +15,8 @@ import { PermissionAction, PermissionResource } from "../types/permission";
  * route handler resolves the Authorization header directly (not via this
  * file's forwarded-context mechanism, which public paths never get) so a
  * logged-in customer's `userId` still gets attached when present.
+ * `/api/external/bookings` is the matching public website booking intake —
+ * Activity/Hotel/Package forms create real Bookings for Admin lists.
  * `/api/storage/download` (Sprint 14 — Storage Platform) is public for a
  * different reason: it is never reached without a valid, time-limited HMAC
  * signature in its own query params (see signed-urls/signed-url.service.ts)
@@ -45,6 +47,7 @@ export const PUBLIC_EXACT_PATHS = [
   "/api/v1/auth/register",
   "/api/enquiries",
   "/api/external/enquiries",
+  "/api/external/bookings",
   "/api/storage/download",
 ];
 

@@ -4,6 +4,7 @@ import { getBookingService } from "@/modules/booking";
 import { getQuoteService, getQuoteItemService } from "@/modules/quote";
 import { getInventoryService } from "@/modules/inventory";
 import { getPackageService } from "@/modules/package";
+import { getDestinationService } from "@/modules/destination";
 import { isErr } from "@/shared/types";
 
 function normalizeBookingType(raw: unknown): "PACKAGE" | "HOTEL" | "ACTIVITY" {
@@ -13,47 +14,72 @@ function normalizeBookingType(raw: unknown): "PACKAGE" | "HOTEL" | "ACTIVITY" {
   return "PACKAGE";
 }
 
+function asNonEmptyString(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.toLowerCase() === "unknown") return null;
+  return trimmed;
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== "object") return jsonError(new Error("Invalid JSON body"));
 
-  const bookingType = normalizeBookingType((body as Record<string, unknown>).bookingType);
-  const packageId =
-    typeof (body as Record<string, unknown>).packageId === "string"
-      ? ((body as Record<string, unknown>).packageId as string)
-      : null;
+  const payload = body as Record<string, unknown>;
+  const bookingType = normalizeBookingType(payload.bookingType);
+  const packageId = asNonEmptyString(payload.packageId);
   const inventoryItemId =
-    typeof (body as Record<string, unknown>).inventoryItemId === "string"
-      ? ((body as Record<string, unknown>).inventoryItemId as string)
-      : typeof (body as Record<string, unknown>).hotelId === "string"
-        ? ((body as Record<string, unknown>).hotelId as string)
-        : typeof (body as Record<string, unknown>).activityId === "string"
-          ? ((body as Record<string, unknown>).activityId as string)
-          : null;
+    asNonEmptyString(payload.inventoryItemId) ??
+    asNonEmptyString(payload.hotelId) ??
+    asNonEmptyString(payload.activityId);
 
   const notesPayload = {
-    ...(body as Record<string, unknown>),
+    ...payload,
     isExternalWebsiteBooking: true,
     externalBookingType: bookingType,
   };
   const internalNotes = JSON.stringify(notesPayload);
 
+  let destinationId = asNonEmptyString(payload.destinationId);
+
+  if (!destinationId && inventoryItemId) {
+    const inventory = await getInventoryService().getById(inventoryItemId);
+    if (!isErr(inventory)) {
+      destinationId = asNonEmptyString(inventory.value.destinationId);
+    }
+  }
+
+  if (!destinationId && packageId) {
+    const pkg = await getPackageService().getById(packageId);
+    if (!isErr(pkg)) {
+      destinationId = asNonEmptyString(pkg.value.destinationId);
+    }
+  }
+
+  if (!destinationId) {
+    const destinations = await getDestinationService().list({ page: 1, pageSize: 1 });
+    if (isErr(destinations) || destinations.value.items.length === 0) {
+      return jsonError(new Error("No destination available for website booking"));
+    }
+    destinationId = destinations.value.items[0].id;
+  }
+
   // 1. Create a draft Quote (Booking requires sourceQuoteId)
   const quoteInput = {
-    title: `Website Booking - ${(body as Record<string, unknown>).contactName ?? "Guest"}`,
-    destinationId: (body as Record<string, unknown>).destinationId ?? "unknown",
-    packageId: packageId,
+    title: `Website Booking - ${payload.contactName ?? "Guest"}`,
+    destinationId,
+    packageId,
     travelerDetails: {
       primaryContact: {
-        name: (body as Record<string, unknown>).contactName ?? "Guest",
-        email: (body as Record<string, unknown>).email ?? "unknown@example.com",
-        phone: (body as Record<string, unknown>).phone ?? "",
+        name: payload.contactName ?? "Guest",
+        email: payload.email ?? "unknown@example.com",
+        phone: payload.phone ?? "",
       },
-      adults: Number((body as Record<string, unknown>).guests ?? 1),
+      adults: Number(payload.guests ?? 1),
       children: 0,
       infants: 0,
     },
-    currency: (body as Record<string, unknown>).currency ?? "INR",
+    currency: payload.currency ?? "INR",
     validFrom: new Date().toISOString(),
     validTo: new Date(Date.now() + 86400000 * 30).toISOString(),
     internalNotes,
@@ -79,7 +105,7 @@ export async function POST(request: NextRequest) {
           title: pkg.value.title,
           description: "Website package booking",
           quantity: 1,
-          unitPrice: Number((body as Record<string, unknown>).total ?? 0),
+          unitPrice: Number(payload.total ?? 0),
         });
         if (isErr(added)) return jsonError(added.error);
       }
@@ -89,13 +115,15 @@ export async function POST(request: NextRequest) {
   if (inventoryItemId) {
     const inventory = await getInventoryService().getById(inventoryItemId);
     if (!isErr(inventory)) {
+      const unitPrice =
+        Number(payload.total ?? 0) / Math.max(1, Number(payload.guests ?? 1) || 1);
       const added = await getQuoteItemService().add(quote.id, {
         packageId: null,
         inventoryItemId,
         title: inventory.value.title,
         description: `Website ${inventory.value.kind.toLowerCase()} booking`,
-        quantity: Number((body as Record<string, unknown>).guests ?? 1) || 1,
-        unitPrice: Number((body as Record<string, unknown>).total ?? 0),
+        quantity: Number(payload.guests ?? 1) || 1,
+        unitPrice,
       });
       if (isErr(added)) return jsonError(added.error);
     }

@@ -50,18 +50,18 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <button type="button" className="absolute inset-0 bg-black/30" onClick={onClose} aria-label="Close" />
-      <div className="relative w-full max-w-md h-full bg-white border-l border-border shadow-xl overflow-y-auto">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-6 py-4">
+      <div className="relative flex h-full w-full max-w-md flex-col border-l border-border bg-white shadow-xl">
+        <div className="flex shrink-0 items-center justify-between border-b border-border bg-card px-6 py-4">
           <div>
             <h2 className="text-lg font-semibold">{detail?.name ?? "Configure"}</h2>
-            <p className="text-xs text-muted-foreground font-mono">{providerKey}</p>
+            <p className="font-mono text-xs text-muted-foreground">{providerKey}</p>
           </div>
-          <button type="button" onClick={onClose} className="p-2 rounded-md hover:bg-muted">
+          <button type="button" onClick={onClose} className="rounded-md p-2 hover:bg-muted">
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="flex-1 space-y-4 overflow-y-auto p-6">
           {detailQuery.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
           {detailQuery.isError && (
             <p className="text-sm text-red-600">
@@ -72,11 +72,14 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
           {detail && (
             <>
               <p className="text-sm text-muted-foreground">{detail.description}</p>
-              <p className="text-xs text-muted-foreground rounded-md bg-muted/60 px-3 py-2">
-                Click <span className="font-medium">Test connection</span> to save any new credentials
-                from this form and verify them. The provider shows CONNECTED only after a successful
-                test.
-              </p>
+              <ol className="list-decimal space-y-1 rounded-md bg-muted/60 px-4 py-3 text-xs text-muted-foreground">
+                <li>
+                  Paste your credentials below, then click <span className="font-semibold text-foreground">Save API key</span>.
+                </li>
+                <li>
+                  Click <span className="font-semibold text-foreground">Test connection</span> to verify with the provider.
+                </li>
+              </ol>
 
               {detail.fields.map((field) => {
                 const secretMeta = detail.secretFields.find((s) => s.fieldKey === field.key);
@@ -109,7 +112,7 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
                         autoComplete="new-password"
                         placeholder={
                           secretMeta?.configured
-                            ? `Configured (…${secretMeta.lastFour ?? "****"}) — leave blank to keep`
+                            ? `Configured (…${secretMeta.lastFour ?? "****"}) — paste a new key to replace`
                             : field.placeholder ?? "Enter secret"
                         }
                         className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -118,8 +121,9 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
                       />
                       {providerKey === "openai" && field.key === "apiKey" && (
                         <p className="text-[11px] text-muted-foreground">
-                          Paste an OpenAI key from platform.openai.com (<span className="font-mono">sk-…</span>).
-                          Google AI Studio / Gemini keys will not work.
+                          Use an OpenAI key from{" "}
+                          <span className="font-medium">platform.openai.com</span> starting with{" "}
+                          <span className="font-mono">sk-</span>. Google AI Studio / Gemini keys will not work.
                         </p>
                       )}
                     </div>
@@ -145,7 +149,7 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
               })}
 
               {detail.webhooks.length > 0 && (
-                <div className="rounded-md border border-dashed border-border p-3 space-y-1">
+                <div className="space-y-1 rounded-md border border-dashed border-border p-3">
                   <p className="text-xs font-semibold">Webhook URLs</p>
                   {detail.webhooks.map((wh) => (
                     <p key={wh.id} className="font-mono text-[11px] text-muted-foreground">
@@ -171,57 +175,58 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
                   {testMutation.data.message}
                 </p>
               )}
-
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => {
-                    const secretPayload = buildSecretPayload(secrets);
-                    updateMutation.mutate(
-                      { key: providerKey, body: { config, secrets: secretPayload } },
-                      {
-                        onSuccess: () => {
-                          setSecrets({});
-                          setMessage("Saved. Click Test connection to verify.");
-                        },
-                      }
-                    );
-                  }}
-                  className="rounded-md bg-ink px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
-                >
-                  {updateMutation.isPending ? "Saving…" : "Save"}
-                </button>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => {
-                    const secretPayload = buildSecretPayload(secrets);
-                    setMessage(null);
-                    testMutation.mutate(
-                      {
-                        key: providerKey,
-                        body: {
-                          config,
-                          ...(Object.keys(secretPayload).length > 0 ? { secrets: secretPayload } : {}),
-                        },
-                      },
-                      {
-                        onSuccess: (result) => {
-                          setSecrets({});
-                          setMessage(result.ok ? "Connected." : null);
-                        },
-                      }
-                    );
-                  }}
-                  className="rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
-                >
-                  {testMutation.isPending ? "Testing…" : "Test connection"}
-                </button>
-              </div>
             </>
           )}
         </div>
+
+        {detail && (
+          <div className="shrink-0 space-y-2 border-t border-border bg-card px-6 py-4">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                const secretPayload = buildSecretPayload(secrets);
+                if (providerKey === "openai" && !secretPayload.apiKey && !detail.secretFields.some((s) => s.configured)) {
+                  setMessage(null);
+                  updateMutation.reset();
+                  setMessage("Paste an OpenAI API key before saving.");
+                  return;
+                }
+                updateMutation.mutate(
+                  { key: providerKey, body: { config, secrets: secretPayload } },
+                  {
+                    onSuccess: () => {
+                      setSecrets({});
+                      setMessage("API key saved. Now click Test connection.");
+                    },
+                  }
+                );
+              }}
+              className="w-full rounded-md bg-slate-900 px-3 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+            >
+              {updateMutation.isPending ? "Saving…" : "Save API key"}
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                setMessage(null);
+                // Test only the key already saved in the vault — Save first if you typed a new one
+                testMutation.mutate(
+                  { key: providerKey, body: {} },
+                  {
+                    onSuccess: (result) => {
+                      setMessage(result.ok ? "Connection OK — OpenAI is connected." : null);
+                    },
+                  }
+                );
+              }}
+              className="w-full rounded-md border-2 border-slate-900 bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 hover:bg-slate-50 disabled:opacity-50"
+            >
+              {testMutation.isPending ? "Testing…" : "Test connection"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

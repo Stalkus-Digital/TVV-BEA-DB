@@ -24,7 +24,30 @@ export interface AuthConfigValues {
   accountLockDurationSeconds: number;
 }
 
-function loadAuthConfig(source: Record<string, string | undefined> = process.env): AuthConfigValues {
+/**
+ * Static `process.env.AUTH_JWT_SECRET` access is intentional: Next.js (and
+ * Vercel middleware) only reliably injects env vars that appear as literal
+ * property reads. Dynamic `process.env[key]` lookups can silently miss the
+ * Vercel-injected secret and fall back to the insecure default — which is
+ * exactly how login (Node route) and middleware ended up signing/verifying
+ * with different secrets ("Invalid token signature" on every admin API).
+ */
+function authEnvSource(): Record<string, string | undefined> {
+  return {
+    ...process.env,
+    AUTH_JWT_SECRET: process.env.AUTH_JWT_SECRET,
+    AUTH_ACCESS_TOKEN_TTL_SECONDS: process.env.AUTH_ACCESS_TOKEN_TTL_SECONDS,
+    AUTH_REFRESH_TOKEN_TTL_SECONDS: process.env.AUTH_REFRESH_TOKEN_TTL_SECONDS,
+    AUTH_REFRESH_TOKEN_REMEMBER_ME_TTL_SECONDS: process.env.AUTH_REFRESH_TOKEN_REMEMBER_ME_TTL_SECONDS,
+    AUTH_PASSWORD_RESET_TTL_SECONDS: process.env.AUTH_PASSWORD_RESET_TTL_SECONDS,
+    AUTH_EMAIL_VERIFICATION_TTL_SECONDS: process.env.AUTH_EMAIL_VERIFICATION_TTL_SECONDS,
+    FRONTEND_URL: process.env.FRONTEND_URL,
+    AUTH_MAX_FAILED_LOGIN_ATTEMPTS: process.env.AUTH_MAX_FAILED_LOGIN_ATTEMPTS,
+    AUTH_ACCOUNT_LOCK_DURATION_SECONDS: process.env.AUTH_ACCOUNT_LOCK_DURATION_SECONDS,
+  };
+}
+
+function loadAuthConfig(source: Record<string, string | undefined> = authEnvSource()): AuthConfigValues {
   const result = validateEnv(authEnvSchema, source);
   if ("errors" in result) {
     const details = result.errors.map((e) => `${e.key}: ${e.message}`).join("; ");
@@ -37,10 +60,9 @@ function loadAuthConfig(source: Record<string, string | undefined> = process.env
  * Singleton config accessor, same pattern as every other module's own
  * config service (SupplierConfigService, WebsiteConfigService) — nothing
  * else in this module reads process.env directly. AUTH_JWT_SECRET's
- * insecure default is intentional for local/dev use (no .env exists
- * anywhere in this project yet, per docs/15) — it MUST be overridden via a
- * real secret before any non-local deployment; see docs/22's Security
- * Features section.
+ * insecure default is intentional for local/dev use — it MUST be overridden
+ * via a real secret (Vercel project env / .env) before any non-local
+ * deployment; see docs/22's Security Features section.
  */
 export class AuthConfigService {
   private static instance: AuthConfigService | null = null;

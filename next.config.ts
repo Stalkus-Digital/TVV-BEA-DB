@@ -1,12 +1,17 @@
 import type { NextConfig } from "next";
 
 /**
- * nodeMiddleware is required to opt src/middleware.ts into the full
- * Node.js runtime instead of the default Edge runtime — necessary because
- * the Auth module's JWT/password-hashing logic uses node:crypto, which the
- * Edge runtime's bundler cannot resolve (verified: build failed with
- * "UnhandledSchemeError: node:crypto" before this flag was added).
+ * Node.js middleware is opted in via `export const config = { runtime: "nodejs" }`
+ * in src/middleware.ts (stable since Next.js 15.5). That is required because
+ * JwtService uses node:crypto, which the Edge runtime cannot resolve.
+ *
+ * `experimental.nodeMiddleware` remains enabled for toolchain versions that
+ * still gate the nodejs middleware runtime behind this flag.
  */
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  experimental: {
+    nodeMiddleware: true,
+  },
+};
 
 export default nextConfig;

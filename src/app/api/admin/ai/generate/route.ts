@@ -6,6 +6,9 @@ import { prisma } from "@/shared/database/prisma-client";
 
 const logger = createLogger("api.admin.ai");
 
+/** Allow OpenAI + optional TripJack enrichment enough time on Vercel. */
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   try {
     const payload = await req.json();
@@ -24,6 +27,7 @@ export async function POST(req: Request) {
     }
 
     const pkgData = result.value;
+    const warnings = [...(pkgData.warnings ?? [])];
 
     // Prefer destination resolved during catalog load; fall back to name match
     let destId = pkgData.destinationId ?? null;
@@ -37,7 +41,8 @@ export async function POST(req: Request) {
 
     if (!destId) {
       logger.warn("No destinations exist in DB to anchor AI package. Returning without persistence.");
-      return NextResponse.json(pkgData);
+      warnings.push("Package generated but not saved — no destination in the database.");
+      return NextResponse.json({ ...pkgData, warnings });
     }
 
     const builder = getAIPackageBuilder();
@@ -61,18 +66,22 @@ export async function POST(req: Request) {
 
     if (isErr(buildResult)) {
       logger.error("Failed to persist AI package", { error: buildResult.error.message });
+      warnings.push(`Package generated but not saved: ${buildResult.error.message}`);
       return NextResponse.json({
         ...pkgData,
+        warnings,
         persistError: buildResult.error.message,
       });
     }
 
     return NextResponse.json({
       ...pkgData,
+      warnings,
       persistedPackageId: buildResult.value.id,
     });
   } catch (error) {
     logger.error("Error in AI package generation route", { error });
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

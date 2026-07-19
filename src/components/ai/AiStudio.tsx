@@ -2,20 +2,24 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  Wand2, 
-  Sparkles, 
-  MapPin, 
-  Calendar, 
-  DollarSign, 
+import {
+  Wand2,
+  Sparkles,
+  MapPin,
+  Calendar,
+  DollarSign,
   PackagePlus,
   CheckCircle2,
   Clock,
-  Loader2
+  Loader2,
+  AlertTriangle,
+  X,
 } from "lucide-react";
-import { useAiGenerateMutation } from "@/features/admin-packages/hooks/useAiGenerateMutation";
-import type { GeneratedPackage } from "@/modules/package/services/ai-generator.service";
-import { useCreatePackageMutation, useAddDayMutation, useAddItemMutation, useUpsertPricingMutation } from "@/features/admin-packages/hooks/usePackageMutations";
+import {
+  useAiGenerateMutation,
+  type AiGenerateResult,
+} from "@/features/admin-packages/hooks/useAiGenerateMutation";
+import { useCreatePackageMutation } from "@/features/admin-packages/hooks/usePackageMutations";
 import { PackageSourceType } from "@/features/admin-packages/constants";
 
 export function AiStudio() {
@@ -23,18 +27,27 @@ export function AiStudio() {
   const generateMutation = useAiGenerateMutation();
   const createMutation = useCreatePackageMutation();
 
-  const [prompt, setPrompt] = useState("A luxurious 5-day honeymoon trip to Andaman, including a private ferry to Havelock and scuba diving.");
+  const [prompt, setPrompt] = useState(
+    "A luxurious 5-day honeymoon trip to Andaman, including a private ferry to Havelock and scuba diving."
+  );
   const [destination, setDestination] = useState("Andaman & Nicobar");
   const [duration, setDuration] = useState("5 Days / 4 Nights");
   const [budget, setBudget] = useState("Premium");
-  
-  const [output, setOutput] = useState<GeneratedPackage | null>(null);
+
+  const [output, setOutput] = useState<AiGenerateResult | null>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [warnings, setWarnings] = useState<string[]>([]);
+  const [showWarnings, setShowWarnings] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
 
-  const handleGenerate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGenerate = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!prompt.trim()) return;
-    
+
+    setGenerateError(null);
+    setWarnings([]);
+    setShowWarnings(false);
+
     try {
       const data = await generateMutation.mutateAsync({
         prompt,
@@ -43,10 +56,16 @@ export function AiStudio() {
         budget,
       });
       setOutput(data);
+      const nextWarnings = Array.isArray(data.warnings) ? data.warnings.filter(Boolean) : [];
+      setWarnings(nextWarnings);
+      if (nextWarnings.length > 0) {
+        setShowWarnings(true);
+      }
     } catch (err) {
       console.error(err);
       const message = err instanceof Error ? err.message : "Failed to generate package.";
-      alert(message);
+      setGenerateError(message);
+      setOutput(null);
     }
   };
 
@@ -54,35 +73,79 @@ export function AiStudio() {
     if (!output) return;
     setIsConverting(true);
     try {
-      // Use the pre-persisted package ID from the backend if available
-      const persistedId = (output as any).persistedPackageId;
+      const persistedId = output.persistedPackageId;
       if (persistedId) {
         router.push(`/packages/new?id=${persistedId}`);
         return;
       }
 
-      // Fallback: Create the base package
       const pkg = await createMutation.mutateAsync({
         title: output.title,
-        destinationId: "", // Will fail validation if empty, but better than hardcoded
+        destinationId: "",
         durationDays: output.durationDays,
         durationNights: output.durationNights,
         sourceType: PackageSourceType.MANUAL,
       });
 
-      // Redirect immediately to builder
       router.push(`/packages/new?id=${pkg.id}`);
     } catch (err) {
       console.error(err);
-      alert("Failed to convert package");
+      setGenerateError("Failed to convert package");
     } finally {
       setIsConverting(false);
     }
   };
 
   return (
-    <div className="flex h-full bg-background rounded-lg border border-border overflow-hidden shadow-sm">
-      
+    <div className="flex h-full bg-background rounded-lg border border-border overflow-hidden shadow-sm relative">
+      {/* Warnings popup */}
+      {showWarnings && warnings.length > 0 && (
+        <div className="absolute inset-0 z-30 flex items-start justify-center pt-16 px-4 bg-black/20 backdrop-blur-[1px]">
+          <div
+            role="dialog"
+            aria-labelledby="ai-warnings-title"
+            className="w-full max-w-md bg-card border border-amber-200 rounded-xl shadow-lg overflow-hidden"
+          >
+            <div className="flex items-start gap-3 p-4 border-b border-amber-100 bg-amber-50">
+              <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <h3 id="ai-warnings-title" className="font-semibold text-amber-900 text-sm">
+                  Package generated with notes
+                </h3>
+                <p className="text-xs text-amber-800/80 mt-0.5">
+                  Some data sources were skipped or empty. The itinerary still used what was available.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowWarnings(false)}
+                className="text-amber-700 hover:text-amber-900 p-1 rounded"
+                aria-label="Dismiss warnings"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <ul className="p-4 space-y-2 max-h-64 overflow-y-auto">
+              {warnings.map((w, i) => (
+                <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                  <span className="text-amber-500 mt-1">•</span>
+                  <span>{w}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="p-3 border-t border-border flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowWarnings(false)}
+                className="px-3 py-1.5 text-sm font-medium bg-slate-900 text-white rounded-md hover:bg-slate-800"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Left Panel: AI Configuration & Prompt */}
       <div className="w-1/3 min-w-[400px] border-r border-border bg-card flex flex-col">
         <div className="p-6 border-b border-border bg-gradient-to-r from-primary/10 to-transparent">
@@ -91,16 +154,52 @@ export function AiStudio() {
             <h2 className="font-bold text-lg tracking-tight">AI Package Studio</h2>
           </div>
           <p className="text-sm text-muted-foreground">
-            Uses OpenAI (Integrations) with hotels from your inventory for this destination, plus TripJack live rates when TripJack is connected.
+            Uses OpenAI (Integrations) with hotels, activities, and ferry transfers from inventory.
+            TripJack live hotel rates are added when connected — generation continues without them.
           </p>
         </div>
 
         <form onSubmit={handleGenerate} className="flex-1 overflow-y-auto p-6 space-y-6">
+          {generateError && (
+            <div
+              role="alert"
+              className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800 flex gap-2"
+            >
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-rose-600" />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium">Generation failed</p>
+                <p className="mt-0.5 text-rose-700/90 break-words">{generateError}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setGenerateError(null)}
+                className="text-rose-500 hover:text-rose-700 p-0.5"
+                aria-label="Dismiss error"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
+          {warnings.length > 0 && !showWarnings && output && (
+            <button
+              type="button"
+              onClick={() => setShowWarnings(true)}
+              className="w-full text-left rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 hover:bg-amber-100/80 transition-colors flex gap-2"
+            >
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
+              <span>
+                {warnings.length} note{warnings.length === 1 ? "" : "s"} from generation — click to
+                review
+              </span>
+            </button>
+          )}
+
           <div className="space-y-2">
             <label className="text-sm font-semibold flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-amber-500" /> Prompt
             </label>
-            <textarea 
+            <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               className="w-full bg-muted/50 border border-border rounded-lg p-3 text-sm focus:ring-1 focus:ring-primary focus:outline-none resize-none min-h-[120px]"
@@ -110,13 +209,20 @@ export function AiStudio() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wide border-b border-border pb-2">Parameters</h3>
-            
+            <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wide border-b border-border pb-2">
+              Parameters
+            </h3>
+
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-2">
                 <MapPin className="h-3 w-3" /> Destination
               </label>
-              <input type="text" value={destination} onChange={(e) => setDestination(e.target.value)} className="w-full bg-background border border-border rounded p-2 text-sm focus:ring-1 focus:ring-ring" />
+              <input
+                type="text"
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+                className="w-full bg-background border border-border rounded p-2 text-sm focus:ring-1 focus:ring-ring"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -124,7 +230,11 @@ export function AiStudio() {
                 <label className="text-xs font-medium text-muted-foreground flex items-center gap-2">
                   <Calendar className="h-3 w-3" /> Duration
                 </label>
-                <select value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full bg-background border border-border rounded p-2 text-sm focus:ring-1 focus:ring-ring">
+                <select
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="w-full bg-background border border-border rounded p-2 text-sm focus:ring-1 focus:ring-ring"
+                >
                   <option>3 Days / 2 Nights</option>
                   <option>5 Days / 4 Nights</option>
                   <option>7 Days / 6 Nights</option>
@@ -135,7 +245,11 @@ export function AiStudio() {
                 <label className="text-xs font-medium text-muted-foreground flex items-center gap-2">
                   <DollarSign className="h-3 w-3" /> Budget
                 </label>
-                <select value={budget} onChange={(e) => setBudget(e.target.value)} className="w-full bg-background border border-border rounded p-2 text-sm focus:ring-1 focus:ring-ring">
+                <select
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  className="w-full bg-background border border-border rounded p-2 text-sm focus:ring-1 focus:ring-ring"
+                >
                   <option>Economy</option>
                   <option>Standard</option>
                   <option>Premium</option>
@@ -147,15 +261,19 @@ export function AiStudio() {
         </form>
 
         <div className="p-4 border-t border-border bg-slate-50/50">
-          <button 
-            onClick={handleGenerate}
+          <button
+            onClick={() => handleGenerate()}
             disabled={generateMutation.isPending}
             className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg shadow-sm hover:bg-primary-hover transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
           >
             {generateMutation.isPending ? (
-              <><Loader2 className="h-4 w-4 animate-spin" /> Generating Magic...</>
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Generating Magic...
+              </>
             ) : (
-              <><Sparkles className="h-4 w-4" /> Generate Package</>
+              <>
+                <Sparkles className="h-4 w-4" /> Generate Package
+              </>
             )}
           </button>
         </div>
@@ -174,15 +292,15 @@ export function AiStudio() {
               <Sparkles className="h-8 w-8 text-muted-foreground/50" />
             </div>
             <h3 className="text-lg font-medium text-foreground mb-2">No Output Yet</h3>
-            <p className="max-w-sm">Enter your prompt and parameters on the left to generate a customized travel package instantly.</p>
+            <p className="max-w-sm">
+              Enter your prompt and parameters on the left to generate a customized travel package
+              instantly.
+            </p>
           </div>
         ) : (
           <>
-            {/* Generated Content */}
             <div className="flex-1 overflow-y-auto p-8">
               <div className="max-w-3xl mx-auto bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-                
-                {/* Header */}
                 <div className="p-6 border-b border-border bg-gradient-to-br from-slate-900 to-slate-800 text-white relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-4 opacity-10">
                     <MapPin className="h-32 w-32" />
@@ -193,36 +311,43 @@ export function AiStudio() {
                     </span>
                     <h1 className="text-3xl font-bold mb-2">{output.title}</h1>
                     <div className="flex items-center gap-6 text-sm text-slate-300">
-                      <span className="flex items-center gap-1"><MapPin className="h-4 w-4"/> {destination}</span>
-                      <span className="flex items-center gap-1"><Clock className="h-4 w-4"/> {output.durationDays} Days / {output.durationNights} Nights</span>
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" /> {destination}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" /> {output.durationDays} Days /{" "}
+                        {output.durationNights} Nights
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Body */}
                 <div className="p-6 space-y-8">
-                  
-                  {/* Estimated Price */}
                   <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-4 flex items-center justify-between">
                     <div>
                       <h4 className="text-emerald-800 font-semibold text-sm">Estimated Base Price</h4>
-                      <p className="text-emerald-600 text-xs">Based on current parameters and market trends.</p>
+                      <p className="text-emerald-600 text-xs">
+                        Based on current parameters and market trends.
+                      </p>
                     </div>
                     <div className="text-right">
-                      <span className="text-2xl font-bold text-emerald-700">₹{output.basePrice.toLocaleString()}</span>
+                      <span className="text-2xl font-bold text-emerald-700">
+                        ₹{output.basePrice.toLocaleString()}
+                      </span>
                       <p className="text-emerald-600 text-xs">for two adults</p>
                     </div>
                   </div>
 
-                  {/* Itinerary */}
                   <div>
                     <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                       <Calendar className="h-5 w-5 text-primary" /> Proposed Itinerary
                     </h3>
                     <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
-                      
                       {output.days.map((day, idx) => (
-                        <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                        <div
+                          key={idx}
+                          className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active"
+                        >
                           <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-card bg-primary text-white font-bold text-sm shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
                             {day.dayNumber}
                           </div>
@@ -231,57 +356,76 @@ export function AiStudio() {
                             <div className="space-y-2 mt-2">
                               {day.items.map((item, i) => (
                                 <div key={i} className="text-sm">
-                                  <span className="font-medium text-muted-foreground mr-2 text-xs">[{item.kind}]</span>
+                                  <span className="font-medium text-muted-foreground mr-2 text-xs">
+                                    [{item.kind}]
+                                  </span>
                                   <span>{item.title}</span>
-                                  <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
+                                  <p className="text-xs text-muted-foreground mt-0.5">
+                                    {item.description}
+                                  </p>
                                 </div>
                               ))}
                             </div>
                           </div>
                         </div>
                       ))}
-
                     </div>
                   </div>
 
-                  {/* Inclusions & Exclusions */}
                   <div className="grid grid-cols-2 gap-6 pt-4 border-t border-border">
                     <div>
-                      <h4 className="font-bold text-sm mb-3 flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Inclusions</h4>
+                      <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Inclusions
+                      </h4>
                       <ul className="space-y-2 text-sm text-muted-foreground">
                         {output.inclusions.map((inc, i) => (
-                          <li key={i} className="flex items-start gap-2"><span className="text-emerald-500">•</span> {inc}</li>
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-emerald-500">•</span> {inc}
+                          </li>
                         ))}
                       </ul>
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm mb-3 flex items-center gap-2"><span className="text-rose-500 font-bold">✕</span> Exclusions</h4>
+                      <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+                        <span className="text-rose-500 font-bold">✕</span> Exclusions
+                      </h4>
                       <ul className="space-y-2 text-sm text-muted-foreground">
                         {output.exclusions.map((exc, i) => (
-                          <li key={i} className="flex items-start gap-2"><span className="text-rose-500">•</span> {exc}</li>
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-rose-500">•</span> {exc}
+                          </li>
                         ))}
                       </ul>
                     </div>
                   </div>
-
                 </div>
               </div>
             </div>
-            
-            {/* Action Footer */}
+
             <div className="h-16 border-t border-border bg-card flex items-center justify-end px-6 shrink-0 gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
-              <button onClick={handleGenerate} disabled={generateMutation.isPending} className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+              <button
+                onClick={() => handleGenerate()}
+                disabled={generateMutation.isPending}
+                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+              >
                 Regenerate
               </button>
-              <button onClick={handleConvertToPackage} disabled={isConverting} className="px-4 py-2 text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-md shadow-sm transition-colors flex items-center gap-2 disabled:opacity-50">
-                {isConverting ? <Loader2 className="h-4 w-4 animate-spin" /> : <PackagePlus className="h-4 w-4" />} 
+              <button
+                onClick={handleConvertToPackage}
+                disabled={isConverting}
+                className="px-4 py-2 text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-md shadow-sm transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                {isConverting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <PackagePlus className="h-4 w-4" />
+                )}
                 {isConverting ? "Converting..." : "Convert to Package"}
               </button>
             </div>
           </>
         )}
       </div>
-
     </div>
   );
 }

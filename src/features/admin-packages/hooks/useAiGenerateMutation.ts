@@ -10,9 +10,15 @@ interface AiGenerateInput {
   budget: string;
 }
 
+export type AiGenerateResult = GeneratedPackage & {
+  persistedPackageId?: string;
+  persistError?: string;
+  warnings?: string[];
+};
+
 export function useAiGenerateMutation() {
   return useMutation({
-    mutationFn: async (input: AiGenerateInput) => {
+    mutationFn: async (input: AiGenerateInput): Promise<AiGenerateResult> => {
       const res = await fetch("/api/admin/ai/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -22,7 +28,7 @@ export function useAiGenerateMutation() {
       if (!res.ok) {
         throw new Error(typeof body.error === "string" ? body.error : "Failed to generate package");
       }
-      return body as GeneratedPackage & { persistedPackageId?: string };
+      return body as AiGenerateResult;
     },
   });
 }

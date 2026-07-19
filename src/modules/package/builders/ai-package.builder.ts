@@ -14,8 +14,13 @@ function resolveItemMode(item: PackageDraftItemInput): PackageDraftItemInput {
   const kind = item.kind;
   const inventoryItemId = item.inventoryItemId?.trim() || null;
 
-  // HOTEL with a real inventory id → PINNED
-  if (kind === PackageItemKind.HOTEL && inventoryItemId) {
+  // HOTEL / ACTIVITY / TRANSFER with a real inventory id → PINNED
+  if (
+    (kind === PackageItemKind.HOTEL ||
+      kind === PackageItemKind.ACTIVITY ||
+      kind === PackageItemKind.TRANSFER) &&
+    inventoryItemId
+  ) {
     return {
       ...item,
       inventoryItemId,

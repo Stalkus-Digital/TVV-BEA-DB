@@ -9,7 +9,13 @@ type Params = { params: Promise<{ key: string }> };
 export async function POST(request: NextRequest, { params }: Params) {
   const { key } = await params;
   const context = readAuthContextFromHeaders(request.headers);
-  const result = await testIntegrationHandler(context, decodeURIComponent(key));
+  let body: unknown = {};
+  try {
+    body = await request.json();
+  } catch {
+    body = {};
+  }
+  const result = await testIntegrationHandler(context, decodeURIComponent(key), body);
   if (isErr(result)) return jsonError(result.error);
   return jsonSuccess(result.value);
 }

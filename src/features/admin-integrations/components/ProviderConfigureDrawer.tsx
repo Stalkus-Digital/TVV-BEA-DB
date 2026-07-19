@@ -13,6 +13,14 @@ interface ProviderConfigureDrawerProps {
   onClose: () => void;
 }
 
+function buildSecretPayload(secrets: Record<string, string>): Record<string, string> {
+  const secretPayload: Record<string, string> = {};
+  for (const [k, v] of Object.entries(secrets)) {
+    if (v.trim()) secretPayload[k] = v.trim();
+  }
+  return secretPayload;
+}
+
 export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfigureDrawerProps) {
   const detailQuery = useIntegrationDetailQuery(providerKey);
   const updateMutation = useUpdateIntegrationMutation();
@@ -37,6 +45,7 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
   if (!providerKey) return null;
 
   const detail = detailQuery.data;
+  const busy = updateMutation.isPending || testMutation.isPending;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -64,9 +73,9 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
             <>
               <p className="text-sm text-muted-foreground">{detail.description}</p>
               <p className="text-xs text-muted-foreground rounded-md bg-muted/60 px-3 py-2">
-                Save credentials, then click <span className="font-medium">Test connection</span>. The
-                provider shows CONNECTED only after a successful test (environment variables alone do not
-                count).
+                Click <span className="font-medium">Test connection</span> to save any new credentials
+                from this form and verify them. The provider shows CONNECTED only after a successful
+                test.
               </p>
 
               {detail.fields.map((field) => {
@@ -107,6 +116,12 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
                         value={secrets[field.key] ?? ""}
                         onChange={(e) => setSecrets((s) => ({ ...s, [field.key]: e.target.value }))}
                       />
+                      {providerKey === "openai" && field.key === "apiKey" && (
+                        <p className="text-[11px] text-muted-foreground">
+                          Paste an OpenAI key from platform.openai.com (<span className="font-mono">sk-…</span>).
+                          Google AI Studio / Gemini keys will not work.
+                        </p>
+                      )}
                     </div>
                   );
                 }
@@ -146,6 +161,11 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
                   {updateMutation.error instanceof Error ? updateMutation.error.message : "Save failed"}
                 </p>
               )}
+              {testMutation.isError && (
+                <p className="text-xs text-red-600">
+                  {testMutation.error instanceof Error ? testMutation.error.message : "Test failed"}
+                </p>
+              )}
               {testMutation.data && (
                 <p className={`text-xs ${testMutation.data.ok ? "text-emerald-700" : "text-red-600"}`}>
                   {testMutation.data.message}
@@ -155,15 +175,17 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
               <div className="flex gap-2 pt-2">
                 <button
                   type="button"
-                  disabled={updateMutation.isPending}
+                  disabled={busy}
                   onClick={() => {
-                    const secretPayload: Record<string, string> = {};
-                    for (const [k, v] of Object.entries(secrets)) {
-                      if (v.trim()) secretPayload[k] = v.trim();
-                    }
+                    const secretPayload = buildSecretPayload(secrets);
                     updateMutation.mutate(
                       { key: providerKey, body: { config, secrets: secretPayload } },
-                      { onSuccess: () => setMessage("Saved.") }
+                      {
+                        onSuccess: () => {
+                          setSecrets({});
+                          setMessage("Saved. Click Test connection to verify.");
+                        },
+                      }
                     );
                   }}
                   className="rounded-md bg-ink px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
@@ -172,8 +194,26 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
                 </button>
                 <button
                   type="button"
-                  disabled={testMutation.isPending}
-                  onClick={() => testMutation.mutate(providerKey)}
+                  disabled={busy}
+                  onClick={() => {
+                    const secretPayload = buildSecretPayload(secrets);
+                    setMessage(null);
+                    testMutation.mutate(
+                      {
+                        key: providerKey,
+                        body: {
+                          config,
+                          ...(Object.keys(secretPayload).length > 0 ? { secrets: secretPayload } : {}),
+                        },
+                      },
+                      {
+                        onSuccess: (result) => {
+                          setSecrets({});
+                          setMessage(result.ok ? "Connected." : null);
+                        },
+                      }
+                    );
+                  }}
                   className="rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
                 >
                   {testMutation.isPending ? "Testing…" : "Test connection"}

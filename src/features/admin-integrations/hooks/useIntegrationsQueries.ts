@@ -62,9 +62,16 @@ export function useUpdateIntegrationMutation() {
 export function useTestIntegrationMutation() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (key: string) => testIntegration(key),
-    onSuccess: () => {
+    mutationFn: ({
+      key,
+      body,
+    }: {
+      key: string;
+      body?: { config?: Record<string, unknown>; secrets?: Record<string, string> };
+    }) => testIntegration(key, body ?? {}),
+    onSuccess: (_data, variables) => {
       void qc.invalidateQueries({ queryKey: keys.list });
+      void qc.invalidateQueries({ queryKey: keys.detail(variables.key) });
     },
   });
 }

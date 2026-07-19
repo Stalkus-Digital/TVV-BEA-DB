@@ -26,10 +26,13 @@ export async function updateIntegration(
   return result;
 }
 
-export async function testIntegration(key: string): Promise<{ ok: boolean; message: string }> {
+export async function testIntegration(
+  key: string,
+  body: { config?: Record<string, unknown>; secrets?: Record<string, string> } = {}
+): Promise<{ ok: boolean; message: string }> {
   const result = await adminApiClient.post<{ ok: boolean; message: string }>(
     `/api/admin/integrations/${encodeURIComponent(key)}/test`,
-    {}
+    body
   );
   if (!result) throw new Error("Test failed");
   return result;

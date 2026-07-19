@@ -45,11 +45,16 @@ export async function updateIntegrationHandler(
 
 export async function testIntegrationHandler(
   context: AuthContext | null,
-  key: string
+  key: string,
+  body: unknown = {}
 ): Promise<Result<{ ok: boolean; message: string }, AppError>> {
   const auth = requireAuth(context);
   if (!auth.ok) return auth;
-  return getIntegrationService().testConnection(key);
+  const input =
+    typeof body === "object" && body !== null
+      ? (body as { config?: Record<string, unknown>; secrets?: Record<string, string> })
+      : {};
+  return getIntegrationService().testConnection(key, input, auth.value.userId);
 }
 
 export async function setActivePaymentHandler(

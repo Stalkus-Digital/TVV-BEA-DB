@@ -57,6 +57,13 @@ function vaultSecretMeta(
     });
 }
 
+/** Hard rule: never show CONNECTED when the last test failed. */
+function effectiveStatus(status: string, lastTestOk: boolean | null): string {
+  if (status === IntegrationStatus.DISABLED) return status;
+  if (lastTestOk === false) return IntegrationStatus.ERROR;
+  return status;
+}
+
 export class IntegrationService extends BaseService {
   constructor(context: ServiceContext) {
     super(context);
@@ -189,7 +196,7 @@ export class IntegrationService extends BaseService {
         name: row.name,
         description: row.description,
         isBuiltin: row.isBuiltin,
-        status: row.status,
+        status: effectiveStatus(row.status, row.lastTestOk),
         config: asConfig(row.config),
         lastTestedAt: toIso(row.lastTestedAt),
         lastTestOk: row.lastTestOk,
@@ -234,7 +241,7 @@ export class IntegrationService extends BaseService {
       name: row.name,
       description: row.description,
       isBuiltin: row.isBuiltin,
-      status: row.status,
+      status: effectiveStatus(row.status, row.lastTestOk),
       config: asConfig(row.config),
       lastTestedAt: toIso(row.lastTestedAt),
       lastTestOk: row.lastTestOk,
@@ -413,7 +420,26 @@ export class IntegrationService extends BaseService {
     return this.getByKey(key);
   }
 
-  async testConnection(key: string): Promise<Result<{ ok: boolean; message: string }, AppError>> {
+  async testConnection(
+    key: string,
+    draft?: { config?: Record<string, unknown>; secrets?: Record<string, string> },
+    actorUserId: string | null = null
+  ): Promise<Result<{ ok: boolean; message: string }, AppError>> {
+    // Persist any draft credentials from the Configure form before testing
+    const hasDraftSecrets = Boolean(draft?.secrets && Object.keys(draft.secrets).length > 0);
+    const hasDraftConfig = Boolean(draft?.config && Object.keys(draft.config).length > 0);
+    if (hasDraftSecrets || hasDraftConfig) {
+      const saved = await this.update(
+        key,
+        {
+          config: draft?.config,
+          secrets: draft?.secrets,
+        },
+        actorUserId
+      );
+      if (!saved.ok) return saved;
+    }
+
     // Test must use vault credentials only for badge purposes — resolve vault first
     const vaultOnly = await this.resolveVaultValues(key);
     if (!vaultOnly.ok) return vaultOnly;
@@ -436,11 +462,21 @@ export class IntegrationService extends BaseService {
     try {
       switch (key) {
         case "openai": {
-          const apiKey = vaultOnly.value.apiKey;
+          const apiKey = vaultOnly.value.apiKey?.trim();
           if (!apiKey) throw new Error("OpenAI API key is not saved in Integrations");
+          if (!apiKey.startsWith("sk-")) {
+            throw new Error(
+              "This does not look like an OpenAI API key. Paste a key from platform.openai.com that starts with sk- (Google AI Studio / Gemini keys will not work)."
+            );
+          }
           const res = await fetch("https://api.openai.com/v1/models", {
             headers: { Authorization: `Bearer ${apiKey}` },
           });
+          if (res.status === 401) {
+            throw new Error(
+              "OpenAI rejected this API key (401). Confirm it is a valid key from platform.openai.com — not a Google AI Studio / Gemini key."
+            );
+          }
           if (!res.ok) throw new Error(`OpenAI responded ${res.status}`);
           testOk = true;
           message = "OpenAI API key is valid";

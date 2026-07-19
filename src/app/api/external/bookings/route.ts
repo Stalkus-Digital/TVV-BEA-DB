@@ -64,18 +64,21 @@ export async function POST(request: NextRequest) {
     destinationId = destinations.value.items[0].id;
   }
 
+  const adultsRaw = Number(payload.guests ?? 1);
+  const adults = Number.isFinite(adultsRaw) && adultsRaw > 0 ? adultsRaw : 1;
+
   // 1. Create a draft Quote (Booking requires sourceQuoteId)
   const quoteInput = {
     title: `Website Booking - ${payload.contactName ?? "Guest"}`,
     destinationId,
     packageId,
     travelerDetails: {
-      primaryContact: {
+      leadTraveler: {
         name: payload.contactName ?? "Guest",
         email: payload.email ?? "unknown@example.com",
-        phone: payload.phone ?? "",
+        phone: typeof payload.phone === "string" ? payload.phone : "",
       },
-      adults: Number(payload.guests ?? 1),
+      adults,
       children: 0,
       infants: 0,
     },

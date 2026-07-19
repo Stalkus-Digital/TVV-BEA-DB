@@ -5,13 +5,9 @@ import type { NextConfig } from "next";
  * in src/middleware.ts (stable since Next.js 15.5). That is required because
  * JwtService uses node:crypto, which the Edge runtime cannot resolve.
  *
- * `experimental.nodeMiddleware` remains enabled for toolchain versions that
- * still gate the nodejs middleware runtime behind this flag.
+ * Do not set experimental.nodeMiddleware here — it was removed from the
+ * ExperimentalConfig types once the feature stabilized and fails `next build`.
  */
-const nextConfig: NextConfig = {
-  experimental: {
-    nodeMiddleware: true,
-  },
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

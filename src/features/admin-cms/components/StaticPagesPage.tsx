@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { CmsPageShell } from "./CmsPageShell";
 import { CmsRichTextEditor } from "./CmsRichTextEditor";
 import { ImageUploader } from "@/features/admin-hotels/components/ImageUploader";
@@ -19,13 +20,28 @@ interface PageContent {
   metaDescription?: string;
 }
 
-interface CmsPageRow {
+interface CmsPageDetail {
   id: string;
   title: string;
   slug: string;
   status: string;
   createdAt: string;
   content?: PageContent | null;
+}
+
+interface SitePageListItem {
+  registryId: string;
+  label: string;
+  kind: "content" | "catalog";
+  publicPath: string;
+  description: string;
+  slug: string | null;
+  manageHref: string | null;
+  id: string | null;
+  title: string | null;
+  status: string | null;
+  updatedAt: string | null;
+  createdAt: string | null;
 }
 
 interface PageFormState {
@@ -40,6 +56,7 @@ interface PageFormState {
   heroImage: string;
   metaTitle: string;
   metaDescription: string;
+  slugLocked: boolean;
 }
 
 interface CustomPageLinks {
@@ -59,6 +76,7 @@ const EMPTY_FORM: PageFormState = {
   heroImage: "",
   metaTitle: "",
   metaDescription: "",
+  slugLocked: false,
 };
 
 function slugify(value: string): string {
@@ -71,13 +89,9 @@ function slugify(value: string): string {
     .replace(/^-|-$/g, "");
 }
 
-function parseContent(content: CmsPageRow["content"]): PageContent {
+function parseContent(content: CmsPageDetail["content"]): PageContent {
   if (!content || typeof content !== "object" || Array.isArray(content)) return {};
   return content as PageContent;
-}
-
-function publicPath(slug: string): string {
-  return `/p/${slug}`;
 }
 
 function normalizeCustomLinks(raw: unknown): CustomPageLinks {
@@ -91,29 +105,32 @@ function normalizeCustomLinks(raw: unknown): CustomPageLinks {
           !!x &&
           typeof x === "object" &&
           typeof (x as { label?: unknown }).label === "string" &&
-          typeof (x as { url?: unknown }).url === "string"
+          typeof (x as { url?: unknown }).url === "string",
       )
     : [];
   const footer = Array.isArray(rec.footer)
-    ? rec.footer.filter(
-        (x): x is { label: string; url: string; column: string } =>
-          !!x &&
-          typeof x === "object" &&
-          typeof (x as { label?: unknown }).label === "string" &&
-          typeof (x as { url?: unknown }).url === "string"
-      ).map((x) => ({
-        label: x.label,
-        url: x.url,
-        column: typeof (x as { column?: unknown }).column === "string" && (x as { column: string }).column
-          ? (x as { column: string }).column
-          : "Company",
-      }))
+    ? rec.footer
+        .filter(
+          (x): x is { label: string; url: string; column: string } =>
+            !!x &&
+            typeof x === "object" &&
+            typeof (x as { label?: unknown }).label === "string" &&
+            typeof (x as { url?: unknown }).url === "string",
+        )
+        .map((x) => ({
+          label: x.label,
+          url: x.url,
+          column:
+            typeof (x as { column?: unknown }).column === "string" && (x as { column: string }).column
+              ? (x as { column: string }).column
+              : "Company",
+        }))
     : [];
   return { nav, footer };
 }
 
 export function StaticPagesPage() {
-  const [pages, setPages] = useState<CmsPageRow[]>([]);
+  const [pages, setPages] = useState<SitePageListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -127,7 +144,7 @@ export function StaticPagesPage() {
   const [pageToDelete, setPageToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [linkBusyId, setLinkBusyId] = useState<string | null>(null);
-  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  const [copiedPath, setCopiedPath] = useState<string | null>(null);
 
   const slugTouchedRef = useRef(false);
   slugTouchedRef.current = slugTouched;
@@ -140,7 +157,7 @@ export function StaticPagesPage() {
     try {
       setIsLoading(true);
       setError(null);
-      const res = await adminApiClient.get<{ items: CmsPageRow[] }>("/api/cms/pages");
+      const res = await adminApiClient.get<{ items: SitePageListItem[] }>("/api/cms/pages");
       if (res?.items) setPages(res.items);
     } catch {
       setError("Failed to fetch pages");
@@ -156,11 +173,11 @@ export function StaticPagesPage() {
     setIsEditing(true);
   }
 
-  async function openEdit(pageId: string) {
+  async function openEdit(pageId: string, slugLocked: boolean) {
     try {
       setIsLoadingEdit(true);
       setFormError(null);
-      const page = await adminApiClient.get<CmsPageRow>(`/api/cms/pages/${pageId}`);
+      const page = await adminApiClient.get<CmsPageDetail>(`/api/cms/pages/${pageId}`);
       if (!page) {
         setFormError("Page not found");
         return;
@@ -178,6 +195,7 @@ export function StaticPagesPage() {
         heroImage: typeof content.heroImage === "string" ? content.heroImage : "",
         metaTitle: content.metaTitle ?? "",
         metaDescription: content.metaDescription ?? "",
+        slugLocked,
       });
       setSlugTouched(true);
       setIsEditing(true);
@@ -192,7 +210,7 @@ export function StaticPagesPage() {
     setForm((prev) => ({
       ...prev,
       title,
-      slug: !prev.id && !slugTouchedRef.current ? slugify(title) : prev.slug,
+      slug: !prev.id && !prev.slugLocked && !slugTouchedRef.current ? slugify(title) : prev.slug,
     }));
   }
 
@@ -223,7 +241,7 @@ export function StaticPagesPage() {
       setFormError("Title is required");
       return;
     }
-    const slug = slugify(form.slug.trim() || form.title);
+    const slug = form.slugLocked ? form.slug : slugify(form.slug.trim() || form.title);
     if (!slug) {
       setFormError("Slug is required");
       return;
@@ -280,7 +298,7 @@ export function StaticPagesPage() {
 
   async function loadCustomLinks(): Promise<CustomPageLinks> {
     const res = await adminApiClient.get<{ key: string; value: unknown }>(
-      `/api/cms/config?key=${CUSTOM_PAGE_LINKS_KEY}`
+      `/api/cms/config?key=${CUSTOM_PAGE_LINKS_KEY}`,
     );
     return normalizeCustomLinks(res?.value);
   }
@@ -292,20 +310,21 @@ export function StaticPagesPage() {
     });
   }
 
-  async function addToNav(page: CmsPageRow) {
-    setLinkBusyId(`${page.id}-nav`);
+  async function addToNav(item: SitePageListItem) {
+    if (!item.id) return;
+    setLinkBusyId(`${item.registryId}-nav`);
     try {
       const current = await loadCustomLinks();
-      const url = publicPath(page.slug);
+      const url = item.publicPath;
       if (current.nav.some((l) => l.url === url)) {
         alert("Already in navigation links.");
         return;
       }
       await saveCustomLinks({
         ...current,
-        nav: [...current.nav, { label: page.title, url }],
+        nav: [...current.nav, { label: item.label, url }],
       });
-      alert(`Added “${page.title}” to navigation.`);
+      alert(`Added “${item.label}” to navigation.`);
     } catch {
       alert("Failed to add to navigation.");
     } finally {
@@ -313,20 +332,21 @@ export function StaticPagesPage() {
     }
   }
 
-  async function addToFooter(page: CmsPageRow) {
-    setLinkBusyId(`${page.id}-footer`);
+  async function addToFooter(item: SitePageListItem) {
+    if (!item.id) return;
+    setLinkBusyId(`${item.registryId}-footer`);
     try {
       const current = await loadCustomLinks();
-      const url = publicPath(page.slug);
+      const url = item.publicPath;
       if (current.footer.some((l) => l.url === url)) {
         alert("Already in footer links.");
         return;
       }
       await saveCustomLinks({
         ...current,
-        footer: [...current.footer, { label: page.title, url, column: "Company" }],
+        footer: [...current.footer, { label: item.label, url, column: "Company" }],
       });
-      alert(`Added “${page.title}” to footer (Company).`);
+      alert(`Added “${item.label}” to footer (Company).`);
     } catch {
       alert("Failed to add to footer.");
     } finally {
@@ -334,21 +354,22 @@ export function StaticPagesPage() {
     }
   }
 
-  async function copyUrl(slug: string) {
-    const path = publicPath(slug);
+  async function copyPath(path: string) {
     try {
       await navigator.clipboard.writeText(path);
-      setCopiedSlug(slug);
-      setTimeout(() => setCopiedSlug(null), 2000);
+      setCopiedPath(path);
+      setTimeout(() => setCopiedPath(null), 2000);
     } catch {
       alert(`Public path: ${path}`);
     }
   }
 
+  const isCustom = (item: SitePageListItem) => item.registryId.startsWith("custom-");
+
   return (
     <CmsPageShell
       title="Pages"
-      description="Build custom pages with a rich text editor. Publish to /p/{slug}, then copy the URL or add to nav/footer."
+      description="All site pages you can edit. Content pages use the rich text editor; catalogs open their admin modules."
       isLoading={isLoading || isLoadingEdit}
       isError={!!error}
       errorMessage={error || undefined}
@@ -362,7 +383,7 @@ export function StaticPagesPage() {
             onClick={openCreate}
             className="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800"
           >
-            + Create Page
+            + Create custom page
           </button>
         )}
       </div>
@@ -378,7 +399,6 @@ export function StaticPagesPage() {
           <div>
             <label className="block text-xs font-medium mb-1">Title</label>
             <input
-              required
               value={form.title}
               onChange={(e) => handleTitleChange(e.target.value)}
               className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
@@ -388,18 +408,21 @@ export function StaticPagesPage() {
           <div>
             <label className="block text-xs font-medium mb-1">Slug</label>
             <input
-              required
               value={form.slug}
+              disabled={form.slugLocked}
               onChange={(e) => {
                 setSlugTouched(true);
-                setForm((prev) => ({ ...prev, slug: slugify(e.target.value) || e.target.value }));
+                setForm((prev) => ({ ...prev, slug: e.target.value }));
               }}
-              className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm font-mono"
-              placeholder="url-friendly-slug"
+              className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm font-mono disabled:opacity-60"
             />
-            {form.slug ? (
+            {form.slugLocked ? (
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Slug is locked for this site page so the public URL stays stable.
+              </p>
+            ) : form.slug ? (
               <p className="mt-1 text-[11px] text-muted-foreground font-mono">
-                Public URL: {publicPath(slugify(form.slug) || form.slug)}
+                Custom URL: /p/{slugify(form.slug) || form.slug}
               </p>
             ) : null}
           </div>
@@ -522,79 +545,105 @@ export function StaticPagesPage() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 border-b border-border">
               <tr>
-                <th className="text-left px-4 py-3 font-medium">Title</th>
-                <th className="text-left px-4 py-3 font-medium">URL</th>
+                <th className="text-left px-4 py-3 font-medium">Page</th>
+                <th className="text-left px-4 py-3 font-medium">Public URL</th>
+                <th className="text-left px-4 py-3 font-medium">Type</th>
                 <th className="text-left px-4 py-3 font-medium">Status</th>
                 <th className="text-right px-4 py-3 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {pages.map((page) => {
-                const path = publicPath(page.slug);
-                const isPublished = page.status === "PUBLISHED";
+              {pages.map((item) => {
+                const isPublished = item.status === "PUBLISHED";
+                const isCatalog = item.kind === "catalog";
                 return (
-                  <tr key={page.id} className="border-b border-border last:border-0">
+                  <tr key={item.registryId} className="border-b border-border last:border-0">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-foreground">{page.title}</p>
-                      <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{page.slug}</p>
+                      <p className="font-medium text-foreground">{item.label}</p>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">{item.description}</p>
+                      {item.slug ? (
+                        <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{item.slug}</p>
+                      ) : null}
                     </td>
                     <td className="px-4 py-3">
                       <button
                         type="button"
-                        onClick={() => void copyUrl(page.slug)}
+                        onClick={() => void copyPath(item.publicPath)}
                         className="font-mono text-[11px] text-primary hover:underline"
                         title="Copy public path"
                       >
-                        {copiedSlug === page.slug ? "Copied!" : path}
+                        {copiedPath === item.publicPath ? "Copied!" : item.publicPath}
                       </button>
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={
-                          isPublished
-                            ? "inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-800"
-                            : "inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600"
-                        }
-                      >
-                        {isPublished ? "Published" : "Draft"}
+                      <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
+                        {isCatalog ? "Catalog" : "Content"}
                       </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {isCatalog ? (
+                        <span className="inline-flex rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-800">
+                          Managed elsewhere
+                        </span>
+                      ) : (
+                        <span
+                          className={
+                            isPublished
+                              ? "inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-800"
+                              : "inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600"
+                          }
+                        >
+                          {isPublished ? "Published" : item.status || "Draft"}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex flex-wrap justify-end gap-x-3 gap-y-1">
-                        <button
-                          type="button"
-                          onClick={() => void openEdit(page.id)}
-                          className="text-primary hover:underline"
-                        >
-                          Edit
-                        </button>
-                        {isPublished ? (
+                        {isCatalog && item.manageHref ? (
+                          <Link href={item.manageHref} className="text-primary hover:underline">
+                            Manage →
+                          </Link>
+                        ) : null}
+                        {!isCatalog && item.id ? (
                           <>
                             <button
                               type="button"
-                              disabled={linkBusyId === `${page.id}-nav`}
-                              onClick={() => void addToNav(page)}
-                              className="text-primary hover:underline disabled:opacity-50"
+                              onClick={() => void openEdit(item.id!, !isCustom(item))}
+                              className="text-primary hover:underline"
                             >
-                              Add to nav
+                              Edit
                             </button>
-                            <button
-                              type="button"
-                              disabled={linkBusyId === `${page.id}-footer`}
-                              onClick={() => void addToFooter(page)}
-                              className="text-primary hover:underline disabled:opacity-50"
-                            >
-                              Add to footer
-                            </button>
+                            {isPublished ? (
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={linkBusyId === `${item.registryId}-nav`}
+                                  onClick={() => void addToNav(item)}
+                                  className="text-primary hover:underline disabled:opacity-50"
+                                >
+                                  Add to nav
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={linkBusyId === `${item.registryId}-footer`}
+                                  onClick={() => void addToFooter(item)}
+                                  className="text-primary hover:underline disabled:opacity-50"
+                                >
+                                  Add to footer
+                                </button>
+                              </>
+                            ) : null}
+                            {isCustom(item) ? (
+                              <button
+                                type="button"
+                                onClick={() => setPageToDelete(item.id)}
+                                className="text-destructive hover:underline"
+                              >
+                                Delete
+                              </button>
+                            ) : null}
                           </>
                         ) : null}
-                        <button
-                          type="button"
-                          onClick={() => setPageToDelete(page.id)}
-                          className="text-destructive hover:underline"
-                        >
-                          Delete
-                        </button>
                       </div>
                     </td>
                   </tr>
@@ -602,8 +651,8 @@ export function StaticPagesPage() {
               })}
               {pages.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                    No pages yet. Create one to get started.
+                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                    No pages returned from the API.
                   </td>
                 </tr>
               )}
@@ -622,7 +671,7 @@ export function StaticPagesPage() {
           />
           <div className="relative w-full max-w-sm rounded-lg border border-border bg-white shadow-xl p-6 space-y-4">
             <h3 className="font-semibold text-foreground">Delete Page</h3>
-            <p className="text-sm text-muted-foreground">Are you sure you want to delete this page?</p>
+            <p className="text-sm text-muted-foreground">Are you sure you want to delete this custom page?</p>
             <div className="flex justify-end gap-2">
               <button
                 type="button"

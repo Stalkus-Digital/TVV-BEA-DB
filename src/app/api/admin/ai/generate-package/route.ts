@@ -23,23 +23,26 @@ export async function POST(req: Request) {
 
     if (isErr(result)) {
       logger.error("AI package generation failed", { error: result.error.message });
-      return NextResponse.json({ error: result.error.message }, { status: 500 });
+      const status = result.error.name === "ValidationError" ? 400 : 500;
+      return NextResponse.json({ error: result.error.message }, { status });
     }
 
     const pkgData = result.value;
 
-    // ✅ HR-2 FIX: Persist AI generated itinerary to DB
-    let dest = await prisma.destination.findFirst({
-      where: { name: { contains: destination, mode: "insensitive" } }
-    });
+    let destId = pkgData.destinationId ?? null;
+    if (!destId) {
+      let dest = await prisma.destination.findFirst({
+        where: { name: { contains: destination, mode: "insensitive" } },
+      });
+      if (!dest) dest = await prisma.destination.findFirst();
+      destId = dest?.id ?? null;
+    }
 
-    if (!dest) dest = await prisma.destination.findFirst();
-
-    if (dest) {
+    if (destId) {
       const builder = getAIPackageBuilder();
       const buildResult = await builder.build({
         title: pkgData.title,
-        destinationId: dest.id,
+        destinationId: destId,
         durationDays: pkgData.durationDays,
         durationNights: pkgData.durationNights,
         aiGenerationReferenceId: "ai_gen_" + Date.now(),
@@ -50,6 +53,7 @@ export async function POST(req: Request) {
             kind: item.kind,
             title: item.title,
             description: item.description,
+            inventoryItemId: item.inventoryItemId ?? null,
           })),
         })),
       });

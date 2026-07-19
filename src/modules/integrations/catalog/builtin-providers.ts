@@ -9,7 +9,8 @@ export const BUILTIN_PROVIDERS: BuiltinProviderDefinition[] = [
     key: "openai",
     category: IntegrationCategory.AI,
     name: "OpenAI",
-    description: "Powers the AI holiday package builder and AI Studio.",
+    description:
+      "Powers the AI holiday package builder: builds itineraries from your prompt using TripJack and hotels in inventory.",
     fields: [
       { key: "apiKey", label: "API Key", kind: "secret", secret: true, required: true, envFallback: "OPENAI_API_KEY", placeholder: "sk-..." },
     ],
@@ -52,9 +53,10 @@ export const BUILTIN_PROVIDERS: BuiltinProviderDefinition[] = [
     key: "tripjack",
     category: IntegrationCategory.SUPPLIERS,
     name: "TripJack",
-    description: "Flights, hotels, and supplier inventory via TripJack.",
+    description: "Flights, hotels, and supplier inventory via TripJack. Used by the AI package builder when connected.",
     fields: [
       { key: "apiUrl", label: "API URL", kind: "url", secret: false, required: true, envFallback: "TRIPJACK_API_URL" },
+      // Auth: token OR (agencyId + userId + password) — enforced in vaultCredentialsSatisfied
       { key: "token", label: "API Token", kind: "secret", secret: true, required: false, envFallback: "TRIPJACK_TOKEN" },
       { key: "agencyId", label: "Agency ID", kind: "text", secret: false, required: false, envFallback: "TRIPJACK_AGENCY_ID" },
       { key: "userId", label: "User ID", kind: "text", secret: false, required: false, envFallback: "TRIPJACK_USER_ID" },
@@ -91,12 +93,12 @@ export const BUILTIN_PROVIDERS: BuiltinProviderDefinition[] = [
     key: "sembark",
     category: IntegrationCategory.SUPPLIERS,
     name: "Sembark",
-    description: "CRM lead sync and inbound webhooks.",
+    description: "Push enquiries and leads from this system to Sembark CRM for lead management.",
     fields: [
-      { key: "apiUrl", label: "API URL", kind: "url", secret: false, required: false, envFallback: "SEMBARK_API_URL" },
-      { key: "apiKey", label: "API Key", kind: "secret", secret: true, required: false, envFallback: "SEMBARK_API_KEY" },
-      { key: "webhookSecret", label: "Webhook Secret", kind: "secret", secret: true, required: false, envFallback: "SEMBARK_WEBHOOK_SECRET" },
-      { key: "webhookUrl", label: "Outbound Webhook URL", kind: "url", secret: false, required: false, envFallback: "SEMBARK_WEBHOOK_URL" },
+      { key: "apiUrl", label: "API URL", kind: "url", secret: false, required: true, envFallback: "SEMBARK_API_URL", placeholder: "https://api.sembark.com/v1" },
+      { key: "apiKey", label: "API Key", kind: "secret", secret: true, required: true, envFallback: "SEMBARK_API_KEY" },
+      { key: "webhookSecret", label: "Webhook Secret (optional)", kind: "secret", secret: true, required: false, envFallback: "SEMBARK_WEBHOOK_SECRET" },
+      { key: "webhookUrl", label: "Outbound Webhook URL (optional)", kind: "url", secret: false, required: false, envFallback: "SEMBARK_WEBHOOK_URL" },
     ],
     webhooks: [{ eventType: "inbound", path: "/api/webhooks/sembark" }],
   },
@@ -130,4 +132,43 @@ export function ferryOperatorDefinition(code: string, name: string): BuiltinProv
       { key: "enabled", label: "Enabled", kind: "boolean", secret: false, required: false },
     ],
   };
+}
+
+/** Non-empty config/vault value check (ignores env). */
+function hasVaultValue(
+  fieldKey: string,
+  secret: boolean,
+  secretKeys: Set<string>,
+  config: Record<string, unknown>
+): boolean {
+  if (secret) return secretKeys.has(fieldKey);
+  const v = config[fieldKey];
+  return v !== undefined && v !== null && String(v).trim() !== "";
+}
+
+/**
+ * Whether required credentials are saved in the Integrations vault/config (not .env).
+ * TripJack accepts either API token or agency login credentials.
+ */
+export function vaultCredentialsSatisfied(
+  key: string,
+  fields: BuiltinProviderDefinition["fields"] | ReturnType<typeof ferryOperatorDefinition>["fields"],
+  secretKeys: Set<string>,
+  config: Record<string, unknown>
+): boolean {
+  if (fields.length === 0) return false;
+
+  if (key === "tripjack") {
+    const apiUrlOk = hasVaultValue("apiUrl", false, secretKeys, config);
+    const tokenOk = hasVaultValue("token", true, secretKeys, config);
+    const agencyOk =
+      hasVaultValue("agencyId", false, secretKeys, config) &&
+      hasVaultValue("userId", false, secretKeys, config) &&
+      hasVaultValue("password", true, secretKeys, config);
+    return apiUrlOk && (tokenOk || agencyOk);
+  }
+
+  const required = fields.filter((f) => f.required);
+  if (required.length === 0) return false;
+  return required.every((f) => hasVaultValue(f.key, f.secret, secretKeys, config));
 }

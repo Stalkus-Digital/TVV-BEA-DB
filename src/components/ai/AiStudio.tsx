@@ -45,7 +45,8 @@ export function AiStudio() {
       setOutput(data);
     } catch (err) {
       console.error(err);
-      alert("Failed to generate package. Check API key and logs.");
+      const message = err instanceof Error ? err.message : "Failed to generate package.";
+      alert(message);
     }
   };
 
@@ -89,7 +90,9 @@ export function AiStudio() {
             <Wand2 className="h-6 w-6" />
             <h2 className="font-bold text-lg tracking-tight">AI Package Studio</h2>
           </div>
-          <p className="text-sm text-muted-foreground">Describe the ideal trip, and let our AI generate a complete, bookable package.</p>
+          <p className="text-sm text-muted-foreground">
+            Uses OpenAI (Integrations) with hotels from your inventory for this destination, plus TripJack live rates when TripJack is connected.
+          </p>
         </div>
 
         <form onSubmit={handleGenerate} className="flex-1 overflow-y-auto p-6 space-y-6">

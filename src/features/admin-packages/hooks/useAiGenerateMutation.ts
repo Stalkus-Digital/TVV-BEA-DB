@@ -18,8 +18,11 @@ export function useAiGenerateMutation() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(input),
       });
-      if (!res.ok) throw new Error("Failed to generate package");
-      return (await res.json()) as GeneratedPackage;
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(typeof body.error === "string" ? body.error : "Failed to generate package");
+      }
+      return body as GeneratedPackage & { persistedPackageId?: string };
     },
   });
 }

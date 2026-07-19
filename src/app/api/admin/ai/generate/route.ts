@@ -19,31 +19,31 @@ export async function POST(req: Request) {
     const result = await aiService.generatePackage(prompt, destination, duration, budget);
 
     if (isErr(result)) {
-      return NextResponse.json({ error: result.error.message }, { status: 500 });
+      const status = result.error.name === "ValidationError" ? 400 : 500;
+      return NextResponse.json({ error: result.error.message }, { status });
     }
 
     const pkgData = result.value;
 
-    // ✅ HR-2 FIX: Persist AI generated itinerary to DB
-    // 1. Find a matching destination, or fall back to the first one available
-    let dest = await prisma.destination.findFirst({
-      where: { name: { contains: destination, mode: "insensitive" } }
-    });
-
-    if (!dest) {
-      dest = await prisma.destination.findFirst();
+    // Prefer destination resolved during catalog load; fall back to name match
+    let destId = pkgData.destinationId ?? null;
+    if (!destId) {
+      let dest = await prisma.destination.findFirst({
+        where: { name: { contains: destination, mode: "insensitive" } },
+      });
+      if (!dest) dest = await prisma.destination.findFirst();
+      destId = dest?.id ?? null;
     }
 
-    if (!dest) {
+    if (!destId) {
       logger.warn("No destinations exist in DB to anchor AI package. Returning without persistence.");
       return NextResponse.json(pkgData);
     }
 
-    // 2. Save Package + Days + Items in one transaction via the existing AIPackageBuilder
     const builder = getAIPackageBuilder();
     const buildResult = await builder.build({
       title: pkgData.title,
-      destinationId: dest.id,
+      destinationId: destId,
       durationDays: pkgData.durationDays,
       durationNights: pkgData.durationNights,
       aiGenerationReferenceId: "ai_gen_" + Date.now(),
@@ -54,19 +54,22 @@ export async function POST(req: Request) {
           kind: item.kind,
           title: item.title,
           description: item.description,
+          inventoryItemId: item.inventoryItemId ?? null,
         })),
       })),
     });
 
     if (isErr(buildResult)) {
       logger.error("Failed to persist AI package", { error: buildResult.error.message });
-      // Still return the generated data even if saving fails
-      return NextResponse.json(pkgData);
+      return NextResponse.json({
+        ...pkgData,
+        persistError: buildResult.error.message,
+      });
     }
 
     return NextResponse.json({
       ...pkgData,
-      persistedPackageId: buildResult.value.id
+      persistedPackageId: buildResult.value.id,
     });
   } catch (error) {
     logger.error("Error in AI package generation route", { error });

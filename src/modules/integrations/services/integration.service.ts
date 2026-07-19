@@ -6,8 +6,10 @@ import {
   BUILTIN_PROVIDERS,
   ferryOperatorDefinition,
   getBuiltinDefinition,
+  vaultCredentialsSatisfied,
 } from "../catalog/builtin-providers";
 import { decryptSecret, encryptSecret, lastFour } from "../crypto/secret-vault";
+import { AuditEventType, getAuditLogService } from "@/modules/auth";
 import {
   ACTIVE_PAYMENT_CONFIG_KEY,
   IntegrationStatus,
@@ -38,6 +40,23 @@ function fieldsFor(key: string, config: Record<string, unknown>): ProviderFieldS
   return [];
 }
 
+function vaultSecretMeta(
+  fields: ProviderFieldSchema[],
+  secrets: Array<{ fieldKey: string; lastFour: string | null; updatedAt: Date }>
+): IntegrationSecretMeta[] {
+  return fields
+    .filter((f) => f.secret)
+    .map((f) => {
+      const stored = secrets.find((s) => s.fieldKey === f.key);
+      return {
+        fieldKey: f.key,
+        configured: Boolean(stored),
+        lastFour: stored?.lastFour ?? null,
+        updatedAt: toIso(stored?.updatedAt),
+      };
+    });
+}
+
 export class IntegrationService extends BaseService {
   constructor(context: ServiceContext) {
     super(context);
@@ -47,7 +66,13 @@ export class IntegrationService extends BaseService {
     for (const def of BUILTIN_PROVIDERS) {
       const existing = await prisma.integrationProvider.findUnique({ where: { key: def.key } });
       if (existing) {
-        // Keep webhooks in sync for builtins
+        // Keep name/description in sync with catalog
+        if (existing.name !== def.name || existing.description !== def.description) {
+          await prisma.integrationProvider.update({
+            where: { id: existing.id },
+            data: { name: def.name, description: def.description },
+          });
+        }
         if (def.webhooks?.length) {
           for (const wh of def.webhooks) {
             const found = await prisma.integrationWebhook.findFirst({
@@ -97,32 +122,49 @@ export class IntegrationService extends BaseService {
       }
     }
 
-    // Mark connected if env already has required secrets
-    await this.refreshStatusesFromEnv();
+    await this.refreshStatusesFromVault();
   }
 
-  private async refreshStatusesFromEnv(): Promise<void> {
-    const providers = await prisma.integrationProvider.findMany();
+  /**
+   * Recompute status from vault/config only (never .env).
+   * CONNECTED only when vault credentials are complete AND lastTestOk === true.
+   */
+  private async refreshStatusesFromVault(): Promise<void> {
+    const providers = await prisma.integrationProvider.findMany({
+      include: { secrets: true },
+    });
     for (const provider of providers) {
-      const fields = fieldsFor(provider.key, asConfig(provider.config));
+      if (provider.key === SYSTEM_PAYMENTS_KEY) continue;
+      if (provider.status === IntegrationStatus.DISABLED) continue;
+
+      const config = asConfig(provider.config);
+      const fields = fieldsFor(provider.key, config);
       if (fields.length === 0) continue;
-      const secrets = await prisma.integrationSecret.findMany({ where: { providerId: provider.id } });
-      const secretKeys = new Set(secrets.map((s) => s.fieldKey));
-      const required = fields.filter((f) => f.required);
-      const satisfied = required.every((f) => {
-        if (secretKeys.has(f.key)) return true;
-        if (f.envFallback && process.env[f.envFallback]) return true;
-        if (!f.secret) {
-          const cfg = asConfig(provider.config);
-          if (cfg[f.key] !== undefined && cfg[f.key] !== null && cfg[f.key] !== "") return true;
-        }
-        return false;
-      });
-      const nextStatus = satisfied ? IntegrationStatus.CONNECTED : IntegrationStatus.DISCONNECTED;
-      if (provider.status !== nextStatus && provider.status !== IntegrationStatus.DISABLED) {
+
+      const secretKeys = new Set(provider.secrets.map((s) => s.fieldKey));
+      const vaultOk = vaultCredentialsSatisfied(provider.key, fields, secretKeys, config);
+
+      let nextStatus: string;
+      if (!vaultOk) {
+        nextStatus = IntegrationStatus.DISCONNECTED;
+      } else if (provider.lastTestOk === true) {
+        nextStatus = IntegrationStatus.CONNECTED;
+      } else if (provider.lastTestOk === false) {
+        nextStatus = IntegrationStatus.ERROR;
+      } else {
+        nextStatus = IntegrationStatus.DISCONNECTED;
+      }
+
+      const clearTest = !vaultOk && (provider.lastTestOk !== null || provider.lastTestedAt !== null);
+      if (provider.status !== nextStatus || clearTest) {
         await prisma.integrationProvider.update({
           where: { id: provider.id },
-          data: { status: nextStatus },
+          data: {
+            status: nextStatus,
+            ...(clearTest
+              ? { lastTestOk: null, lastTestedAt: null, lastTestMessage: null }
+              : {}),
+          },
         });
       }
     }
@@ -137,18 +179,7 @@ export class IntegrationService extends BaseService {
 
     const items: IntegrationProviderSummary[] = rows.map((row) => {
       const fields = fieldsFor(row.key, asConfig(row.config));
-      const secretFields: IntegrationSecretMeta[] = fields
-        .filter((f) => f.secret)
-        .map((f) => {
-          const stored = row.secrets.find((s) => s.fieldKey === f.key);
-          const envSet = Boolean(f.envFallback && process.env[f.envFallback]);
-          return {
-            fieldKey: f.key,
-            configured: Boolean(stored) || envSet,
-            lastFour: stored?.lastFour ?? (envSet ? "env" : null),
-            updatedAt: toIso(stored?.updatedAt),
-          };
-        });
+      const secretFields = vaultSecretMeta(fields, row.secrets);
       const secretsTotal = secretFields.length;
       const secretsConfigured = secretFields.filter((s) => s.configured).length;
       return {
@@ -183,25 +214,10 @@ export class IntegrationService extends BaseService {
     if (!row) return err(new NotFoundError(`Integration "${key}" not found`));
 
     const fields = fieldsFor(row.key, asConfig(row.config));
-    const secretFields: IntegrationSecretMeta[] = fields
-      .filter((f) => f.secret)
-      .map((f) => {
-        const stored = row.secrets.find((s) => s.fieldKey === f.key);
-        const envSet = Boolean(f.envFallback && process.env[f.envFallback]);
-        return {
-          fieldKey: f.key,
-          configured: Boolean(stored) || envSet,
-          lastFour: stored?.lastFour ?? (envSet ? "env" : null),
-          updatedAt: toIso(stored?.updatedAt),
-        };
-      });
+    const secretFields = vaultSecretMeta(fields, row.secrets);
 
+    // publicConfig: vault/config only — do not surface env values as if configured in UI
     const publicConfig: Record<string, unknown> = { ...asConfig(row.config) };
-    for (const f of fields) {
-      if (!f.secret && publicConfig[f.key] === undefined && f.envFallback && process.env[f.envFallback]) {
-        publicConfig[f.key] = process.env[f.envFallback];
-      }
-    }
 
     const webhooks: IntegrationWebhookRecord[] = row.webhooks.map((w) => ({
       id: w.id,
@@ -236,7 +252,8 @@ export class IntegrationService extends BaseService {
 
   async update(
     key: string,
-    input: { config?: Record<string, unknown>; secrets?: Record<string, string>; status?: string }
+    input: { config?: Record<string, unknown>; secrets?: Record<string, string>; status?: string },
+    actorUserId: string | null = null
   ): Promise<Result<IntegrationProviderDetail, AppError>> {
     await this.ensureSeeded();
     const row = await prisma.integrationProvider.findUnique({ where: { key } });
@@ -244,8 +261,9 @@ export class IntegrationService extends BaseService {
 
     const fields = fieldsFor(key, asConfig(row.config));
     const nextConfig = { ...asConfig(row.config), ...(input.config ?? {}) };
+    const changedSecretFields: string[] = [];
+    const changedConfigFields: string[] = input.config ? Object.keys(input.config) : [];
 
-    // Move non-secret field values from secrets payload into config if mis-sent
     if (input.secrets) {
       for (const [fieldKey, value] of Object.entries(input.secrets)) {
         if (!value || !value.trim()) continue;
@@ -273,28 +291,42 @@ export class IntegrationService extends BaseService {
             lastFour: lastFour(value.trim()),
           },
         });
+        changedSecretFields.push(fieldKey);
       }
     }
 
-    // Persist non-secret config fields from input.config
     for (const f of fields) {
       if (!f.secret && input.config && input.config[f.key] !== undefined) {
         nextConfig[f.key] = input.config[f.key];
       }
     }
 
-    let status = input.status ?? row.status;
-    if (status !== IntegrationStatus.DISABLED) {
-      // Recompute connectedness after save
-      const secrets = await prisma.integrationSecret.findMany({ where: { providerId: row.id } });
-      const secretKeys = new Set(secrets.map((s) => s.fieldKey));
-      const required = fields.filter((f) => f.required);
-      const satisfied = required.every((f) => {
-        if (f.secret) return secretKeys.has(f.key) || Boolean(f.envFallback && process.env[f.envFallback]);
-        const v = nextConfig[f.key];
-        return (v !== undefined && v !== null && v !== "") || Boolean(f.envFallback && process.env[f.envFallback]);
+    const secrets = await prisma.integrationSecret.findMany({ where: { providerId: row.id } });
+    const secretKeys = new Set(secrets.map((s) => s.fieldKey));
+    const vaultOk = vaultCredentialsSatisfied(key, fields, secretKeys, nextConfig);
+
+    const credentialsTouched =
+      changedSecretFields.length > 0 ||
+      changedConfigFields.some((k) => {
+        const schema = fields.find((f) => f.key === k);
+        return schema && (schema.required || key === "tripjack");
       });
-      status = satisfied || fields.length === 0 ? IntegrationStatus.CONNECTED : IntegrationStatus.DISCONNECTED;
+
+    let status = input.status ?? row.status;
+    let clearTest = false;
+    if (status !== IntegrationStatus.DISABLED) {
+      if (!vaultOk) {
+        status = IntegrationStatus.DISCONNECTED;
+        clearTest = true;
+      } else if (credentialsTouched) {
+        // Must re-test after changing credentials
+        status = IntegrationStatus.DISCONNECTED;
+        clearTest = true;
+      } else if (row.lastTestOk === true) {
+        status = IntegrationStatus.CONNECTED;
+      } else {
+        status = IntegrationStatus.DISCONNECTED;
+      }
     }
 
     await prisma.integrationProvider.update({
@@ -303,13 +335,29 @@ export class IntegrationService extends BaseService {
         config: nextConfig as object,
         status,
         updatedAt: new Date(),
+        ...(clearTest
+          ? { lastTestOk: null, lastTestedAt: null, lastTestMessage: null }
+          : {}),
       },
     });
+
+    if (changedSecretFields.length > 0 || changedConfigFields.length > 0 || input.status) {
+      await getAuditLogService().record({
+        eventType: AuditEventType.INTEGRATION_CONFIG_CHANGED,
+        actorUserId,
+        details: {
+          providerKey: key,
+          changedSecretFields,
+          changedConfigFields,
+          statusChangedTo: input.status ?? null,
+        },
+      });
+    }
 
     return this.getByKey(key);
   }
 
-  async setActivePaymentProvider(provider: "razorpay" | "phonepe"): Promise<Result<{ activeProvider: string }, AppError>> {
+  async setActivePaymentProvider(provider: "razorpay" | "phonepe", actorUserId: string | null = null): Promise<Result<{ activeProvider: string }, AppError>> {
     if (provider !== "razorpay" && provider !== "phonepe") {
       return err(new ValidationError("activeProvider must be razorpay or phonepe"));
     }
@@ -322,6 +370,11 @@ export class IntegrationService extends BaseService {
         config: { [ACTIVE_PAYMENT_CONFIG_KEY]: provider },
         status: IntegrationStatus.CONNECTED,
       },
+    });
+    await getAuditLogService().record({
+      eventType: AuditEventType.INTEGRATION_CONFIG_CHANGED,
+      actorUserId,
+      details: { providerKey: SYSTEM_PAYMENTS_KEY, activePaymentProviderChangedTo: provider },
     });
     return ok({ activeProvider: provider });
   }
@@ -361,8 +414,21 @@ export class IntegrationService extends BaseService {
   }
 
   async testConnection(key: string): Promise<Result<{ ok: boolean; message: string }, AppError>> {
-    const resolved = await this.resolveProviderValues(key);
-    if (!resolved.ok) return resolved;
+    // Test must use vault credentials only for badge purposes — resolve vault first
+    const vaultOnly = await this.resolveVaultValues(key);
+    if (!vaultOnly.ok) return vaultOnly;
+
+    const row = await prisma.integrationProvider.findUnique({
+      where: { key },
+      include: { secrets: true },
+    });
+    if (!row) return err(new NotFoundError(`Integration "${key}" not found`));
+    const vaultConfig = asConfig(row.config);
+    const vaultSecretKeys = new Set(row.secrets.map((s) => s.fieldKey));
+    const fields = fieldsFor(key, vaultConfig);
+    if (!vaultCredentialsSatisfied(key, fields, vaultSecretKeys, vaultConfig)) {
+      return err(new ValidationError("Save all required credentials in Configure before testing"));
+    }
 
     let testOk = false;
     let message = "Not tested";
@@ -370,8 +436,8 @@ export class IntegrationService extends BaseService {
     try {
       switch (key) {
         case "openai": {
-          const apiKey = resolved.value.apiKey;
-          if (!apiKey) throw new Error("OpenAI API key is not configured");
+          const apiKey = vaultOnly.value.apiKey;
+          if (!apiKey) throw new Error("OpenAI API key is not saved in Integrations");
           const res = await fetch("https://api.openai.com/v1/models", {
             headers: { Authorization: `Bearer ${apiKey}` },
           });
@@ -381,9 +447,9 @@ export class IntegrationService extends BaseService {
           break;
         }
         case "razorpay": {
-          const keyId = resolved.value.keyId;
-          const keySecret = resolved.value.keySecret;
-          if (!keyId || !keySecret) throw new Error("Razorpay credentials incomplete");
+          const keyId = vaultOnly.value.keyId;
+          const keySecret = vaultOnly.value.keySecret;
+          if (!keyId || !keySecret) throw new Error("Razorpay credentials incomplete in Integrations");
           const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
           const res = await fetch("https://api.razorpay.com/v1/payments?count=1", {
             headers: { Authorization: `Basic ${auth}` },
@@ -394,40 +460,69 @@ export class IntegrationService extends BaseService {
           break;
         }
         case "phonepe": {
-          if (!resolved.value.merchantId || !resolved.value.saltKey) {
-            throw new Error("PhonePe merchantId and saltKey are required");
+          if (!vaultOnly.value.merchantId || !vaultOnly.value.saltKey || !vaultOnly.value.saltIndex) {
+            throw new Error("PhonePe merchantId, saltKey, and saltIndex are required in Integrations");
           }
           testOk = true;
           message = "PhonePe credentials are saved (live ping skipped — use a test payment to verify)";
           break;
         }
         case "smtp": {
-          if (!resolved.value.host || !resolved.value.user || !resolved.value.pass) {
-            throw new Error("SMTP host, user, and password are required");
+          if (!vaultOnly.value.host || !vaultOnly.value.user || !vaultOnly.value.pass) {
+            throw new Error("SMTP host, user, and password are required in Integrations");
           }
           testOk = true;
           message = "SMTP settings look complete (send a test email from auth flow to verify delivery)";
           break;
         }
         case "tripjack": {
-          if (!resolved.value.token && !(resolved.value.agencyId && resolved.value.password)) {
-            throw new Error("TripJack needs a token or agency login credentials");
+          const hasToken = Boolean(vaultOnly.value.token);
+          const hasAgency =
+            Boolean(vaultOnly.value.agencyId) &&
+            Boolean(vaultOnly.value.userId) &&
+            Boolean(vaultOnly.value.password);
+          if (!vaultOnly.value.apiUrl) throw new Error("TripJack API URL is required");
+          if (!hasToken && !hasAgency) {
+            throw new Error("TripJack needs a token or agency login credentials saved in Integrations");
           }
           testOk = true;
           message = "TripJack credentials are present";
           break;
         }
         case "recaptcha": {
-          if (!resolved.value.siteKey || !resolved.value.secretKey) {
-            throw new Error("reCAPTCHA site key and secret key are required");
+          if (!vaultOnly.value.siteKey || !vaultOnly.value.secretKey) {
+            throw new Error("reCAPTCHA site key and secret key are required in Integrations");
           }
           testOk = true;
           message = "reCAPTCHA keys are configured";
           break;
         }
-        default: {
+        case "sembark": {
+          if (!vaultOnly.value.apiUrl || !vaultOnly.value.apiKey) {
+            throw new Error("Sembark API URL and API key are required in Integrations");
+          }
           testOk = true;
-          message = "Configuration saved";
+          message = "Sembark credentials are saved (leads will sync on enquiry submit)";
+          break;
+        }
+        case "cloudinary": {
+          if (!vaultOnly.value.cloudName || !vaultOnly.value.apiKey || !vaultOnly.value.apiSecret) {
+            throw new Error("Cloudinary cloudName, apiKey, and apiSecret are required in Integrations");
+          }
+          testOk = true;
+          message = "Cloudinary credentials are configured";
+          break;
+        }
+        default: {
+          if (key.startsWith("ferry:")) {
+            if (!vaultOnly.value.apiBaseUrl || !vaultOnly.value.apiKey) {
+              throw new Error("Ferry API base URL and API key are required");
+            }
+            testOk = true;
+            message = "Ferry operator credentials are configured";
+            break;
+          }
+          throw new Error(`No connection test available for "${key}"`);
         }
       }
     } catch (e) {
@@ -449,7 +544,49 @@ export class IntegrationService extends BaseService {
   }
 
   /**
+   * Resolve field values from vault/config only (no env). Used for status badge and Test.
+   */
+  async resolveVaultValues(key: string): Promise<Result<Record<string, string>, AppError>> {
+    await this.ensureSeeded();
+    const row = await prisma.integrationProvider.findUnique({
+      where: { key },
+      include: { secrets: true },
+    });
+    if (!row) return err(new NotFoundError(`Integration "${key}" not found`));
+
+    const fields = fieldsFor(key, asConfig(row.config));
+    const config = asConfig(row.config);
+    const out: Record<string, string> = {};
+
+    for (const f of fields) {
+      const stored = row.secrets.find((s) => s.fieldKey === f.key);
+      if (stored) {
+        try {
+          out[f.key] = decryptSecret({
+            ciphertext: stored.ciphertext,
+            iv: stored.iv,
+            authTag: stored.authTag,
+          });
+          continue;
+        } catch {
+          return err(new InternalError(`Failed to decrypt secret ${f.key} for ${key}`));
+        }
+      }
+      if (!f.secret && config[f.key] !== undefined && config[f.key] !== null && String(config[f.key]).trim() !== "") {
+        out[f.key] = String(config[f.key]);
+      }
+    }
+
+    for (const [k, v] of Object.entries(config)) {
+      if (out[k] === undefined && v !== undefined && v !== null) out[k] = String(v);
+    }
+
+    return ok(out);
+  }
+
+  /**
    * Resolve all field values for a provider: DB secret → config → env fallback.
+   * Used at runtime for actual API calls (not for the CONNECTED badge).
    */
   async resolveProviderValues(key: string): Promise<Result<Record<string, string>, AppError>> {
     await this.ensureSeeded();
@@ -486,7 +623,6 @@ export class IntegrationService extends BaseService {
       }
     }
 
-    // Also expose non-field config keys as strings
     for (const [k, v] of Object.entries(config)) {
       if (out[k] === undefined && v !== undefined && v !== null) out[k] = String(v);
     }

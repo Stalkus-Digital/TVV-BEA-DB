@@ -47,7 +47,7 @@ export function IntegrationsPage() {
   return (
     <OperationsPageShell
       title="Integrations"
-      description="Connect OpenAI, payment gateways, TripJack, ferry operators, email, and security providers for the whole platform."
+      description="Connect OpenAI (AI package builder), payment gateways, TripJack, Sembark CRM leads, ferry operators, email, and security. Status shows CONNECTED only after you save credentials and pass Test."
       isLoading={listQuery.isLoading}
       isError={listQuery.isError}
       errorMessage={listQuery.error instanceof Error ? listQuery.error.message : undefined}

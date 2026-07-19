@@ -63,6 +63,11 @@ export function ProviderConfigureDrawer({ providerKey, onClose }: ProviderConfig
           {detail && (
             <>
               <p className="text-sm text-muted-foreground">{detail.description}</p>
+              <p className="text-xs text-muted-foreground rounded-md bg-muted/60 px-3 py-2">
+                Save credentials, then click <span className="font-medium">Test connection</span>. The
+                provider shows CONNECTED only after a successful test (environment variables alone do not
+                count).
+              </p>
 
               {detail.fields.map((field) => {
                 const secretMeta = detail.secretFields.find((s) => s.fieldKey === field.key);

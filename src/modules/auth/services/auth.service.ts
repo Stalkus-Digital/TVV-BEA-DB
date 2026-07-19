@@ -78,7 +78,7 @@ export class AuthService extends BaseService {
     this.emailService = new EmailService(context);
   }
 
-  /** Public self-service signup — always assigns CUSTOMER. Internal staff accounts are created via POST /api/users (admin-gated, see user.service.ts), not here. */
+  /** Public self-service signup â€” always assigns CUSTOMER. Internal staff accounts are created via POST /api/users (admin-gated, see user.service.ts), not here. */
   async register(input: unknown): Promise<Result<User, AppError>> {
     const validated = validateRegister(input);
     if (isErr(validated)) return validated;
@@ -207,7 +207,7 @@ export class AuthService extends BaseService {
 
     if (token.revokedAt) {
       await this.sessionService.revoke(token.sessionId);
-      this.logger.warn("Refresh token reuse detected — session revoked", { sessionId: token.sessionId, tokenId });
+      this.logger.warn("Refresh token reuse detected â€” session revoked", { sessionId: token.sessionId, tokenId });
       return err(new UnauthorizedError("Refresh token has been revoked"));
     }
     if (new Date(token.expiresAt).getTime() < Date.now()) return err(new UnauthorizedError("Refresh token expired"));
@@ -269,7 +269,7 @@ export class AuthService extends BaseService {
       const resetUrl = `${this.config.get("frontendUrl").replace(/\/$/, "")}/reset-password?token=${encodeURIComponent(rawToken)}`;
       const sent = await this.emailService.sendPasswordReset(userResult.value.email, resetUrl);
       if (isErr(sent)) {
-        this.logger.warn("Password reset email failed to send — token logged for recovery", {
+        this.logger.warn("Password reset email failed to send â€” token logged for recovery", {
           userId: userResult.value.id,
           resetToken: rawToken,
         });
@@ -373,7 +373,7 @@ export class AuthService extends BaseService {
     const verifyUrl = `${this.config.get("frontendUrl").replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(rawToken)}`;
     const sent = await this.emailService.sendEmailVerification(user.email, verifyUrl);
     if (isErr(sent)) {
-      this.logger.warn("Verification email failed to send — token logged for recovery", {
+      this.logger.warn("Verification email failed to send â€” token logged for recovery", {
         userId: user.id,
         verificationToken: rawToken,
       });

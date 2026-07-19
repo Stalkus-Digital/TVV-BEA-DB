@@ -1,48 +1,34 @@
-import { NextResponse } from "next/server";
-import crypto from "crypto";
-import { prisma } from "@/shared/database/prisma-client";
+import { jsonError, jsonSuccess } from "@/api";
+import { getPaymentService } from "@/modules/payments/module";
+import { isErr } from "@/shared/types";
+import { ValidationError } from "@/shared/errors";
 
+/**
+ * PAY-001: this route used to reimplement signature verification and
+ * payment recording inline — no amount validation against the booking, no
+ * amountPaid update at all, no booking.status transition, an invalid
+ * BookingPayment.status value ("SUCCESS", not part of the PaymentStatus
+ * enum), and no protection against being called twice for the same
+ * payment. Delegating to PaymentService.verifyPayment() (the same method
+ * the webhook calls) fixes all of the above by construction — there is now
+ * exactly one place that verifies a Razorpay payment and writes its result.
+ */
 export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingId } = body;
-
-    const secret = process.env.RAZORPAY_KEY_SECRET || "";
-
-    const generatedSignature = crypto
-      .createHmac("sha256", secret)
-      .update(razorpay_order_id + "|" + razorpay_payment_id)
-      .digest("hex");
-
-    if (generatedSignature !== razorpay_signature) {
-      return NextResponse.json({ error: "Invalid payment signature" }, { status: 400 });
-    }
-
-    // Payment is valid, update the Booking and create a BookingPayment record
-    const booking = await prisma.booking.update({
-      where: { id: bookingId },
-      data: {
-        paymentStatus: "PAID",
-        status: "CONFIRMED", // Or leave as PENDING if manual review is needed
-      }
-    });
-
-    await prisma.bookingPayment.create({
-      data: {
-        bookingId: bookingId,
-        amount: booking.totalAmount,
-        currency: booking.currency,
-        method: "RAZORPAY",
-        status: "SUCCESS",
-        reference: razorpay_payment_id,
-        paidAt: new Date(),
-        createdAt: new Date(),
-      }
-    });
-
-    return NextResponse.json({ success: true, message: "Payment verified successfully" });
-  } catch (error) {
-    console.error("Razorpay Verify Error:", error);
-    return NextResponse.json({ error: "Failed to verify payment" }, { status: 500 });
+  const body = await req.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return jsonError(new ValidationError("Invalid request body"));
   }
+
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = body as Record<string, unknown>;
+  if (
+    typeof razorpay_order_id !== "string" ||
+    typeof razorpay_payment_id !== "string" ||
+    typeof razorpay_signature !== "string"
+  ) {
+    return jsonError(new ValidationError("razorpay_order_id, razorpay_payment_id, and razorpay_signature are required"));
+  }
+
+  const result = await getPaymentService().verifyPayment(razorpay_order_id, razorpay_payment_id, razorpay_signature);
+  if (isErr(result)) return jsonError(result.error);
+  return jsonSuccess({ verified: true });
 }

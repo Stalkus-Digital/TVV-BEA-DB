@@ -60,6 +60,8 @@ export const PUBLIC_EXACT_PATHS = [
  */
 export const PUBLIC_PREFIXES = [
   "/api/website",
+  "/api/webhooks",
+  "/api/checkout",
   "/api/v1/packages",
   "/api/v1/search",
   "/api/v1/ferry",
@@ -107,6 +109,8 @@ const RESOURCE_PREFIX_MAP: { prefix: string; resource: PermissionResource }[] = 
   { prefix: "/api/permissions", resource: PermissionResource.ROLES },
   { prefix: "/api/audit-logs", resource: PermissionResource.SETTINGS },
   { prefix: "/api/api-keys", resource: PermissionResource.SETTINGS },
+  { prefix: "/api/admin/api-keys", resource: PermissionResource.SETTINGS },
+  { prefix: "/api/admin/integrations", resource: PermissionResource.SETTINGS },
   { prefix: "/api/cms", resource: PermissionResource.WEBSITE },
   { prefix: "/api/marketing", resource: PermissionResource.MARKETING },
   { prefix: "/api/admin/ai", resource: PermissionResource.AI },

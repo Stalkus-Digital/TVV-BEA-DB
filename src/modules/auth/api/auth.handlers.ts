@@ -13,6 +13,15 @@ function toRequestContext(meta: RequestMeta): RequestContext {
 
 export async function registerHandler(body: unknown): Promise<Result<PublicUser, AppError>> {
   await ensureAuthModuleSeeded();
+
+  const recaptchaToken =
+    typeof body === "object" && body !== null
+      ? (body as Record<string, unknown>).recaptchaToken
+      : undefined;
+  const { verifyRecaptchaToken } = await import("@/modules/integrations/services/recaptcha.service");
+  const captcha = await verifyRecaptchaToken(recaptchaToken);
+  if (!captcha.ok) return captcha;
+
   const result = await getAuthService().register(body);
   if (!result.ok) return result;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Script from "next/script";
 
@@ -15,29 +15,37 @@ export default function CheckoutPage() {
     setError("");
 
     try {
-      // 1. Create Order
-      const res = await fetch("/api/checkout/razorpay", {
+      const res = await fetch("/api/checkout/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId }),
       });
-      
+
       const data = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(data.error || "Failed to initiate payment");
       }
 
-      // 2. Initialize Razorpay
+      if (data.provider === "phonepe") {
+        if (!data.redirectUrl) throw new Error("PhonePe redirect URL missing");
+        window.location.href = data.redirectUrl;
+        return;
+      }
+
+      // Razorpay checkout
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TAkaz2OKIIaQaj",
+        key: data.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TAkaz2OKIIaQaj",
         amount: data.amount,
         currency: data.currency,
         name: "The Vacation Voice",
         description: "Booking Payment",
         order_id: data.orderId,
-        handler: async function (response: any) {
-          // 3. Verify Payment
+        handler: async function (response: {
+          razorpay_order_id: string;
+          razorpay_payment_id: string;
+          razorpay_signature: string;
+        }) {
           const verifyRes = await fetch("/api/checkout/razorpay/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -65,14 +73,13 @@ export default function CheckoutPage() {
         },
       };
 
-      const rzp = new (window as any).Razorpay(options);
-      rzp.on("payment.failed", function (response: any) {
+      const rzp = new (window as unknown as { Razorpay: new (opts: unknown) => { on: Function; open: () => void } }).Razorpay(options);
+      rzp.on("payment.failed", function (response: { error: { description: string } }) {
         setError(response.error.description);
       });
       rzp.open();
-
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Payment failed");
     } finally {
       setLoading(false);
     }
@@ -84,9 +91,11 @@ export default function CheckoutPage() {
       <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg border border-slate-100">
         <h1 className="text-2xl font-bold mb-2">Complete Your Booking</h1>
         <p className="text-slate-500 mb-6 text-sm">Secure your reservation by completing the payment below.</p>
-        
-        {error && <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-md border border-red-200">{error}</div>}
-        
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-md border border-red-200">{error}</div>
+        )}
+
         <button
           onClick={handlePayment}
           disabled={loading}

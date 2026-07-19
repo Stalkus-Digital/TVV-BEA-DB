@@ -901,6 +901,67 @@ model WebhookEvent {
   @@map("webhook_events")
 }
 
+// ── System Integrations Hub ────────────────────────────────────────────
+// Third-party provider credentials (OpenAI, Razorpay, PhonePe, TripJack,
+// SMTP, reCAPTCHA, ferry operators, …). Secrets are AES-256-GCM encrypted.
+// Runtime prefers DB secrets, then falls back to process.env.
+
+model IntegrationProvider {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  category    String
+  name        String
+  description String?
+  isBuiltin   Boolean  @default(true)
+  status      String   @default("DISCONNECTED")
+  /// Non-secret settings (baseUrl, enabled flags, active payment marker, etc.)
+  config      Json?
+  lastTestedAt DateTime?
+  lastTestOk   Boolean?
+  lastTestMessage String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  secrets  IntegrationSecret[]
+  webhooks IntegrationWebhook[]
+
+  @@index([category])
+  @@map("integration_providers")
+}
+
+model IntegrationSecret {
+  id         String   @id @default(uuid())
+  providerId String
+  fieldKey   String
+  ciphertext String
+  iv         String
+  authTag    String
+  lastFour   String?
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+
+  provider IntegrationProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, fieldKey])
+  @@index([providerId])
+  @@map("integration_secrets")
+}
+
+model IntegrationWebhook {
+  id         String   @id @default(uuid())
+  providerId String
+  eventType  String
+  path       String
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  provider IntegrationProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@map("integration_webhooks")
+}
+
 model Guide {
   id          String   @id @default(uuid())
   title       String

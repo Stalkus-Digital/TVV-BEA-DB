@@ -80,6 +80,7 @@ export class TripJackAdapter extends BaseSupplierAdapter {
   }
 
   override async initialize(): Promise<Result<void, AppError>> {
+    await this.tripjackConfig.refreshFromIntegrations();
     const enabled = SupplierConfigService.getInstance().get("tripjackEnabled");
     const configured = this.isConfigured();
     this.logger.info("TripJack adapter config read", { enabled, configured });
@@ -97,6 +98,7 @@ export class TripJackAdapter extends BaseSupplierAdapter {
    * true without a dedicated ping endpoint TripJack's API may not have.
    */
   override async health(): Promise<Result<SupplierHealthStatus, AppError>> {
+    await this.tripjackConfig.refreshFromIntegrations();
     const configured = this.isConfigured();
     if (!configured) {
       return ok({ healthy: false, message: "NOT_CONFIGURED", checkedAt: new Date().toISOString() });

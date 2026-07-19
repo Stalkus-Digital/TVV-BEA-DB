@@ -11,16 +11,15 @@ export interface GeneratePackageDto {
 }
 
 export class AIService extends BaseService {
-  private readonly openAiKey: string;
-
   constructor(context: ServiceContext) {
     super(context);
-    this.openAiKey = process.env.OPENAI_API_KEY || "";
   }
 
   async generateHolidayPackage(data: GeneratePackageDto): Promise<Result<HolidayPackage, AppError>> {
     try {
-      if (!this.openAiKey) {
+      const { getIntegrationConfigResolver } = await import("@/modules/integrations");
+      const openAiKey = await getIntegrationConfigResolver().getOpenAiApiKey();
+      if (!openAiKey) {
         return err(new InternalError("OpenAI API key is missing"));
       }
 
@@ -42,7 +41,7 @@ export class AIService extends BaseService {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${this.openAiKey}`
+          "Authorization": `Bearer ${openAiKey}`
         },
         body: JSON.stringify({
           model: "gpt-3.5-turbo",

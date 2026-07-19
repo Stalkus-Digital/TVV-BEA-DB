@@ -42,7 +42,7 @@ function loadTripJackConfig(source: Record<string, string | undefined> = process
  */
 export class TripJackConfig {
   private static instance: TripJackConfig | undefined;
-  private readonly values: TripJackConfigValues;
+  private values: TripJackConfigValues;
 
   private constructor(values: TripJackConfigValues) {
     this.values = values;
@@ -55,12 +55,33 @@ export class TripJackConfig {
     return TripJackConfig.instance;
   }
 
+  /**
+   * Prefer Integrations vault (DB) over process.env. Safe to call before each
+   * auth/search so admin-saved credentials take effect without restart.
+   */
+  async refreshFromIntegrations(): Promise<void> {
+    const { getIntegrationConfigResolver } = await import("@/modules/integrations");
+    const cfg = await getIntegrationConfigResolver().getTripJackConfig();
+    this.values = loadTripJackConfig({
+      TRIPJACK_API_URL: cfg.apiUrl || process.env.TRIPJACK_API_URL,
+      TRIPJACK_AGENCY_ID: cfg.agencyId || process.env.TRIPJACK_AGENCY_ID,
+      TRIPJACK_USER_ID: cfg.userId || process.env.TRIPJACK_USER_ID,
+      TRIPJACK_PASSWORD: cfg.password || process.env.TRIPJACK_PASSWORD,
+      TRIPJACK_TOKEN: cfg.token || process.env.TRIPJACK_TOKEN,
+      TRIPJACK_TIMEOUT_MS: process.env.TRIPJACK_TIMEOUT_MS,
+      TRIPJACK_RETRY_COUNT: process.env.TRIPJACK_RETRY_COUNT,
+    });
+  }
+
   get<K extends keyof TripJackConfigValues>(key: K): TripJackConfigValues[K] {
     return this.values[key];
   }
 
   /** True once real credentials exist. Drives the NOT_CONFIGURED health status. */
   isConfigured(): boolean {
-    return Boolean(this.values.apiUrl && this.values.agencyId && this.values.userId && this.values.password);
+    return Boolean(
+      this.values.apiUrl &&
+        ((this.values.agencyId && this.values.userId && this.values.password) || this.values.token)
+    );
   }
 }

@@ -31,19 +31,22 @@ const PackageGeneratorSchema = z.object({
 export type GeneratedPackage = z.infer<typeof PackageGeneratorSchema>;
 
 export class AiGeneratorService extends BaseService {
-  private openai: OpenAI;
-
   constructor(context: ServiceContext) {
     super(context);
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || "",
-    });
+  }
+
+  private async getOpenAiClient(): Promise<OpenAI | null> {
+    const { getIntegrationConfigResolver } = await import("@/modules/integrations");
+    const apiKey = await getIntegrationConfigResolver().getOpenAiApiKey();
+    if (!apiKey) return null;
+    return new OpenAI({ apiKey });
   }
 
   async generatePackage(prompt: string, destination: string, duration: string, budget: string, retries = 2): Promise<Result<GeneratedPackage, AppError>> {
     this.logger.info("Generating AI Package", { destination, duration, budget, retries });
 
-    if (!process.env.OPENAI_API_KEY) {
+    const openai = await this.getOpenAiClient();
+    if (!openai) {
       return err(new InternalError("OpenAI API key is missing"));
     }
 
@@ -61,7 +64,7 @@ Instructions:
 4. Ensure 'days' array length matches the days in the 'duration'.
 5. MUST RETURN VALID JSON matching the schema exactly.`;
 
-      const response = await this.openai.chat.completions.create({
+      const response = await openai.chat.completions.create({
         model: "gpt-4o-mini", // Using gpt-4o-mini for speed and cost-effectiveness
         messages: [
           { role: "system", content: systemPrompt },

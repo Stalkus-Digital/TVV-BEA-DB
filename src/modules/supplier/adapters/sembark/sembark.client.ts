@@ -1,33 +1,36 @@
 import { BaseService, type ServiceContext } from "@/shared/services";
 import { ok, err, type Result } from "@/shared/types";
 import { InternalError, type AppError } from "@/shared/errors";
-import { prisma } from "@/shared/database/prisma-client";
 import type { Lead } from "@/generated/prisma/client";
 
 export class SembarkClient extends BaseService {
-  private readonly webhookUrl: string;
-  private readonly apiKey: string;
-
   constructor(context: ServiceContext) {
     super(context);
-    this.webhookUrl = process.env.SEMBARK_WEBHOOK_URL || "https://api.sembark.com/v1/leads";
-    this.apiKey = process.env.SEMBARK_API_KEY || "MOCK_SEMBARK_KEY";
+  }
+
+  private async getCredentials(): Promise<{ webhookUrl: string; apiKey: string }> {
+    const { getIntegrationConfigResolver } = await import("@/modules/integrations");
+    const cfg = await getIntegrationConfigResolver().getSembarkConfig();
+    return {
+      webhookUrl: cfg.webhookUrl || "https://api.sembark.com/v1/leads",
+      apiKey: cfg.apiKey || "MOCK_SEMBARK_KEY",
+    };
   }
 
   async pushLead(lead: Lead): Promise<Result<void, AppError>> {
     try {
-      if (this.apiKey === "MOCK_SEMBARK_KEY") {
+      const { webhookUrl, apiKey } = await this.getCredentials();
+      if (apiKey === "MOCK_SEMBARK_KEY") {
         this.logger.info("Mock Sembark: Pushing lead", { leadId: lead.id, name: lead.name });
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
         return ok(undefined);
       }
 
-      const response = await fetch(this.webhookUrl, {
+      const response = await fetch(webhookUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${this.apiKey}`
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
           sourceId: lead.id,
@@ -37,7 +40,7 @@ export class SembarkClient extends BaseService {
           source: "TVV Website",
           sourceUrl: lead.sourceUrl,
           createdAt: lead.createdAt.toISOString(),
-        })
+        }),
       });
 
       if (!response.ok) {
@@ -51,13 +54,10 @@ export class SembarkClient extends BaseService {
     }
   }
 
-  async pullInventory(): Promise<Result<{ hotels: number, destinations: number }, AppError>> {
+  async pullInventory(): Promise<Result<{ hotels: number; destinations: number }, AppError>> {
     try {
       this.logger.info("Mock Sembark: Pulling inventory");
-      // Simulate network sync
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real implementation, we would fetch from Sembark API and upsert into Prisma.
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       return ok({ hotels: 42, destinations: 12 });
     } catch (error) {
       return err(new InternalError("Failed to pull Sembark inventory"));

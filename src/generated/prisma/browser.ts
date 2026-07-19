@@ -299,6 +299,21 @@ export type PageAnalytics = Prisma.PageAnalyticsModel
  */
 export type WebhookEvent = Prisma.WebhookEventModel
 /**
+ * Model IntegrationProvider
+ * 
+ */
+export type IntegrationProvider = Prisma.IntegrationProviderModel
+/**
+ * Model IntegrationSecret
+ * 
+ */
+export type IntegrationSecret = Prisma.IntegrationSecretModel
+/**
+ * Model IntegrationWebhook
+ * 
+ */
+export type IntegrationWebhook = Prisma.IntegrationWebhookModel
+/**
  * Model Guide
  * 
  */

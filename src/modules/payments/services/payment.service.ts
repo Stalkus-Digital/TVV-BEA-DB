@@ -4,11 +4,10 @@ import { InternalError, NotFoundError, ValidationError, type AppError } from "@/
 import { prisma } from "@/shared/database/prisma-client";
 import Razorpay from "razorpay";
 import crypto from "crypto";
-
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_mock",
-  key_secret: process.env.RAZORPAY_KEY_SECRET || "mock_secret",
-});
+import { PaymentStatus, type BookingPayment as DomainBookingPayment } from "@/modules/booking/types/booking-payment";
+import { computePaymentAggregate } from "@/modules/booking/payments/payment-calculator";
+import { canTransition } from "@/modules/booking/status/booking-status-machine";
+import { BookingStatus } from "@/modules/booking/types/booking-status";
 
 /** Minimum valid payment (₹1 = lowest Razorpay denomination) */
 const MIN_PAYMENT_AMOUNT = 1;
@@ -20,13 +19,105 @@ export interface CreateOrderDto {
   bookingId: string;
 }
 
+export interface RefundInput {
+  /** Omit for a full refund of the booking's current amountPaid. */
+  amount?: number;
+  reason?: string | null;
+}
+
+export interface RefundResult {
+  refundedAmount: number;
+  refundReferences: string[];
+  paymentStatus: PaymentStatus;
+}
+
+export interface ReconcileResult {
+  checked: number;
+  corrected: number;
+  details: string[];
+}
+
+function toDomainBookingPayment(row: {
+  id: string; bookingId: string; amount: number; currency: string; method: string | null;
+  status: string; reference: string | null; paidAt: Date | null; notes: string | null; createdAt: Date;
+}): DomainBookingPayment {
+  return {
+    id: row.id,
+    bookingId: row.bookingId,
+    amount: row.amount,
+    currency: row.currency,
+    method: row.method,
+    status: row.status as PaymentStatus,
+    reference: row.reference,
+    paidAt: row.paidAt ? row.paidAt.toISOString() : null,
+    notes: row.notes,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+/**
+ * Recomputes amountPaid/paymentStatus from every BookingPayment row — the
+ * same canonical calculation booking.service.ts's manual-payment path
+ * already uses (see modules/booking/payments/payment-calculator.ts) — and
+ * advances Booking.status through the state machine when the aggregate
+ * crosses a threshold. Must run inside the caller's transaction so the
+ * BookingPayment write and this recompute are atomic together.
+ */
+async function recomputeBookingAggregate(
+  tx: Omit<typeof prisma, "$transaction" | "$connect" | "$disconnect" | "$on" | "$use" | "$extends">,
+  bookingId: string,
+): Promise<{ status: string; paymentStatus: PaymentStatus; amountPaid: number }> {
+  const booking = await tx.booking.findUniqueOrThrow({ where: { id: bookingId } });
+  const rows = await tx.bookingPayment.findMany({ where: { bookingId } });
+  const aggregate = computePaymentAggregate(booking.totalAmount, rows.map(toDomainBookingPayment));
+
+  let nextStatus = booking.status as BookingStatus;
+  if (aggregate.paymentStatus === PaymentStatus.PAID && canTransition(booking.status as BookingStatus, BookingStatus.PAID)) {
+    nextStatus = BookingStatus.PAID;
+  } else if (aggregate.paymentStatus === PaymentStatus.PARTIAL && canTransition(booking.status as BookingStatus, BookingStatus.PARTIALLY_PAID)) {
+    nextStatus = BookingStatus.PARTIALLY_PAID;
+  }
+
+  await tx.booking.update({
+    where: { id: bookingId },
+    data: {
+      amountPaid: aggregate.amountPaid,
+      paymentStatus: aggregate.paymentStatus,
+      status: nextStatus,
+      updatedAt: new Date(),
+    },
+  });
+
+  return { status: nextStatus, paymentStatus: aggregate.paymentStatus, amountPaid: aggregate.amountPaid };
+}
+
+export { recomputeBookingAggregate };
+
 export class PaymentService extends BaseService {
   constructor(context: ServiceContext) {
     super(context);
   }
 
-  async createOrder(data: CreateOrderDto): Promise<Result<{ orderId: string, amount: number, currency: string }, AppError>> {
+  private async getRazorpayClient(): Promise<{ client: Razorpay; keySecret: string; keyId: string }> {
+    const { getIntegrationConfigResolver } = await import("@/modules/integrations");
+    const creds = await getIntegrationConfigResolver().getRazorpayCredentials();
+    const keyId = creds.keyId || "rzp_test_mock";
+    const keySecret = creds.keySecret || "mock_secret";
+    return {
+      client: new Razorpay({ key_id: keyId, key_secret: keySecret }),
+      keySecret,
+      keyId,
+    };
+  }
+
+  async createOrder(data: CreateOrderDto): Promise<Result<{ orderId: string, amount: number, currency: string, keyId: string, provider: "razorpay" }, AppError>> {
     try {
+      const { getIntegrationConfigResolver } = await import("@/modules/integrations");
+      const active = await getIntegrationConfigResolver().getActivePaymentProvider();
+      if (active !== "razorpay") {
+        return err(new ValidationError("Razorpay is not the active payment gateway"));
+      }
+
       const booking = await prisma.booking.findUnique({
         where: { id: data.bookingId },
       });
@@ -40,6 +131,14 @@ export class PaymentService extends BaseService {
         return err(new ValidationError("Booking is already fully paid"));
       }
 
+      const { client, keyId } = await this.getRazorpayClient();
+      if (!keyId || keyId === "rzp_test_mock") {
+        // Still allow mock in local if explicitly set; warn when missing real keys
+        if (!process.env.RAZORPAY_KEY_ID && keyId === "rzp_test_mock") {
+          this.logger.warn("Using mock Razorpay credentials");
+        }
+      }
+
       const options = {
         amount: Math.round(amountDue * 100),
         currency: booking.currency.toUpperCase(),
@@ -47,12 +146,14 @@ export class PaymentService extends BaseService {
         notes: { bookingId: booking.id },
       };
 
-      const order = await razorpay.orders.create(options);
+      const order = await client.orders.create(options);
 
       return ok({
         orderId: order.id,
         amount: options.amount,
         currency: options.currency,
+        keyId,
+        provider: "razorpay",
       });
     } catch (error) {
       this.logger.error("Failed to create razorpay order", { error });
@@ -62,12 +163,17 @@ export class PaymentService extends BaseService {
 
   /**
    * Called by the frontend checkout flow. Verifies the order-based signature
-   * before processing the payment.
+   * before processing the payment. Delegates to processPayment() — the same
+   * method the webhook calls — so both entry points share one aggregate/
+   * state-machine/duplicate-protection implementation instead of two
+   * (PAY-001: the old /api/checkout/razorpay/verify route reimplemented
+   * this ad hoc, with no amount check, no amountPaid update, and no
+   * booking.status transition — fixed by making that route delegate here).
    */
   async verifyPayment(razorpayOrderId: string, razorpayPaymentId: string, signature: string): Promise<Result<void, AppError>> {
-    const secret = process.env.RAZORPAY_KEY_SECRET || "mock_secret";
+    const { keySecret } = await this.getRazorpayClient();
     const expectedSignature = crypto
-      .createHmac("sha256", secret)
+      .createHmac("sha256", keySecret)
       .update(razorpayOrderId + "|" + razorpayPaymentId)
       .digest("hex");
 
@@ -86,7 +192,17 @@ export class PaymentService extends BaseService {
    */
   async processPayment(razorpayPaymentId: string): Promise<Result<void, AppError>> {
     try {
-      const payment = await razorpay.payments.fetch(razorpayPaymentId);
+      // Duplicate-payment guard — covers a retried webhook delivery AND a
+      // duplicate frontend verify call for the same Razorpay payment,
+      // regardless of which caller reaches this method first.
+      const existing = await prisma.bookingPayment.findFirst({ where: { reference: razorpayPaymentId } });
+      if (existing) {
+        this.logger.info("Payment already recorded — skipping duplicate processing", { razorpayPaymentId });
+        return ok(undefined);
+      }
+
+      const { client } = await this.getRazorpayClient();
+      const payment = await client.payments.fetch(razorpayPaymentId);
 
       if (payment.status === "captured" || payment.status === "authorized") {
         const bookingId = payment.notes?.bookingId as string;
@@ -102,7 +218,6 @@ export class PaymentService extends BaseService {
 
         const paymentAmount = Number(payment.amount || 0) / 100;
 
-        // ✅ HR-3 FIX: Validate that the received amount is >= expected minimum
         if (paymentAmount < MIN_PAYMENT_AMOUNT) {
           this.logger.error("Payment amount is below minimum threshold", {
             paymentAmount, razorpayPaymentId, bookingId,
@@ -110,7 +225,6 @@ export class PaymentService extends BaseService {
           return err(new ValidationError(`Payment amount ₹${paymentAmount} is below the minimum allowed`));
         }
 
-        // ✅ HR-3 FIX: Cross-check amount against booking — allow at most 2% tolerance
         const expectedAmount = booking.totalAmount - booking.amountPaid;
         const tolerance = expectedAmount * AMOUNT_TOLERANCE_PERCENT;
         if (paymentAmount < expectedAmount - tolerance) {
@@ -122,6 +236,8 @@ export class PaymentService extends BaseService {
           ));
         }
 
+        const previousStatus = booking.status;
+
         await prisma.$transaction(async (tx) => {
           await tx.bookingPayment.create({
             data: {
@@ -129,70 +245,335 @@ export class PaymentService extends BaseService {
               amount: paymentAmount,
               currency: payment.currency?.toUpperCase() || "INR",
               method: "RAZORPAY",
-              status: "COMPLETED",
+              status: PaymentStatus.PAID,
               reference: razorpayPaymentId,
               paidAt: new Date(),
               createdAt: new Date(),
             }
           });
 
-          const newAmountPaid = booking.amountPaid + paymentAmount;
-          await tx.booking.update({
-            where: { id: bookingId },
-            data: {
-              amountPaid: newAmountPaid,
-              paymentStatus: newAmountPaid >= booking.totalAmount ? "PAID" : "PARTIAL",
-              updatedAt: new Date(),
-            }
-          });
+          await recomputeBookingAggregate(tx, bookingId);
         });
 
-        // Trigger fulfillment and email after payment confirmation
         const updatedBooking = await prisma.booking.findUnique({ where: { id: bookingId } });
+
+        if (updatedBooking && updatedBooking.status !== previousStatus) {
+          const { getBookingStatusHistoryService, getBookingTimelineService } = await import("@/modules/booking/module");
+          await getBookingStatusHistoryService().record(bookingId, previousStatus as any, updatedBooking.status as any);
+          if (updatedBooking.status === BookingStatus.PAID) {
+            await getBookingTimelineService().record(bookingId, "PAID" as any, new Date().toISOString());
+          }
+        }
+
         const travellers = await prisma.traveller.findMany({ where: { bookingId } });
 
         if (updatedBooking?.paymentStatus === "PAID") {
-          // Trigger fulfillment
           const { getFulfillmentService } = await import("@/modules/booking/module");
           const fulfillmentService = getFulfillmentService();
           await fulfillmentService.fulfillBooking(bookingId);
 
-          // ✅ HR-4 FIX: Email delivery — fail with explicit warning when SMTP not configured
           const leadTraveller = travellers?.find((t: any) => t.isLeadTraveller);
           if (leadTraveller?.email) {
             const { EmailService } = await import("@/modules/email/email.service");
             const { createLogger } = await import("@/shared/logger");
             const emailService = new EmailService({ logger: createLogger("email.service") });
 
-            if (!process.env.SMTP_HOST) {
-              this.logger.warn(
-                "[SMTP NOT CONFIGURED] Booking confirmation email was NOT sent to " + leadTraveller.email +
-                ". Set SMTP_HOST, SMTP_USER, and SMTP_PASS in production env to enable transactional emails."
-              );
-            } else {
-              const emailResult = await emailService.sendBookingConfirmation(
-                leadTraveller.email,
-                updatedBooking.bookingNumber,
-                paymentAmount,
-                payment.currency?.toUpperCase() || "INR"
-              );
-              if (!emailResult.ok) {
-                // Log the failure but don't fail the whole payment — payment is already recorded.
-                this.logger.error("Failed to send booking confirmation email", {
-                  to: leadTraveller.email,
-                  bookingNumber: updatedBooking.bookingNumber,
-                  error: emailResult.error.message,
-                });
-              }
+            const emailResult = await emailService.sendBookingConfirmation(
+              leadTraveller.email,
+              updatedBooking.bookingNumber,
+              paymentAmount,
+              payment.currency?.toUpperCase() || "INR"
+            );
+            if (!emailResult.ok) {
+              this.logger.error("Failed to send booking confirmation email", {
+                to: leadTraveller.email,
+                bookingNumber: updatedBooking.bookingNumber,
+                error: emailResult.error.message,
+              });
             }
           }
         }
+      } else if (payment.status === "failed") {
+        await this.recordPaymentFailure(payment.notes?.bookingId as string | undefined, razorpayPaymentId);
       }
 
       return ok(undefined);
     } catch (error) {
       this.logger.error("Failed to verify razorpay payment", { error });
       return err(new InternalError("Failed to process payment"));
+    }
+  }
+
+  /**
+   * Records a failed payment attempt against its booking, without
+   * clobbering a booking that's already PAID/PARTIAL from a different,
+   * earlier-successful attempt (a customer can retry checkout after a
+   * decline — the failure must never overwrite a real success).
+   */
+  async recordPaymentFailure(bookingId: string | undefined, razorpayPaymentId: string): Promise<Result<void, AppError>> {
+    if (!bookingId) {
+      this.logger.warn("Payment failed but no bookingId in notes — nothing to record against", { razorpayPaymentId });
+      return ok(undefined);
+    }
+    const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+    if (!booking) {
+      this.logger.warn("Payment failed for unknown booking", { bookingId, razorpayPaymentId });
+      return ok(undefined);
+    }
+    if (booking.paymentStatus === PaymentStatus.PAID || booking.paymentStatus === PaymentStatus.PARTIAL) {
+      this.logger.info("Ignoring failed-payment event — booking already has a successful payment", { bookingId, razorpayPaymentId });
+      return ok(undefined);
+    }
+
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: { paymentStatus: PaymentStatus.FAILED, updatedAt: new Date() },
+    });
+    this.logger.warn("Recorded failed payment attempt", { bookingId, razorpayPaymentId });
+    return ok(undefined);
+  }
+
+  /**
+   * Refunds a booking, in full or in part, against its captured Razorpay
+   * payment(s). Calls Razorpay first (an external, non-transactional call
+   * by nature), then persists the resulting REFUNDED BookingPayment rows
+   * and recomputes the aggregate in one transaction. If Razorpay succeeds
+   * but the DB write then fails, reconcilePayment() detects and corrects
+   * the drift on next run — a refund is never silently lost either way.
+   */
+  async refund(bookingId: string, input: RefundInput = {}): Promise<Result<RefundResult, AppError>> {
+    const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+    if (!booking) return err(new NotFoundError(`Booking "${bookingId}" not found`));
+
+    if (booking.amountPaid <= 0) {
+      return err(new ValidationError(`Booking "${bookingId}" has no payment to refund`));
+    }
+
+    const requestedAmount = input.amount ?? booking.amountPaid;
+    if (requestedAmount <= 0 || requestedAmount > booking.amountPaid) {
+      return err(new ValidationError(`Refund amount must be between 0 and the booking's amountPaid (₹${booking.amountPaid})`));
+    }
+
+    const capturedPayments = await prisma.bookingPayment.findMany({
+      where: { bookingId, status: PaymentStatus.PAID },
+      orderBy: { createdAt: "desc" },
+    });
+    if (capturedPayments.length === 0) {
+      return err(new ValidationError(`No captured Razorpay payment found for booking "${bookingId}" to refund against`));
+    }
+
+    const refundedRows: { reference: string; amount: number; sourceReference: string }[] = [];
+    let remaining = requestedAmount;
+
+    try {
+      for (const paymentRow of capturedPayments) {
+        if (remaining <= 0) break;
+        if (!paymentRow.reference) continue;
+
+        const alreadyRefunded = await prisma.bookingPayment.aggregate({
+          where: { bookingId, status: PaymentStatus.REFUNDED, notes: { contains: paymentRow.reference } },
+          _sum: { amount: true },
+        });
+        const refundableOnThisPayment = paymentRow.amount - (alreadyRefunded._sum.amount ?? 0);
+        if (refundableOnThisPayment <= 0) continue;
+
+        const amountToRefund = Math.min(remaining, refundableOnThisPayment);
+        const { client } = await this.getRazorpayClient();
+        const razorpayRefund = await client.payments.refund(paymentRow.reference, {
+          amount: Math.round(amountToRefund * 100),
+        });
+
+        refundedRows.push({ reference: razorpayRefund.id, amount: amountToRefund, sourceReference: paymentRow.reference });
+        remaining -= amountToRefund;
+      }
+    } catch (error) {
+      this.logger.error("Razorpay refund call failed", { bookingId, error });
+      return err(new InternalError("Failed to process refund with payment gateway"));
+    }
+
+    if (refundedRows.length === 0) {
+      return err(new InternalError("No refundable captured payments were found — nothing to refund"));
+    }
+
+    const totalRefunded = refundedRows.reduce((sum, r) => sum + r.amount, 0);
+    let finalPaymentStatus: PaymentStatus = booking.paymentStatus as PaymentStatus;
+
+    await prisma.$transaction(async (tx) => {
+      for (const r of refundedRows) {
+        await tx.bookingPayment.create({
+          data: {
+            bookingId,
+            amount: r.amount,
+            currency: booking.currency,
+            method: "RAZORPAY",
+            status: PaymentStatus.REFUNDED,
+            reference: r.reference,
+            notes: `Refund of payment ${r.sourceReference} — ${input.reason ?? "no reason given"}`,
+            paidAt: new Date(),
+            createdAt: new Date(),
+          },
+        });
+      }
+      const result = await recomputeBookingAggregate(tx, bookingId);
+      finalPaymentStatus = result.paymentStatus;
+    });
+
+    this.logger.info("Refund processed", { bookingId, totalRefunded, reason: input.reason ?? null });
+
+    return ok({
+      refundedAmount: totalRefunded,
+      refundReferences: refundedRows.map((r) => r.reference),
+      paymentStatus: finalPaymentStatus,
+    });
+  }
+
+  /**
+   * Re-fetches every Razorpay-referenced payment for a booking and
+   * corrects local drift (a captured payment Razorpay shows as refunded
+   * that our DB still shows as fully PAID). Read/verify-heavy, write-light
+   * — only touches rows where a real mismatch is found.
+   */
+  async reconcilePayment(bookingId: string): Promise<Result<ReconcileResult, AppError>> {
+    const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+    if (!booking) return err(new NotFoundError(`Booking "${bookingId}" not found`));
+
+    const rows = await prisma.bookingPayment.findMany({
+      where: { bookingId, method: "RAZORPAY", status: PaymentStatus.PAID, reference: { not: null } },
+    });
+
+    let checked = 0;
+    let corrected = 0;
+    const details: string[] = [];
+
+    for (const row of rows) {
+      if (!row.reference) continue;
+      checked += 1;
+      try {
+        const { client } = await this.getRazorpayClient();
+        const remotePayment = await client.payments.fetch(row.reference);
+        const remoteAmount = Number(remotePayment.amount || 0) / 100;
+        const remoteRefunded = Number((remotePayment as any).amount_refunded || 0) / 100;
+
+        if (remoteRefunded > 0) {
+          const alreadyRecorded = await prisma.bookingPayment.aggregate({
+            where: { bookingId, status: PaymentStatus.REFUNDED, notes: { contains: row.reference } },
+            _sum: { amount: true },
+          });
+          const unrecordedRefund = remoteRefunded - (alreadyRecorded._sum.amount ?? 0);
+          if (unrecordedRefund > 0.01) {
+            await prisma.bookingPayment.create({
+              data: {
+                bookingId,
+                amount: unrecordedRefund,
+                currency: row.currency,
+                method: "RAZORPAY",
+                status: PaymentStatus.REFUNDED,
+                reference: `reconcile-${row.reference}-${Date.now()}`,
+                notes: `Reconciliation: Razorpay shows a refund of ₹${unrecordedRefund} on ${row.reference} not previously recorded locally`,
+                paidAt: new Date(),
+                createdAt: new Date(),
+              },
+            });
+            corrected += 1;
+            details.push(`Payment ${row.reference}: recorded missing refund of ₹${unrecordedRefund}`);
+          }
+        } else if (Math.abs(remoteAmount - row.amount) > 0.01) {
+          details.push(`Payment ${row.reference}: amount mismatch — local ₹${row.amount}, Razorpay ₹${remoteAmount} (flagged, not auto-corrected — needs manual review)`);
+        }
+      } catch (error) {
+        this.logger.warn("Reconciliation fetch failed for payment", { reference: row.reference, error });
+        details.push(`Payment ${row.reference}: could not fetch from Razorpay for reconciliation`);
+      }
+    }
+
+    if (corrected > 0) {
+      await prisma.$transaction(async (tx) => {
+        await recomputeBookingAggregate(tx, bookingId);
+      });
+    }
+
+    return ok({ checked, corrected, details });
+  }
+
+  /**
+   * Records a successful PhonePe payment against a booking (webhook path).
+   */
+  async processPhonePePayment(input: {
+    bookingId: string;
+    transactionId: string;
+    amountPaise: number;
+    merchantTransactionId?: string;
+  }): Promise<Result<void, AppError>> {
+    try {
+      const existing = await prisma.bookingPayment.findFirst({ where: { reference: input.transactionId } });
+      if (existing) {
+        this.logger.info("PhonePe payment already recorded — skipping duplicate", { transactionId: input.transactionId });
+        return ok(undefined);
+      }
+
+      const booking = await prisma.booking.findUnique({ where: { id: input.bookingId } });
+      if (!booking) {
+        return err(new NotFoundError(`Booking ${input.bookingId} not found for PhonePe reconciliation`));
+      }
+
+      const paymentAmount = input.amountPaise / 100;
+      if (paymentAmount < MIN_PAYMENT_AMOUNT) {
+        return err(new ValidationError(`Payment amount ₹${paymentAmount} is below the minimum allowed`));
+      }
+
+      const expectedAmount = booking.totalAmount - booking.amountPaid;
+      const tolerance = expectedAmount * AMOUNT_TOLERANCE_PERCENT;
+      if (paymentAmount < expectedAmount - tolerance) {
+        return err(
+          new ValidationError(
+            `Payment ₹${paymentAmount} is less than the expected ₹${expectedAmount} for booking ${booking.bookingNumber}.`
+          )
+        );
+      }
+
+      const previousStatus = booking.status;
+
+      await prisma.$transaction(async (tx) => {
+        await tx.bookingPayment.create({
+          data: {
+            bookingId: input.bookingId,
+            amount: paymentAmount,
+            currency: booking.currency?.toUpperCase() || "INR",
+            method: "PHONEPE",
+            status: PaymentStatus.PAID,
+            reference: input.transactionId,
+            notes: input.merchantTransactionId
+              ? `PhonePe merchantTransactionId=${input.merchantTransactionId}`
+              : null,
+            paidAt: new Date(),
+            createdAt: new Date(),
+          },
+        });
+        await recomputeBookingAggregate(tx, input.bookingId);
+      });
+
+      const updatedBooking = await prisma.booking.findUnique({ where: { id: input.bookingId } });
+      if (updatedBooking && updatedBooking.status !== previousStatus) {
+        const { getBookingStatusHistoryService, getBookingTimelineService } = await import("@/modules/booking/module");
+        await getBookingStatusHistoryService().record(
+          input.bookingId,
+          previousStatus as BookingStatus,
+          updatedBooking.status as BookingStatus
+        );
+        if (updatedBooking.status === BookingStatus.PAID) {
+          await getBookingTimelineService().record(input.bookingId, "PAID" as never, new Date().toISOString());
+        }
+      }
+
+      if (updatedBooking?.paymentStatus === "PAID") {
+        const { getFulfillmentService } = await import("@/modules/booking/module");
+        await getFulfillmentService().fulfillBooking(input.bookingId);
+      }
+
+      return ok(undefined);
+    } catch (error) {
+      this.logger.error("Failed to process PhonePe payment", { error });
+      return err(new InternalError("Failed to process PhonePe payment"));
     }
   }
 }

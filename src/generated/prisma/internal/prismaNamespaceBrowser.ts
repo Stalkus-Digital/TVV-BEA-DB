@@ -106,6 +106,9 @@ export const ModelName = {
   MarketingCampaign: 'MarketingCampaign',
   PageAnalytics: 'PageAnalytics',
   WebhookEvent: 'WebhookEvent',
+  IntegrationProvider: 'IntegrationProvider',
+  IntegrationSecret: 'IntegrationSecret',
+  IntegrationWebhook: 'IntegrationWebhook',
   Guide: 'Guide',
   FerryRoute: 'FerryRoute',
   FerrySchedule: 'FerrySchedule',
@@ -956,6 +959,53 @@ export const WebhookEventScalarFieldEnum = {
 } as const
 
 export type WebhookEventScalarFieldEnum = (typeof WebhookEventScalarFieldEnum)[keyof typeof WebhookEventScalarFieldEnum]
+
+
+export const IntegrationProviderScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  category: 'category',
+  name: 'name',
+  description: 'description',
+  isBuiltin: 'isBuiltin',
+  status: 'status',
+  config: 'config',
+  lastTestedAt: 'lastTestedAt',
+  lastTestOk: 'lastTestOk',
+  lastTestMessage: 'lastTestMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IntegrationProviderScalarFieldEnum = (typeof IntegrationProviderScalarFieldEnum)[keyof typeof IntegrationProviderScalarFieldEnum]
+
+
+export const IntegrationSecretScalarFieldEnum = {
+  id: 'id',
+  providerId: 'providerId',
+  fieldKey: 'fieldKey',
+  ciphertext: 'ciphertext',
+  iv: 'iv',
+  authTag: 'authTag',
+  lastFour: 'lastFour',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type IntegrationSecretScalarFieldEnum = (typeof IntegrationSecretScalarFieldEnum)[keyof typeof IntegrationSecretScalarFieldEnum]
+
+
+export const IntegrationWebhookScalarFieldEnum = {
+  id: 'id',
+  providerId: 'providerId',
+  eventType: 'eventType',
+  path: 'path',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IntegrationWebhookScalarFieldEnum = (typeof IntegrationWebhookScalarFieldEnum)[keyof typeof IntegrationWebhookScalarFieldEnum]
 
 
 export const GuideScalarFieldEnum = {

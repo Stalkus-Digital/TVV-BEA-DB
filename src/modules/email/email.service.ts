@@ -10,28 +10,41 @@ export interface SendEmailDto {
 }
 
 export class EmailService extends BaseService {
-  private transporter: nodemailer.Transporter | null = null;
-
   constructor(context: ServiceContext) {
     super(context);
+  }
 
-    // Use SMTP configuration if provided, otherwise mock it for development
-    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-      this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === "true",
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      });
+  private async getTransporter(): Promise<{
+    transporter: nodemailer.Transporter | null;
+    from: string;
+  }> {
+    const { getIntegrationConfigResolver } = await import("@/modules/integrations");
+    const smtp = await getIntegrationConfigResolver().getSmtpConfig();
+    if (!smtp.host || !smtp.user || !smtp.pass) {
+      return {
+        transporter: null,
+        from: smtp.from || '"TVV Travel OS" <noreply@thevacationvoice.com>',
+      };
     }
+
+    return {
+      transporter: nodemailer.createTransport({
+        host: smtp.host,
+        port: Number(smtp.port) || 587,
+        secure: smtp.secure === "true",
+        auth: {
+          user: smtp.user,
+          pass: smtp.pass,
+        },
+      }),
+      from: smtp.from || '"TVV Travel OS" <noreply@thevacationvoice.com>',
+    };
   }
 
   async sendEmail(data: SendEmailDto): Promise<Result<void, AppError>> {
     try {
-      if (!this.transporter) {
+      const { transporter, from } = await this.getTransporter();
+      if (!transporter) {
         // Dev fallback: log instead of failing hard so local flows remain usable.
         this.logger.warn("SMTP is not configured — logging email instead of sending", {
           to: data.to,
@@ -41,8 +54,8 @@ export class EmailService extends BaseService {
         return ok(undefined);
       }
 
-      await this.transporter.sendMail({
-        from: process.env.SMTP_FROM || '"TVV Travel OS" <noreply@thevacationvoice.com>',
+      await transporter.sendMail({
+        from,
         to: data.to,
         subject: data.subject,
         html: data.html,

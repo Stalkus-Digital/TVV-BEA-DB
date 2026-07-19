@@ -439,6 +439,9 @@ export const ModelName = {
   MarketingCampaign: 'MarketingCampaign',
   PageAnalytics: 'PageAnalytics',
   WebhookEvent: 'WebhookEvent',
+  IntegrationProvider: 'IntegrationProvider',
+  IntegrationSecret: 'IntegrationSecret',
+  IntegrationWebhook: 'IntegrationWebhook',
   Guide: 'Guide',
   FerryRoute: 'FerryRoute',
   FerrySchedule: 'FerrySchedule',
@@ -458,7 +461,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "loginHistory" | "passwordReset" | "emailVerification" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "notification" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent" | "guide" | "ferryRoute" | "ferrySchedule" | "review"
+    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "loginHistory" | "passwordReset" | "emailVerification" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "notification" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent" | "integrationProvider" | "integrationSecret" | "integrationWebhook" | "guide" | "ferryRoute" | "ferrySchedule" | "review"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4532,6 +4535,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    IntegrationProvider: {
+      payload: Prisma.$IntegrationProviderPayload<ExtArgs>
+      fields: Prisma.IntegrationProviderFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IntegrationProviderFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationProviderPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IntegrationProviderFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationProviderPayload>
+        }
+        findFirst: {
+          args: Prisma.IntegrationProviderFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationProviderPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IntegrationProviderFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationProviderPayload>
+        }
+        findMany: {
+          args: Prisma.IntegrationProviderFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationProviderPayload>[]
+        }
+        create: {
+          args: Prisma.IntegrationProviderCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationProviderPayload>
+        }
+        createMany: {
+          args: Prisma.IntegrationProviderCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IntegrationProviderCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationProviderPayload>[]
+        }
+        delete: {
+          args: Prisma.IntegrationProviderDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationProviderPayload>
+        }
+        update: {
+          args: Prisma.IntegrationProviderUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationProviderPayload>
+        }
+        deleteMany: {
+          args: Prisma.IntegrationProviderDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IntegrationProviderUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IntegrationProviderUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationProviderPayload>[]
+        }
+        upsert: {
+          args: Prisma.IntegrationProviderUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationProviderPayload>
+        }
+        aggregate: {
+          args: Prisma.IntegrationProviderAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIntegrationProvider>
+        }
+        groupBy: {
+          args: Prisma.IntegrationProviderGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IntegrationProviderGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IntegrationProviderCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IntegrationProviderCountAggregateOutputType> | number
+        }
+      }
+    }
+    IntegrationSecret: {
+      payload: Prisma.$IntegrationSecretPayload<ExtArgs>
+      fields: Prisma.IntegrationSecretFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IntegrationSecretFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationSecretPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IntegrationSecretFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationSecretPayload>
+        }
+        findFirst: {
+          args: Prisma.IntegrationSecretFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationSecretPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IntegrationSecretFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationSecretPayload>
+        }
+        findMany: {
+          args: Prisma.IntegrationSecretFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationSecretPayload>[]
+        }
+        create: {
+          args: Prisma.IntegrationSecretCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationSecretPayload>
+        }
+        createMany: {
+          args: Prisma.IntegrationSecretCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IntegrationSecretCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationSecretPayload>[]
+        }
+        delete: {
+          args: Prisma.IntegrationSecretDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationSecretPayload>
+        }
+        update: {
+          args: Prisma.IntegrationSecretUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationSecretPayload>
+        }
+        deleteMany: {
+          args: Prisma.IntegrationSecretDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IntegrationSecretUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IntegrationSecretUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationSecretPayload>[]
+        }
+        upsert: {
+          args: Prisma.IntegrationSecretUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationSecretPayload>
+        }
+        aggregate: {
+          args: Prisma.IntegrationSecretAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIntegrationSecret>
+        }
+        groupBy: {
+          args: Prisma.IntegrationSecretGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IntegrationSecretGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IntegrationSecretCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IntegrationSecretCountAggregateOutputType> | number
+        }
+      }
+    }
+    IntegrationWebhook: {
+      payload: Prisma.$IntegrationWebhookPayload<ExtArgs>
+      fields: Prisma.IntegrationWebhookFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IntegrationWebhookFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationWebhookPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IntegrationWebhookFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationWebhookPayload>
+        }
+        findFirst: {
+          args: Prisma.IntegrationWebhookFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationWebhookPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IntegrationWebhookFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationWebhookPayload>
+        }
+        findMany: {
+          args: Prisma.IntegrationWebhookFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationWebhookPayload>[]
+        }
+        create: {
+          args: Prisma.IntegrationWebhookCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationWebhookPayload>
+        }
+        createMany: {
+          args: Prisma.IntegrationWebhookCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IntegrationWebhookCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationWebhookPayload>[]
+        }
+        delete: {
+          args: Prisma.IntegrationWebhookDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationWebhookPayload>
+        }
+        update: {
+          args: Prisma.IntegrationWebhookUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationWebhookPayload>
+        }
+        deleteMany: {
+          args: Prisma.IntegrationWebhookDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IntegrationWebhookUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IntegrationWebhookUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationWebhookPayload>[]
+        }
+        upsert: {
+          args: Prisma.IntegrationWebhookUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IntegrationWebhookPayload>
+        }
+        aggregate: {
+          args: Prisma.IntegrationWebhookAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIntegrationWebhook>
+        }
+        groupBy: {
+          args: Prisma.IntegrationWebhookGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IntegrationWebhookGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IntegrationWebhookCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IntegrationWebhookCountAggregateOutputType> | number
+        }
+      }
+    }
     Guide: {
       payload: Prisma.$GuidePayload<ExtArgs>
       fields: Prisma.GuideFieldRefs
@@ -5697,6 +5922,53 @@ export const WebhookEventScalarFieldEnum = {
 export type WebhookEventScalarFieldEnum = (typeof WebhookEventScalarFieldEnum)[keyof typeof WebhookEventScalarFieldEnum]
 
 
+export const IntegrationProviderScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  category: 'category',
+  name: 'name',
+  description: 'description',
+  isBuiltin: 'isBuiltin',
+  status: 'status',
+  config: 'config',
+  lastTestedAt: 'lastTestedAt',
+  lastTestOk: 'lastTestOk',
+  lastTestMessage: 'lastTestMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IntegrationProviderScalarFieldEnum = (typeof IntegrationProviderScalarFieldEnum)[keyof typeof IntegrationProviderScalarFieldEnum]
+
+
+export const IntegrationSecretScalarFieldEnum = {
+  id: 'id',
+  providerId: 'providerId',
+  fieldKey: 'fieldKey',
+  ciphertext: 'ciphertext',
+  iv: 'iv',
+  authTag: 'authTag',
+  lastFour: 'lastFour',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type IntegrationSecretScalarFieldEnum = (typeof IntegrationSecretScalarFieldEnum)[keyof typeof IntegrationSecretScalarFieldEnum]
+
+
+export const IntegrationWebhookScalarFieldEnum = {
+  id: 'id',
+  providerId: 'providerId',
+  eventType: 'eventType',
+  path: 'path',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IntegrationWebhookScalarFieldEnum = (typeof IntegrationWebhookScalarFieldEnum)[keyof typeof IntegrationWebhookScalarFieldEnum]
+
+
 export const GuideScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -6045,6 +6317,9 @@ export type GlobalOmitConfig = {
   marketingCampaign?: Prisma.MarketingCampaignOmit
   pageAnalytics?: Prisma.PageAnalyticsOmit
   webhookEvent?: Prisma.WebhookEventOmit
+  integrationProvider?: Prisma.IntegrationProviderOmit
+  integrationSecret?: Prisma.IntegrationSecretOmit
+  integrationWebhook?: Prisma.IntegrationWebhookOmit
   guide?: Prisma.GuideOmit
   ferryRoute?: Prisma.FerryRouteOmit
   ferrySchedule?: Prisma.FerryScheduleOmit

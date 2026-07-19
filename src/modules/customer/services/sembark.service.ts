@@ -8,14 +8,17 @@ import type { Enquiry } from "../types/enquiry";
  * Pushes new leads and pulls packages/destinations.
  */
 export class SembarkService extends BaseService {
-  private readonly apiUrl: string;
-  private readonly apiKey: string;
-
   constructor(context: ServiceContext) {
     super(context);
-    // In a real environment, these would be loaded from context.config / environment variables
-    this.apiUrl = process.env.SEMBARK_API_URL || "https://api.sembark.com/v1";
-    this.apiKey = process.env.SEMBARK_API_KEY || "mock-sembark-key";
+  }
+
+  private async getCredentials(): Promise<{ apiUrl: string; apiKey: string }> {
+    const { getIntegrationConfigResolver } = await import("@/modules/integrations");
+    const cfg = await getIntegrationConfigResolver().getSembarkConfig();
+    return {
+      apiUrl: cfg.apiUrl || "https://api.sembark.com/v1",
+      apiKey: cfg.apiKey || "mock-sembark-key",
+    };
   }
 
   /**
@@ -25,29 +28,32 @@ export class SembarkService extends BaseService {
     this.logger.info("Pushing lead to Sembark", { enquiryId: enquiry.id });
 
     try {
-      // MOCK: Replace with actual `fetch` call to Sembark when API keys are available
-      /*
-      const response = await fetch(`${this.apiUrl}/leads`, {
+      const { apiUrl, apiKey } = await this.getCredentials();
+      if (apiKey === "mock-sembark-key") {
+        this.logger.info("Successfully pushed lead to Sembark (mock)", { enquiryId: enquiry.id, apiUrl });
+        return ok(undefined);
+      }
+
+      const response = await fetch(`${apiUrl}/leads`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${this.apiKey}`
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
           source: "TVV Travel OS",
-          name: enquiry.customerName || "Unknown",
-          email: enquiry.customerEmail || "",
-          phone: enquiry.customerPhone || "",
-          details: enquiry.details || "",
-          destination: enquiry.destinationId || "",
-        })
+          name: enquiry.name || "Unknown",
+          email: enquiry.email || "",
+          phone: enquiry.phone || "",
+          details: enquiry.message || "",
+          destination: enquiry.destinationSlug || "",
+        }),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Sembark API returned ${response.status}`);
       }
-      */
-      
+
       this.logger.info("Successfully pushed lead to Sembark", { enquiryId: enquiry.id });
       return ok(undefined);
     } catch (error) {

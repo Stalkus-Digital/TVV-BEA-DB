@@ -14,6 +14,14 @@ import { getEnquiryService } from "../module";
 import { prisma } from "@/shared/database/prisma-client";
 
 export async function submitEnquiryHandler(context: AuthContext | null, body: unknown): Promise<Result<Enquiry, AppError>> {
+  const recaptchaToken =
+    typeof body === "object" && body !== null
+      ? (body as Record<string, unknown>).recaptchaToken
+      : undefined;
+  const { verifyRecaptchaToken } = await import("@/modules/integrations/services/recaptcha.service");
+  const captcha = await verifyRecaptchaToken(recaptchaToken);
+  if (!captcha.ok) return captcha;
+
   const result = await getEnquiryService().submit(body, context?.userId ?? null);
   
   if (result.ok) {
@@ -31,10 +39,12 @@ export async function submitEnquiryHandler(context: AuthContext | null, body: un
         }
       });
       
-      // Mock Sembark Webhook Push
-      if (process.env.SEMBARK_API_KEY) {
-        console.log(`[SEMBARK SYNC] Pushed lead ${enquiry.id} to Sembark API.`);
-        // fetch('https://api.sembark.com/leads', { ... })
+      // Push to Sembark when configured (Integrations vault or env)
+      const { getIntegrationConfigResolver } = await import("@/modules/integrations");
+      const sembark = await getIntegrationConfigResolver().getSembarkConfig();
+      if (sembark.apiKey) {
+        const { getSembarkService } = await import("../module");
+        await getSembarkService().pushLead(enquiry);
       }
     } catch (err) {
       console.error("Failed to sync lead to CRM/Sembark", err);

@@ -1,27 +1,25 @@
 import { NextResponse } from "next/server";
-import { moduleRegistry } from "@/shared/di";
 import { SembarkService } from "@/modules/customer/services/sembark.service";
 import { createLogger } from "@/shared/logger";
+import { getIntegrationConfigResolver } from "@/modules/integrations";
 
 const logger = createLogger("api.webhooks.sembark");
 
 export async function POST(req: Request) {
   try {
-    // 1. Verify webhook signature (MOCK for now)
     const authHeader = req.headers.get("authorization");
-    if (authHeader !== `Bearer ${process.env.SEMBARK_WEBHOOK_SECRET || "mock-secret"}`) {
+    const cfg = await getIntegrationConfigResolver().getSembarkConfig();
+    const expected = cfg.webhookSecret || "mock-secret";
+    if (authHeader !== `Bearer ${expected}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const payload = await req.json();
     logger.info("Received Sembark Webhook", { event: payload.event });
 
-    // 2. Fetch the Sembark Service
-    // In a real environment, you'd resolve this from the DI container properly
     const sembarkService = new SembarkService({ logger: createLogger("customer.sembark") });
 
     if (payload.event === "inventory.updated") {
-      // Trigger a sync
       await sembarkService.syncInventory();
       return NextResponse.json({ success: true, message: "Inventory sync triggered" });
     }

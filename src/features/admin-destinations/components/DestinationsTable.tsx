@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, Archive, Eye, EyeOff } from "lucide-react";
+import { useMemo, useState } from "react";
 import { WidgetEmpty, WidgetError, WidgetLoading } from "@/features/admin-dashboard/components/WidgetState";
 import type { PaginatedDestinations } from "../types";
 import { formatDestinationDate } from "../utils";
@@ -20,6 +21,8 @@ interface DestinationsTableProps {
   isDeleting?: string | null;
   onTogglePublish?: (id: string, currentStatus: string) => void;
   isPublishing?: string | null;
+  onBulkDelete?: (ids: string[]) => void;
+  onBulkPublish?: (ids: string[], status: string) => void;
 }
 
 export function DestinationsTable({
@@ -36,7 +39,33 @@ export function DestinationsTable({
   isDeleting,
   onTogglePublish,
   isPublishing,
+  onBulkDelete,
+  onBulkPublish,
 }: DestinationsTableProps) {
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const allItemIds = useMemo(() => new Set(data?.items.map((item) => item.id) ?? []), [data?.items]);
+
+  const isAllSelected = selectedIds.size > 0 && selectedIds.size === allItemIds.size;
+  const isSomeSelected = selectedIds.size > 0 && !isAllSelected;
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(allItemIds));
+    }
+  };
+
+  const toggleSelectRow = (id: string) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setSelectedIds(newSet);
+  };
   if (isLoading && !data) {
     return <WidgetLoading label="Loading destinations…" />;
   }
@@ -51,10 +80,65 @@ export function DestinationsTable({
 
   return (
     <div className="flex flex-col h-full">
+      {/* Bulk actions bar */}
+      {selectedIds.size > 0 && (
+        <div className="bg-blue-50 border-b border-blue-200 px-4 py-3 flex items-center justify-between">
+          <span className="text-sm font-medium text-blue-900">
+            {selectedIds.size} destination{selectedIds.size !== 1 ? "s" : ""} selected
+          </span>
+          <div className="flex items-center gap-2">
+            {onBulkPublish && (
+              <>
+                <button
+                  onClick={() => onBulkPublish(Array.from(selectedIds), "ACTIVE")}
+                  className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors flex items-center gap-1"
+                >
+                  <Eye className="w-3 h-3" /> Publish
+                </button>
+                <button
+                  onClick={() => onBulkPublish(Array.from(selectedIds), "DRAFT")}
+                  className="px-3 py-1.5 text-xs font-medium bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors flex items-center gap-1"
+                >
+                  <EyeOff className="w-3 h-3" /> Unpublish
+                </button>
+              </>
+            )}
+            {onBulkDelete && (
+              <button
+                onClick={() => {
+                  if (confirm(`Delete ${selectedIds.size} destination(s)? This cannot be undone.`)) {
+                    onBulkDelete(Array.from(selectedIds));
+                    setSelectedIds(new Set());
+                  }
+                }}
+                className="px-3 py-1.5 text-xs font-medium bg-red-600 text-white rounded hover:bg-red-700 transition-colors flex items-center gap-1"
+              >
+                <Trash2 className="w-3 h-3" /> Delete
+              </button>
+            )}
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 rounded transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="overflow-x-auto flex-1">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 border-b border-border sticky top-0">
             <tr>
+              <th className="text-left font-medium px-4 py-3 w-10">
+                <input
+                  type="checkbox"
+                  checked={isAllSelected}
+                  onChange={toggleSelectAll}
+                  className="rounded"
+                  title={isAllSelected ? "Deselect all" : isSomeSelected ? "Select all" : "Select all"}
+                />
+              </th>
               <th className="text-left font-medium px-4 py-3">Name</th>
               <th className="text-left font-medium px-4 py-3">Country</th>
               <th className="text-left font-medium px-4 py-3">State</th>
@@ -70,10 +154,18 @@ export function DestinationsTable({
             {data.items.map((row) => (
               <tr
                 key={row.id}
-                onClick={() => onSelect(row.id)}
-                className="border-b border-border hover:bg-muted/30 cursor-pointer transition-colors"
+                className={`border-b border-border transition-colors ${selectedIds.has(row.id) ? "bg-blue-50" : "hover:bg-muted/30"}`}
               >
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 w-10">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(row.id)}
+                    onChange={() => toggleSelectRow(row.id)}
+                    className="rounded"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </td>
+                <td className="px-4 py-3 cursor-pointer" onClick={() => onSelect(row.id)}>
                   <div className="font-medium">{row.name}</div>
                   {row.isFeatured && (
                     <span className="text-[10px] uppercase tracking-wide text-amber-600 font-semibold">Featured</span>

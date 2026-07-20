@@ -9,6 +9,7 @@ import { uploadFiles } from "@/lib/admin-api/upload";
 import { useToast } from "../hooks/useToast";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { DestinationDetailSkeleton } from "./DestinationDetailSkeleton";
+import { DestinationMetadata } from "./DestinationMetadata";
 import { DestinationStatus, EDITABLE_DESTINATION_STATUSES } from "../constants";
 import {
   useAddFaqMutation,
@@ -311,6 +312,9 @@ function OverviewTab({
           </div>
         </div>
       )}
+
+      {/* Phase 4: Display metadata */}
+      <DestinationMetadata destination={destination} />
     </div>
   );
 }

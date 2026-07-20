@@ -64,6 +64,9 @@ function applySecurityHeaders(headers: Headers) {
   headers.set("X-Frame-Options", "DENY");
   headers.set("Content-Security-Policy", "default-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none'");
   headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  // SECURITY-002E: Additional defense-in-depth headers
+  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  headers.set("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=()");
 }
 
 export async function middleware(request: NextRequest) {

@@ -5,7 +5,26 @@ import { getQuoteService, getQuoteItemService } from "@/modules/quote";
 import { getInventoryService } from "@/modules/inventory";
 import { getPackageService } from "@/modules/package";
 import { getDestinationService } from "@/modules/destination";
+import { resolveAuthContext } from "@/modules/auth";
 import { isErr } from "@/shared/types";
+
+/**
+ * CUSTOMER-001: this route is public (anonymous checkout must work), so
+ * middleware never resolves/forwards an identity for it — read the
+ * Authorization header directly. A site-wide API key resolves through the
+ * same JWT-or-API-key path and comes back as `userId: "api-key:<id>"`,
+ * which is not a real customer — only a genuine JWT identity is attached
+ * as the booking's owner. Anonymous callers (no header, or a bare API key)
+ * correctly fall through to null, unchanged from before.
+ */
+async function resolveOptionalCustomerId(request: NextRequest): Promise<string | null> {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return null;
+  const result = await resolveAuthContext(authHeader, null);
+  if (isErr(result)) return null;
+  if (result.value.userId.startsWith("api-key:")) return null;
+  return result.value.userId;
+}
 
 function normalizeBookingType(raw: unknown): "PACKAGE" | "HOTEL" | "ACTIVITY" {
   const value = String(raw ?? "PACKAGE").toUpperCase();
@@ -67,6 +86,8 @@ export async function POST(request: NextRequest) {
   const adultsRaw = Number(payload.guests ?? 1);
   const adults = Number.isFinite(adultsRaw) && adultsRaw > 0 ? adultsRaw : 1;
 
+  const customerId = await resolveOptionalCustomerId(request);
+
   // 1. Create a draft Quote (Booking requires sourceQuoteId)
   const quoteInput = {
     title: `Website Booking - ${payload.contactName ?? "Guest"}`,
@@ -88,7 +109,7 @@ export async function POST(request: NextRequest) {
     internalNotes,
   };
 
-  const quoteResult = await getQuoteService().create(quoteInput);
+  const quoteResult = await getQuoteService().create(quoteInput, customerId);
   if (isErr(quoteResult)) return jsonError(quoteResult.error);
   const quote = quoteResult.value;
 

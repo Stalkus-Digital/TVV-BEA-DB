@@ -105,8 +105,11 @@ export function validateHotelDetails(input: unknown): Result<HotelDetails, Valid
     avgRate,
     slug,
     roomTypes,
+    bookingMode,
     ...rest
   } = input as Record<string, unknown>;
+
+  const parsedBookingMode = bookingMode === "INSTANT_BOOKING" ? "INSTANT_BOOKING" : "ENQUIRY";
 
   let parsedStarRating = typeof starRating === "string" ? Number(starRating) : (starRating ?? rating);
   if (parsedStarRating === undefined || parsedStarRating === null || parsedStarRating === 0 || Number.isNaN(parsedStarRating)) {
@@ -155,6 +158,7 @@ export function validateHotelDetails(input: unknown): Result<HotelDetails, Valid
     ...(avgRate !== undefined ? { avgRate: typeof avgRate === "string" ? Number(avgRate) : (avgRate as number) } : {}),
     ...(typeof slug === "string" && slug.trim() ? { slug: slug.trim() } : {}),
     ...(parsedRoomTypes !== undefined ? { roomTypes: parsedRoomTypes } : {}),
+    bookingMode: parsedBookingMode,
     ...rest,
   });
 }

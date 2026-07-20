@@ -77,6 +77,10 @@ export async function POST(req: Request) {
       currency: options.currency,
       amountDue,
       keyId: creds.keyId,
+      // PAYMENT-UI-001: lets an anonymous payment-link visitor (no session,
+      // no /api/me/* access) see what they're paying for before/while paying.
+      bookingNumber: booking.bookingNumber,
+      status: booking.status,
     });
   } catch (error) {
     console.error("Razorpay Order Error:", error);

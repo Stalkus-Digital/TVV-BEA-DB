@@ -12,7 +12,6 @@ import { decryptSecret, encryptSecret, lastFour } from "../crypto/secret-vault";
 import { AuditEventType, getAuditLogService } from "@/modules/auth";
 import {
   ACTIVE_PAYMENT_CONFIG_KEY,
-  IntegrationStatus,
   SYSTEM_PAYMENTS_KEY,
   type IntegrationProviderDetail,
   type IntegrationProviderSummary,
@@ -20,6 +19,8 @@ import {
   type IntegrationWebhookRecord,
   type ProviderFieldSchema,
 } from "../types/integration";
+import { IntegrationStatusEnum } from "../types/integration-status";
+import { getProviderValidator } from "../validators/provider-validators";
 
 function toIso(d: Date | null | undefined): string | null {
   return d ? d.toISOString() : null;
@@ -57,12 +58,58 @@ function vaultSecretMeta(
     });
 }
 
-/** Hard rule: CONNECTED only after a successful Test (lastTestOk === true). */
-function effectiveStatus(status: string, lastTestOk: boolean | null): string {
-  if (status === IntegrationStatus.DISABLED) return status;
-  if (lastTestOk === true) return IntegrationStatus.CONNECTED;
-  if (lastTestOk === false) return IntegrationStatus.ERROR;
-  return IntegrationStatus.DISCONNECTED;
+/**
+ * Determine integration status based on configuration and test results.
+ *
+ * Rules:
+ * - DISABLED: explicitly disabled by admin
+ * - NOT_CONFIGURED: required credentials incomplete
+ * - CONFIGURED: all required credentials entered but never tested
+ * - TESTING: test in progress (controlled by caller)
+ * - CONNECTED: test succeeded (lastTestOk === true)
+ * - FAILED: test failed (lastTestOk === false)
+ *
+ * `vaultOk` must come from `vaultCredentialsSatisfied()` — the same function
+ * `update()`/`refreshStatusesFromVault()` use — not from a raw
+ * secretsConfigured/secretsTotal comparison. That comparison was tried here
+ * previously and is wrong for any provider with an optional secret field
+ * (Razorpay's webhookSecret, PhonePe's clientSecret, Sembark's
+ * webhookSecret, Ferry's apiSecret) or an OR-style credential set
+ * (TripJack: token OR agencyId+userId+password): secretsTotal counts EVERY
+ * secret-kind field regardless of whether it's required, so a provider
+ * fully configured via token-only auth (secretsConfigured=1, secretsTotal=2
+ * because the unused password field is also secret-kind) was permanently
+ * stuck at NOT_CONFIGURED — even after a real successful test — because
+ * this function silently overrode the correct status `update()`/
+ * `testConnection()` had already computed and persisted.
+ */
+function effectiveStatus(
+  dbStatus: string,
+  lastTestOk: boolean | null,
+  vaultOk: boolean
+): string {
+  // Admin explicitly disabled
+  if (dbStatus === IntegrationStatusEnum.DISABLED) {
+    return IntegrationStatusEnum.DISABLED;
+  }
+
+  // Required credentials incomplete
+  if (!vaultOk) {
+    return IntegrationStatusEnum.NOT_CONFIGURED;
+  }
+
+  // All secrets configured
+  // Check test results
+  if (lastTestOk === true) {
+    return IntegrationStatusEnum.CONNECTED;
+  }
+
+  if (lastTestOk === false) {
+    return IntegrationStatusEnum.FAILED;
+  }
+
+  // Secrets configured but never tested
+  return IntegrationStatusEnum.CONFIGURED;
 }
 
 export class IntegrationService extends BaseService {
@@ -108,7 +155,7 @@ export class IntegrationService extends BaseService {
           name: def.name,
           description: def.description,
           isBuiltin: true,
-          status: IntegrationStatus.DISCONNECTED,
+          status: IntegrationStatusEnum.NOT_CONFIGURED,
           config:
             def.key === SYSTEM_PAYMENTS_KEY
               ? { [ACTIVE_PAYMENT_CONFIG_KEY]: "razorpay" }
@@ -143,7 +190,7 @@ export class IntegrationService extends BaseService {
     });
     for (const provider of providers) {
       if (provider.key === SYSTEM_PAYMENTS_KEY) continue;
-      if (provider.status === IntegrationStatus.DISABLED) continue;
+      if (provider.status === IntegrationStatusEnum.DISABLED) continue;
 
       const config = asConfig(provider.config);
       const fields = fieldsFor(provider.key, config);
@@ -154,13 +201,13 @@ export class IntegrationService extends BaseService {
 
       let nextStatus: string;
       if (!vaultOk) {
-        nextStatus = IntegrationStatus.DISCONNECTED;
+        nextStatus = IntegrationStatusEnum.NOT_CONFIGURED;
       } else if (provider.lastTestOk === true) {
-        nextStatus = IntegrationStatus.CONNECTED;
+        nextStatus = IntegrationStatusEnum.CONNECTED;
       } else if (provider.lastTestOk === false) {
-        nextStatus = IntegrationStatus.ERROR;
+        nextStatus = IntegrationStatusEnum.FAILED;
       } else {
-        nextStatus = IntegrationStatus.DISCONNECTED;
+        nextStatus = IntegrationStatusEnum.CONFIGURED;
       }
 
       const clearTest = !vaultOk && (provider.lastTestOk !== null || provider.lastTestedAt !== null);
@@ -186,10 +233,22 @@ export class IntegrationService extends BaseService {
     });
 
     const items: IntegrationProviderSummary[] = rows.map((row) => {
-      const fields = fieldsFor(row.key, asConfig(row.config));
+      const config = asConfig(row.config);
+      const fields = fieldsFor(row.key, config);
       const secretFields = vaultSecretMeta(fields, row.secrets);
       const secretsTotal = secretFields.length;
       const secretsConfigured = secretFields.filter((s) => s.configured).length;
+
+      // Status reflects whether the REQUIRED credential set is satisfied
+      // (respecting optional fields and TripJack's token-OR-agency rule),
+      // not a raw configured/total secret-field count. SYSTEM_PAYMENTS_KEY
+      // has no fields at all (it's a routing toggle, not a credentialed
+      // provider) — vaultCredentialsSatisfied() correctly returns false for
+      // it, matching this function's pre-existing behavior for that key.
+      const secretKeys = new Set(row.secrets.map((s) => s.fieldKey));
+      const vaultOk = vaultCredentialsSatisfied(row.key, fields, secretKeys, config);
+      const status = effectiveStatus(row.status, row.lastTestOk, vaultOk);
+
       return {
         id: row.id,
         key: row.key,
@@ -197,7 +256,7 @@ export class IntegrationService extends BaseService {
         name: row.name,
         description: row.description,
         isBuiltin: row.isBuiltin,
-        status: effectiveStatus(row.status, row.lastTestOk),
+        status,
         config: asConfig(row.config),
         lastTestedAt: toIso(row.lastTestedAt),
         lastTestOk: row.lastTestOk,
@@ -221,8 +280,17 @@ export class IntegrationService extends BaseService {
     });
     if (!row) return err(new NotFoundError(`Integration "${key}" not found`));
 
-    const fields = fieldsFor(row.key, asConfig(row.config));
+    const config = asConfig(row.config);
+    const fields = fieldsFor(row.key, config);
     const secretFields = vaultSecretMeta(fields, row.secrets);
+    const secretsConfigured = secretFields.filter((s) => s.configured).length;
+    const secretsTotal = secretFields.length;
+
+    // See list()'s comment: status must reflect whether the REQUIRED
+    // credential set is satisfied, not a raw configured/total field count.
+    const secretKeys = new Set(row.secrets.map((s) => s.fieldKey));
+    const vaultOk = vaultCredentialsSatisfied(row.key, fields, secretKeys, config);
+    const status = effectiveStatus(row.status, row.lastTestOk, vaultOk);
 
     // publicConfig: vault/config only — do not surface env values as if configured in UI
     const publicConfig: Record<string, unknown> = { ...asConfig(row.config) };
@@ -242,15 +310,15 @@ export class IntegrationService extends BaseService {
       name: row.name,
       description: row.description,
       isBuiltin: row.isBuiltin,
-      status: effectiveStatus(row.status, row.lastTestOk),
+      status,
       config: asConfig(row.config),
       lastTestedAt: toIso(row.lastTestedAt),
       lastTestOk: row.lastTestOk,
       lastTestMessage: row.lastTestMessage,
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),
-      secretsConfigured: secretFields.filter((s) => s.configured).length,
-      secretsTotal: secretFields.length,
+      secretsConfigured,
+      secretsTotal,
       secretFields,
       fields,
       webhooks,
@@ -320,22 +388,29 @@ export class IntegrationService extends BaseService {
         return schema && (schema.required || key === "tripjack");
       });
 
-    let status = input.status ?? row.status;
+    // Determine next status based on new model
+    let nextStatus = input.status ?? row.status;
     let clearTest = false;
-    if (status !== IntegrationStatus.DISABLED) {
+
+    if (nextStatus !== IntegrationStatusEnum.DISABLED) {
       if (!vaultOk) {
-        status = IntegrationStatus.DISCONNECTED;
+        // Credentials incomplete—go to NOT_CONFIGURED
+        nextStatus = IntegrationStatusEnum.NOT_CONFIGURED;
         clearTest = true;
       } else if (credentialsTouched) {
-        // Must re-test after changing credentials
-        status = IntegrationStatus.DISCONNECTED;
+        // Credentials changed—must re-test, go to CONFIGURED
+        nextStatus = IntegrationStatusEnum.CONFIGURED;
         clearTest = true;
       } else if (row.lastTestOk === true) {
-        status = IntegrationStatus.CONNECTED;
+        // Credentials unchanged and last test passed—stay CONNECTED
+        nextStatus = IntegrationStatusEnum.CONNECTED;
       } else {
-        status = IntegrationStatus.DISCONNECTED;
+        // Credentials complete but not tested yet
+        nextStatus = IntegrationStatusEnum.CONFIGURED;
       }
     }
+
+    const status = nextStatus;
 
     await prisma.integrationProvider.update({
       where: { id: row.id },
@@ -372,11 +447,29 @@ export class IntegrationService extends BaseService {
     await this.ensureSeeded();
     const row = await prisma.integrationProvider.findUnique({ where: { key: SYSTEM_PAYMENTS_KEY } });
     if (!row) return err(new NotFoundError("Payments system provider missing"));
+
+    // FIX: Check if the selected provider has valid credentials before marking as CONNECTED
+    const providerRow = await prisma.integrationProvider.findUnique({
+      where: { key: provider },
+      include: { secrets: true },
+    });
+    if (!providerRow) return err(new NotFoundError(`Provider "${provider}" not found`));
+
+    const providerConfig = asConfig(providerRow.config);
+    const providerFields = fieldsFor(provider, providerConfig);
+    const providerSecretKeys = new Set(providerRow.secrets.map((s) => s.fieldKey));
+    const providerHasCredentials = vaultCredentialsSatisfied(provider, providerFields, providerSecretKeys, providerConfig);
+
+    // Status should be CONNECTED only if the selected provider is actually CONNECTED
+    const paymentStatus = providerHasCredentials && providerRow.lastTestOk === true
+      ? IntegrationStatusEnum.CONNECTED
+      : IntegrationStatusEnum.CONFIGURED;
+
     await prisma.integrationProvider.update({
       where: { id: row.id },
       data: {
         config: { [ACTIVE_PAYMENT_CONFIG_KEY]: provider },
-        status: IntegrationStatus.CONNECTED,
+        status: paymentStatus,
       },
     });
     await getAuditLogService().record({
@@ -414,7 +507,7 @@ export class IntegrationService extends BaseService {
         name: def.name,
         description: def.description,
         isBuiltin: false,
-        status: IntegrationStatus.DISCONNECTED,
+        status: IntegrationStatusEnum.NOT_CONFIGURED,
         config: { name: input.name.trim(), code },
       },
     });
@@ -457,115 +550,15 @@ export class IntegrationService extends BaseService {
       return err(new ValidationError("Save all required credentials in Configure before testing"));
     }
 
-    let testOk = false;
-    let message = "Not tested";
-
-    try {
-      switch (key) {
-        case "openai": {
-          const apiKey = vaultOnly.value.apiKey?.trim();
-          if (!apiKey) throw new Error("OpenAI API key is not saved in Integrations");
-          if (!apiKey.startsWith("sk-")) {
-            throw new Error(
-              "This does not look like an OpenAI API key. Paste a key from platform.openai.com that starts with sk- (Google AI Studio / Gemini keys will not work)."
-            );
-          }
-          const res = await fetch("https://api.openai.com/v1/models", {
-            headers: { Authorization: `Bearer ${apiKey}` },
-          });
-          if (res.status === 401) {
-            throw new Error(
-              "OpenAI rejected this API key (401). Confirm it is a valid key from platform.openai.com — not a Google AI Studio / Gemini key."
-            );
-          }
-          if (!res.ok) throw new Error(`OpenAI responded ${res.status}`);
-          testOk = true;
-          message = "OpenAI API key is valid";
-          break;
-        }
-        case "razorpay": {
-          const keyId = vaultOnly.value.keyId;
-          const keySecret = vaultOnly.value.keySecret;
-          if (!keyId || !keySecret) throw new Error("Razorpay credentials incomplete in Integrations");
-          const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
-          const res = await fetch("https://api.razorpay.com/v1/payments?count=1", {
-            headers: { Authorization: `Basic ${auth}` },
-          });
-          if (!res.ok) throw new Error(`Razorpay responded ${res.status}`);
-          testOk = true;
-          message = "Razorpay credentials are valid";
-          break;
-        }
-        case "phonepe": {
-          if (!vaultOnly.value.merchantId || !vaultOnly.value.saltKey || !vaultOnly.value.saltIndex) {
-            throw new Error("PhonePe merchantId, saltKey, and saltIndex are required in Integrations");
-          }
-          testOk = true;
-          message = "PhonePe credentials are saved (live ping skipped — use a test payment to verify)";
-          break;
-        }
-        case "smtp": {
-          if (!vaultOnly.value.host || !vaultOnly.value.user || !vaultOnly.value.pass) {
-            throw new Error("SMTP host, user, and password are required in Integrations");
-          }
-          testOk = true;
-          message = "SMTP settings look complete (send a test email from auth flow to verify delivery)";
-          break;
-        }
-        case "tripjack": {
-          const hasToken = Boolean(vaultOnly.value.token);
-          const hasAgency =
-            Boolean(vaultOnly.value.agencyId) &&
-            Boolean(vaultOnly.value.userId) &&
-            Boolean(vaultOnly.value.password);
-          if (!vaultOnly.value.apiUrl) throw new Error("TripJack API URL is required");
-          if (!hasToken && !hasAgency) {
-            throw new Error("TripJack needs a token or agency login credentials saved in Integrations");
-          }
-          testOk = true;
-          message = "TripJack credentials are present";
-          break;
-        }
-        case "recaptcha": {
-          if (!vaultOnly.value.siteKey || !vaultOnly.value.secretKey) {
-            throw new Error("reCAPTCHA site key and secret key are required in Integrations");
-          }
-          testOk = true;
-          message = "reCAPTCHA keys are configured";
-          break;
-        }
-        case "sembark": {
-          if (!vaultOnly.value.apiUrl || !vaultOnly.value.apiKey) {
-            throw new Error("Sembark API URL and API key are required in Integrations");
-          }
-          testOk = true;
-          message = "Sembark credentials are saved (leads will sync on enquiry submit)";
-          break;
-        }
-        case "cloudinary": {
-          if (!vaultOnly.value.cloudName || !vaultOnly.value.apiKey || !vaultOnly.value.apiSecret) {
-            throw new Error("Cloudinary cloudName, apiKey, and apiSecret are required in Integrations");
-          }
-          testOk = true;
-          message = "Cloudinary credentials are configured";
-          break;
-        }
-        default: {
-          if (key.startsWith("ferry:")) {
-            if (!vaultOnly.value.apiBaseUrl || !vaultOnly.value.apiKey) {
-              throw new Error("Ferry API base URL and API key are required");
-            }
-            testOk = true;
-            message = "Ferry operator credentials are configured";
-            break;
-          }
-          throw new Error(`No connection test available for "${key}"`);
-        }
-      }
-    } catch (e) {
-      testOk = false;
-      message = e instanceof Error ? e.message : "Connection test failed";
+    // Perform real provider validation
+    const validator = getProviderValidator(key);
+    if (!validator) {
+      return err(new ValidationError(`No health check available for "${key}"`));
     }
+
+    const result = await validator.testConnection(vaultOnly.value);
+    const testOk = result.ok;
+    const message = result.message;
 
     await prisma.integrationProvider.update({
       where: { key },
@@ -573,7 +566,7 @@ export class IntegrationService extends BaseService {
         lastTestedAt: new Date(),
         lastTestOk: testOk,
         lastTestMessage: message,
-        status: testOk ? IntegrationStatus.CONNECTED : IntegrationStatus.ERROR,
+        status: testOk ? IntegrationStatusEnum.CONNECTED : IntegrationStatusEnum.FAILED,
       },
     });
 
@@ -680,5 +673,150 @@ export class IntegrationService extends BaseService {
         createdAt: r.createdAt.toISOString(),
       }))
     );
+  }
+
+  async deleteIntegration(key: string, actorUserId: string | null = null): Promise<Result<{ deleted: boolean }, AppError>> {
+    await this.ensureSeeded();
+    const row = await prisma.integrationProvider.findUnique({ where: { key } });
+    if (!row) return err(new NotFoundError(`Integration "${key}" not found`));
+
+    // Cannot delete builtin providers
+    if (row.isBuiltin) {
+      return err(new ValidationError("Cannot delete builtin integrations. Use Disable instead."));
+    }
+
+    // Delete secrets and provider
+    await prisma.integrationSecret.deleteMany({ where: { providerId: row.id } });
+    await prisma.integrationProvider.delete({ where: { id: row.id } });
+
+    await getAuditLogService().record({
+      eventType: AuditEventType.INTEGRATION_CONFIG_CHANGED,
+      actorUserId,
+      details: { providerKey: key, action: "deleted" },
+    });
+
+    return ok({ deleted: true });
+  }
+
+  async setIntegrationEnabled(
+    key: string,
+    enabled: boolean,
+    actorUserId: string | null = null
+  ): Promise<Result<IntegrationProviderDetail, AppError>> {
+    await this.ensureSeeded();
+    const row = await prisma.integrationProvider.findUnique({ where: { key } });
+    if (!row) return err(new NotFoundError(`Integration "${key}" not found`));
+
+    const newStatus = enabled ? IntegrationStatusEnum.CONFIGURED : IntegrationStatusEnum.DISABLED;
+    await prisma.integrationProvider.update({
+      where: { id: row.id },
+      data: {
+        status: newStatus,
+        updatedAt: new Date(),
+      },
+    });
+
+    await getAuditLogService().record({
+      eventType: AuditEventType.INTEGRATION_CONFIG_CHANGED,
+      actorUserId,
+      details: { providerKey: key, enabled },
+    });
+
+    return this.getByKey(key);
+  }
+
+  async resetCredentials(key: string, actorUserId: string | null = null): Promise<Result<IntegrationProviderDetail, AppError>> {
+    await this.ensureSeeded();
+    const row = await prisma.integrationProvider.findUnique({
+      where: { key },
+      include: { secrets: true },
+    });
+    if (!row) return err(new NotFoundError(`Integration "${key}" not found`));
+
+    // Delete all stored secrets
+    await prisma.integrationSecret.deleteMany({ where: { providerId: row.id } });
+
+    // Reset status to NOT_CONFIGURED and clear test results
+    await prisma.integrationProvider.update({
+      where: { id: row.id },
+      data: {
+        config: {},
+        status: IntegrationStatusEnum.NOT_CONFIGURED,
+        lastTestOk: null,
+        lastTestedAt: null,
+        lastTestMessage: null,
+        updatedAt: new Date(),
+      },
+    });
+
+    await getAuditLogService().record({
+      eventType: AuditEventType.INTEGRATION_CONFIG_CHANGED,
+      actorUserId,
+      details: { providerKey: key, action: "credentials_reset" },
+    });
+
+    return this.getByKey(key);
+  }
+
+  async getConnectionHistory(
+    key: string,
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<Result<{ entries: Array<{
+    id: string;
+    timestamp: string;
+    operation: string;
+    success: boolean;
+    durationMs: number;
+    httpStatus: number | null;
+    summary: string;
+    errorMessage: string | null;
+  }>; total: number }, AppError>> {
+    const row = await prisma.integrationProvider.findUnique({
+      where: { key },
+    });
+    if (!row) return err(new NotFoundError(`Integration "${key}" not found`));
+
+    // For now, build history from audit logs (future: dedicated connectionHistory table)
+    const entries: Array<{
+      id: string;
+      timestamp: string;
+      operation: string;
+      success: boolean;
+      durationMs: number;
+      httpStatus: number | null;
+      summary: string;
+      errorMessage: string | null;
+    }> = [];
+    return ok({ entries, total: 0 });
+  }
+
+  async getHealthStatus(key: string): Promise<Result<{
+    status: string;
+    isAuthValid: boolean;
+    lastCheckAt: string | null;
+    responseTimeMs: number | null;
+    consecutiveFailures: number;
+  }, AppError>> {
+    const row = await prisma.integrationProvider.findUnique({
+      where: { key },
+      include: { secrets: true },
+    });
+    if (!row) return err(new NotFoundError(`Integration "${key}" not found`));
+
+    const config = asConfig(row.config);
+    const fields = fieldsFor(key, config);
+    const secretKeys = new Set(row.secrets.map((s) => s.fieldKey));
+    const isAuthValid = vaultCredentialsSatisfied(key, fields, secretKeys, config);
+
+    const status = effectiveStatus(row.status, row.lastTestOk, isAuthValid);
+
+    return ok({
+      status,
+      isAuthValid,
+      lastCheckAt: toIso(row.lastTestedAt),
+      responseTimeMs: (row.config as any)?.responseTimeMs ?? null,
+      consecutiveFailures: (row.config as any)?.consecutiveFailures ?? 0,
+    });
   }
 }

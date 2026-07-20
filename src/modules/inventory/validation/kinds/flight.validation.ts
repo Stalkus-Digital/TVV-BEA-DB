@@ -9,8 +9,6 @@ export function validateFlightDetails(input: unknown): Result<FlightRouteDetails
   const rawInput = input as Record<string, unknown>;
   const rawOrigin = rawInput.originAirportCode ?? rawInput.origin;
   const rawDest = rawInput.destinationAirportCode ?? rawInput.destination;
-  
-  console.log("flight validation parsed origin/dest:", rawOrigin, rawDest);
 
   if (typeof rawOrigin !== "string" || rawOrigin.trim().length !== 3) {
     return err(new ValidationError(`origin (${rawOrigin}) must be a 3-letter code`));

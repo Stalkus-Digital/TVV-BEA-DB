@@ -180,16 +180,39 @@ export class AuthService extends BaseService {
     const revoked = await this.sessionService.revoke(sessionId);
     if (isErr(revoked)) return revoked;
 
-    const sessionTokens = await this.refreshTokens.findBySession(sessionId);
-    if (!isErr(sessionTokens)) {
-      for (const token of sessionTokens.value) {
-        if (!token.revokedAt) await this.refreshTokens.update(token.id, { revokedAt: new Date().toISOString() });
-      }
-    }
+    await this.revokeSessionRefreshTokens(sessionId);
 
     await this.auditLogService.record({ eventType: AuditEventType.LOGOUT, actorUserId });
     this.logger.info("User logged out", { sessionId, actorUserId });
     return ok(undefined);
+  }
+
+  /** Revokes every refresh token issued for one session — the token half of ending that session. */
+  private async revokeSessionRefreshTokens(sessionId: string): Promise<void> {
+    const sessionTokens = await this.refreshTokens.findBySession(sessionId);
+    if (isErr(sessionTokens)) return;
+    for (const token of sessionTokens.value) {
+      if (!token.revokedAt) await this.refreshTokens.update(token.id, { revokedAt: new Date().toISOString() });
+    }
+  }
+
+  /**
+   * SECURITY-002A: a password change/reset should invalidate every existing
+   * session, not just fix the credential — otherwise a session an attacker
+   * already holds (the exact scenario a reset is often responding to)
+   * survives the reset. Revokes all of the user's sessions and their
+   * refresh tokens; the now-stale access token any of those sessions
+   * already hold still expires naturally (max accessTokenTtlSeconds) since
+   * that is a stateless JWT — see this class's other session docs.
+   */
+  private async revokeAllSessionsForUser(userId: string): Promise<void> {
+    const sessions = await this.sessionService.listByUser(userId);
+    if (isErr(sessions)) return;
+    for (const session of sessions.value) {
+      if (session.revokedAt) continue;
+      await this.sessionService.revoke(session.id);
+      await this.revokeSessionRefreshTokens(session.id);
+    }
   }
 
   /** Rotates the refresh token on every use; reuse of an already-rotated-out token revokes the entire session (theft mitigation). */
@@ -243,6 +266,7 @@ export class AuthService extends BaseService {
 
     const passwordHash = await hashPassword(validated.value.newPassword);
     await this.users.update(userId, { passwordHash, updatedAt: new Date().toISOString() });
+    await this.revokeAllSessionsForUser(userId);
     this.logger.info("Password changed", { userId });
     return ok(undefined);
   }
@@ -269,9 +293,11 @@ export class AuthService extends BaseService {
       const resetUrl = `${this.config.get("frontendUrl").replace(/\/$/, "")}/reset-password?token=${encodeURIComponent(rawToken)}`;
       const sent = await this.emailService.sendPasswordReset(userResult.value.email, resetUrl);
       if (isErr(sent)) {
-        this.logger.warn("Password reset email failed to send — token logged for recovery", {
+        // Never log the raw token (it is a live credential) — the reset record's own id is
+        // enough to locate/support the user without reproducing a usable secret in logs.
+        this.logger.warn("Password reset email failed to send", {
           userId: userResult.value.id,
-          resetToken: rawToken,
+          resetId: created.value.id,
         });
       }
     }
@@ -299,6 +325,7 @@ export class AuthService extends BaseService {
     const passwordHash = await hashPassword(validated.value.newPassword);
     await this.users.update(reset.userId, { passwordHash, updatedAt: new Date().toISOString() });
     await this.passwordResets.update(reset.id, { usedAt: new Date().toISOString() });
+    await this.revokeAllSessionsForUser(reset.userId);
     await this.auditLogService.record({ eventType: AuditEventType.PASSWORD_RESET, actorUserId: reset.userId });
 
     this.logger.info("Password reset completed", { userId: reset.userId });
@@ -373,9 +400,11 @@ export class AuthService extends BaseService {
     const verifyUrl = `${this.config.get("frontendUrl").replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(rawToken)}`;
     const sent = await this.emailService.sendEmailVerification(user.email, verifyUrl);
     if (isErr(sent)) {
-      this.logger.warn("Verification email failed to send — token logged for recovery", {
+      // Never log the raw token (it is a live credential) — the verification record's own id
+      // is enough to locate/support the user without reproducing a usable secret in logs.
+      this.logger.warn("Verification email failed to send", {
         userId: user.id,
-        verificationToken: rawToken,
+        verificationId: created.value.id,
       });
     }
   }

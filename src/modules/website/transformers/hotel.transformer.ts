@@ -103,5 +103,6 @@ export function toHotelDetail(
     rules: details.rules?.trim() || null,
     gallery,
     roomTypes: roomTypes.map(toRoomDTO),
+    bookingMode: details.bookingMode === "INSTANT_BOOKING" ? "INSTANT_BOOKING" : "ENQUIRY",
   };
 }

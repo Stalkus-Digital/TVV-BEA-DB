@@ -8,6 +8,12 @@
  * marketing/* and /api/admin/ai/* had no dedicated resource and fell back
  * to "any authenticated identity" under the fail-closed default in
  * middleware/route-permission-map.ts.
+ *
+ * SECURITY-002B added CUSTOMERS, REPORTS, STORAGE — the last three
+ * /api/admin/* surfaces (customer PII export, dashboard KPIs, file
+ * storage listing/management) that had no dedicated resource and were
+ * reachable by any authenticated identity, including a plain CUSTOMER
+ * account. See route-permission-map.ts for what each now covers.
  */
 export const PermissionResource = {
   INVENTORY: "INVENTORY",
@@ -21,6 +27,9 @@ export const PermissionResource = {
   SETTINGS: "SETTINGS",
   MARKETING: "MARKETING",
   AI: "AI",
+  CUSTOMERS: "CUSTOMERS",
+  REPORTS: "REPORTS",
+  STORAGE: "STORAGE",
 } as const;
 
 export type PermissionResource = (typeof PermissionResource)[keyof typeof PermissionResource];

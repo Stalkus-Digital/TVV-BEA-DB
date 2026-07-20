@@ -90,6 +90,7 @@ export function HotelForm() {
   const [hotelImages, setHotelImages] = useState<(File | string)[]>([]);
   const [existingSlug, setExistingSlug] = useState<string | null>(null);
   const [roomTypes, setRoomTypes] = useState<HotelRoomDraft[]>([]);
+  const [bookingMode, setBookingMode] = useState<"ENQUIRY" | "INSTANT_BOOKING">("ENQUIRY");
 
   const [isLoading, setIsLoading] = useState(!!editId);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -109,6 +110,7 @@ export function HotelForm() {
             setPolicies(data.details?.policies || "");
             setRules(data.details?.rules || "");
             setExistingSlug(data.details?.slug || null);
+            setBookingMode(data.details?.bookingMode === "INSTANT_BOOKING" ? "INSTANT_BOOKING" : "ENQUIRY");
             setBannerImage(data.details?.bannerImage ? [data.details.bannerImage] : []);
             setHotelImages(Array.isArray(data.details?.images) ? data.details.images : []);
             const rooms = Array.isArray(data.details?.roomTypes) ? data.details.roomTypes : [];
@@ -183,6 +185,7 @@ export function HotelForm() {
         bannerImage: uploadedBannerUrls[0] ?? existingBanner,
         images: orderedHotelImages.length > 0 ? orderedHotelImages : existingHotelUrls,
         roomTypes: resolvedRooms,
+        bookingMode,
       };
 
       const payload = {
@@ -275,6 +278,33 @@ export function HotelForm() {
                 <div className="pt-1">
                   <RatingComponent rating={rating} onChange={setRating} />
                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-2 rounded-xl border border-border bg-white p-5">
+              <label className="text-sm font-medium">Booking Mode</label>
+              <p className="text-xs text-muted-foreground">
+                Enquiry: guests submit a request and our team quotes them. Instant Booking: guests book and pay online immediately, same as Activities.
+              </p>
+              <div className="flex gap-6 pt-1">
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="bookingMode"
+                    checked={bookingMode === "ENQUIRY"}
+                    onChange={() => setBookingMode("ENQUIRY")}
+                  />
+                  Enquiry
+                </label>
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="bookingMode"
+                    checked={bookingMode === "INSTANT_BOOKING"}
+                    onChange={() => setBookingMode("INSTANT_BOOKING")}
+                  />
+                  Instant Booking
+                </label>
               </div>
             </div>
 

@@ -1,5 +1,6 @@
 import type { Logger, LogLevel, LogMeta } from "./logger.types";
 import { emitToLogSink } from "./log-sink";
+import { redactSensitive } from "./redact";
 
 const LEVEL_ORDER: Record<LogLevel, number> = { debug: 10, info: 20, warn: 30, error: 40 };
 
@@ -46,7 +47,7 @@ export class ConsoleLogger implements Logger {
       level,
       scope: this.scope,
       message,
-      ...(meta ? { meta } : {}),
+      ...(meta ? { meta: redactSensitive(meta) } : {}),
     };
     const line = JSON.stringify(entry);
     if (level === "error") console.error(line);

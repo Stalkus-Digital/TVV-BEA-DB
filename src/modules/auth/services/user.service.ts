@@ -1,6 +1,6 @@
 import { err, isErr, ok, type PaginatedResult, type Result } from "@/shared/types";
 import { BaseService, type ServiceContext } from "@/shared/services";
-import { ConflictError, NotFoundError, type AppError } from "@/shared/errors";
+import { ConflictError, ForbiddenError, NotFoundError, type AppError } from "@/shared/errors";
 import { AuditEventType } from "../types/audit-log";
 import type { User } from "../types/user";
 import type { UserListFilter, UserRepository } from "../repositories/user.repository";
@@ -8,6 +8,7 @@ import { validateRegister } from "../validation/auth.validation";
 import { validateUpdateUser } from "../validation/user.validation";
 import { hashPassword } from "./password.service";
 import type { RoleService } from "../roles/role.service";
+import { canAssignRole } from "../roles/role-hierarchy";
 import type { AuditLogService } from "../audit/audit-log.service";
 
 /**
@@ -90,9 +91,31 @@ export class UserService extends BaseService {
     return this.users.update(id, { isActive: false, updatedAt: new Date().toISOString() });
   }
 
+  /**
+   * SECURITY-002B: validated here, not only via the USERS:CREATE permission
+   * gate on the route — that gate says the actor may call this endpoint at
+   * all, not which role they're allowed to hand out. An actor may only
+   * assign a role at or below the highest rank they themselves hold (see
+   * roles/role-hierarchy.ts), so e.g. an ADMIN can never grant SUPER_ADMIN,
+   * including to themselves.
+   */
   async assignRole(userId: string, roleId: string, actorUserId: string): Promise<Result<void, AppError>> {
     const user = await this.getById(userId);
     if (isErr(user)) return user;
+
+    const targetRole = await this.roleService.getById(roleId);
+    if (isErr(targetRole)) return targetRole;
+
+    const actorRoles = await this.roleService.getRolesForUser(actorUserId);
+    if (isErr(actorRoles)) return actorRoles;
+
+    if (!canAssignRole(actorRoles.value.map((r) => r.name), targetRole.value.name)) {
+      return err(
+        new ForbiddenError(
+          `Cannot assign role "${targetRole.value.name}" — it outranks every role you hold. You may only assign roles at or below your own highest authority.`
+        )
+      );
+    }
 
     const result = await this.roleService.assignToUser(userId, roleId);
     if (isErr(result)) return result;
@@ -101,12 +124,24 @@ export class UserService extends BaseService {
     return ok(undefined);
   }
 
+  /** Same authority check as assignRole() — stripping a role someone holds is the same class of privilege manipulation as granting one. */
   async revokeRole(userId: string, roleId: string, actorUserId: string): Promise<Result<void, AppError>> {
     const user = await this.getById(userId);
     if (isErr(user)) return user;
 
     const role = await this.roleService.getById(roleId);
     if (isErr(role)) return role;
+
+    const actorRoles = await this.roleService.getRolesForUser(actorUserId);
+    if (isErr(actorRoles)) return actorRoles;
+
+    if (!canAssignRole(actorRoles.value.map((r) => r.name), role.value.name)) {
+      return err(
+        new ForbiddenError(
+          `Cannot revoke role "${role.value.name}" — it outranks every role you hold.`
+        )
+      );
+    }
 
     const result = await this.roleService.revokeFromUser(userId, roleId);
     if (isErr(result)) return result;

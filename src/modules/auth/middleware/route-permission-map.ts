@@ -117,7 +117,57 @@ const RESOURCE_PREFIX_MAP: { prefix: string; resource: PermissionResource }[] = 
   { prefix: "/api/cms", resource: PermissionResource.WEBSITE },
   { prefix: "/api/marketing", resource: PermissionResource.MARKETING },
   { prefix: "/api/admin/ai", resource: PermissionResource.AI },
+
+  /**
+   * SECURITY-002B: every remaining /api/admin/* module, previously
+   * unmapped and reachable by any authenticated identity (including a
+   * plain CUSTOMER account) under the old "resource: null = authenticated
+   * only" fallback. Each maps onto the closest existing resource rather
+   * than minting a new one where the semantics already fit, matching this
+   * file's own established precedent (CMS -> WEBSITE, admin/ai -> AI);
+   * three modules didn't fit anything existing and got a new resource
+   * each (CUSTOMERS, REPORTS, STORAGE — see types/permission.ts).
+   *
+   * More specific prefixes are listed above general ones only where a
+   * collision is possible; none of the entries below collide with each
+   * other or with anything above (`/api/admin/inventory` does not start
+   * with `/api/inventory`, etc.), so ordering is not load-bearing here.
+   */
+  { prefix: "/api/admin/customers", resource: PermissionResource.CUSTOMERS },
+  { prefix: "/api/admin/dashboard", resource: PermissionResource.REPORTS },
+  { prefix: "/api/admin/ferries", resource: PermissionResource.INVENTORY },
+  { prefix: "/api/admin/inventory", resource: PermissionResource.INVENTORY },
+  { prefix: "/api/admin/landing-pages", resource: PermissionResource.WEBSITE },
+  { prefix: "/api/admin/leads", resource: PermissionResource.QUOTE },
+  { prefix: "/api/admin/packages", resource: PermissionResource.PACKAGE },
+  { prefix: "/api/admin/quotes", resource: PermissionResource.QUOTE },
+  { prefix: "/api/admin/sync", resource: PermissionResource.SETTINGS },
+
+  /**
+   * Storage and System were never under /api/admin/* but had the exact
+   * same gap — no permission resource, so "authenticated only" was the
+   * whole check. /api/storage/download stays public (PUBLIC_EXACT_PATHS
+   * above; it's gated by its own HMAC signature instead) and is checked
+   * before this map is ever consulted, so it's unaffected by the prefix
+   * rule below. Same for /api/system/health.
+   */
+  { prefix: "/api/storage", resource: PermissionResource.STORAGE },
+  { prefix: "/api/system", resource: PermissionResource.SETTINGS },
 ];
+
+/**
+ * SECURITY-002B: prefixes where an unmapped path must be denied outright
+ * rather than falling back to "any authenticated identity" — the
+ * default-deny policy this sprint requires for the admin surface. A
+ * future /api/admin/* route that ships without a RESOURCE_PREFIX_MAP
+ * entry now 403s instead of silently being reachable by any logged-in
+ * user, including a customer. Deliberately scoped to /api/admin only —
+ * widening this to the whole API would also change already-reviewed,
+ * deliberately-public-or-authenticated-only surfaces (the Website BFF,
+ * /api/suppliers, most of /api/storage's siblings, etc.), which is out of
+ * this sprint's scope.
+ */
+const DEFAULT_DENY_PREFIXES = ["/api/admin"];
 
 const METHOD_ACTION_MAP: Record<string, PermissionAction> = {
   GET: PermissionAction.READ,
@@ -134,11 +184,20 @@ export function isPublicPath(pathname: string): boolean {
 export interface ResolvedRoutePermission {
   resource: PermissionResource | null; // null = authenticated-only, no granular permission check for this path
   action: PermissionAction;
+  /**
+   * true when this path has no RESOURCE_PREFIX_MAP entry AND falls under a
+   * DEFAULT_DENY_PREFIXES prefix — checkPermission must reject it outright
+   * rather than treating `resource: null` as "any authenticated identity".
+   */
+  defaultDeny: boolean;
 }
 
-/** Every non-public path resolves to at least {resource: null, action}, meaning "any authenticated identity" — permission checks are additive on top of that floor, never a substitute for it. */
+/** Every non-public path resolves to at least {resource: null, action, defaultDeny: false}, meaning "any authenticated identity" — permission checks are additive on top of that floor, never a substitute for it. defaultDeny flips that floor to "denied" for prefixes in DEFAULT_DENY_PREFIXES. */
 export function resolveRoutePermission(pathname: string, method: string): ResolvedRoutePermission {
   const action = METHOD_ACTION_MAP[method.toUpperCase()] ?? PermissionAction.READ;
   const match = RESOURCE_PREFIX_MAP.find((entry) => pathname.startsWith(entry.prefix));
-  return { resource: match?.resource ?? null, action };
+  if (match) return { resource: match.resource, action, defaultDeny: false };
+
+  const defaultDeny = DEFAULT_DENY_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  return { resource: null, action, defaultDeny };
 }

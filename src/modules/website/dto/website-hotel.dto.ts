@@ -36,4 +36,6 @@ export interface WebsiteHotelDetailDTO extends WebsiteHotelSummaryDTO {
   rules: string | null;
   gallery: string[];
   roomTypes: WebsiteHotelRoomDTO[];
+  /** BUSINESS-001: drives the customer-facing CTA — "Request Booking" (ENQUIRY) vs "Book Now" (INSTANT_BOOKING). */
+  bookingMode: "ENQUIRY" | "INSTANT_BOOKING";
 }

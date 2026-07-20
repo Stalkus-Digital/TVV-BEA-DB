@@ -134,6 +134,21 @@ export class PaymentService extends BaseService {
         return err(new NotFoundError("Booking not found"));
       }
 
+      // SECURITY-002D: Prevent payment on cancelled bookings or invalid states.
+      if (booking.status === BookingStatus.CANCELLED) {
+        return err(new ValidationError("Cannot pay for a cancelled booking"));
+      }
+
+      // Check if quote (if associated) is still valid
+      if (booking.sourceQuoteId) {
+        const quote = await prisma.quote.findUnique({
+          where: { id: booking.sourceQuoteId },
+        });
+        if (quote && quote.validTo && new Date(quote.validTo) < new Date()) {
+          return err(new ValidationError("Quote has expired — cannot proceed with payment"));
+        }
+      }
+
       const amountDue = booking.totalAmount - booking.amountPaid;
       if (amountDue <= 0) {
         return err(new ValidationError("Booking is already fully paid"));
@@ -185,8 +200,18 @@ export class PaymentService extends BaseService {
       .update(razorpayOrderId + "|" + razorpayPaymentId)
       .digest("hex");
 
-    if (expectedSignature !== signature) {
-      this.logger.warn("Payment signature mismatch", { razorpayOrderId, razorpayPaymentId });
+    // SECURITY-002D: use timingSafeEqual, not string comparison, to prevent timing attacks.
+    // The webhook handler (webhooks/razorpay/route.ts) already does this correctly;
+    // this path needed the same protection. Timing-safe comparison prevents an attacker
+    // from inferring the correct signature one byte at a time based on response latency.
+    try {
+      if (!crypto.timingSafeEqual(Buffer.from(expectedSignature, "hex"), Buffer.from(signature, "hex"))) {
+        this.logger.warn("Payment signature mismatch", { razorpayOrderId, razorpayPaymentId });
+        return err(new ValidationError("Invalid payment signature"));
+      }
+    } catch {
+      // If signature is not a valid hex string or lengths differ, treat as invalid.
+      this.logger.warn("Payment signature malformed or length mismatch", { razorpayOrderId, razorpayPaymentId });
       return err(new ValidationError("Invalid payment signature"));
     }
 
@@ -224,6 +249,22 @@ export class PaymentService extends BaseService {
           return err(new NotFoundError(`Booking ${bookingId} not found for payment reconciliation`));
         }
 
+        // SECURITY-002D: Re-validate booking state even during payment processing.
+        // This prevents a race where a booking was cancelled between createOrder and payment arrival.
+        if (booking.status === BookingStatus.CANCELLED) {
+          this.logger.warn("Payment received for cancelled booking — rejecting", { bookingId, razorpayPaymentId });
+          return err(new ValidationError("Booking is cancelled — payment cannot be processed"));
+        }
+
+        // Re-check quote expiry at payment time
+        if (booking.sourceQuoteId) {
+          const quote = await prisma.quote.findUnique({ where: { id: booking.sourceQuoteId } });
+          if (quote && quote.validTo && new Date(quote.validTo) < new Date()) {
+            this.logger.warn("Payment received for booking with expired quote — rejecting", { bookingId, razorpayPaymentId });
+            return err(new ValidationError("Quote has expired — payment cannot be processed"));
+          }
+        }
+
         const paymentAmount = Number(payment.amount || 0) / 100;
 
         if (paymentAmount < MIN_PAYMENT_AMOUNT) {
@@ -246,22 +287,35 @@ export class PaymentService extends BaseService {
 
         const previousStatus = booking.status;
 
-        await prisma.$transaction(async (tx) => {
-          await tx.bookingPayment.create({
-            data: {
-              bookingId,
-              amount: paymentAmount,
-              currency: payment.currency?.toUpperCase() || "INR",
-              method: "RAZORPAY",
-              status: PaymentStatus.PAID,
-              reference: razorpayPaymentId,
-              paidAt: new Date(),
-              createdAt: new Date(),
-            }
-          });
+        try {
+          await prisma.$transaction(async (tx) => {
+            await tx.bookingPayment.create({
+              data: {
+                bookingId,
+                amount: paymentAmount,
+                currency: payment.currency?.toUpperCase() || "INR",
+                method: "RAZORPAY",
+                status: PaymentStatus.PAID,
+                reference: razorpayPaymentId,
+                paidAt: new Date(),
+                createdAt: new Date(),
+              }
+            });
 
-          await recomputeBookingAggregate(tx, bookingId);
-        });
+            await recomputeBookingAggregate(tx, bookingId);
+          });
+        } catch (error: any) {
+          // SECURITY-002D: P2002 = unique constraint violation on reference field.
+          // Two concurrent calls (webhook retry + frontend verify for the same payment)
+          // raced; the first one succeeded and created the payment record, the second
+          // one is rejected by the DB constraint itself, not just our app-level check.
+          // This is the intended, race-free path — treat it as "already processed".
+          if (error?.code === "P2002") {
+            this.logger.info("Payment already recorded (caught by DB constraint) — skipping duplicate", { razorpayPaymentId });
+            return ok(undefined);
+          }
+          throw error;
+        }
 
         const updatedBooking = await prisma.booking.findUnique({ where: { id: bookingId } });
 
@@ -522,6 +576,21 @@ export class PaymentService extends BaseService {
       const booking = await prisma.booking.findUnique({ where: { id: input.bookingId } });
       if (!booking) {
         return err(new NotFoundError(`Booking ${input.bookingId} not found for PhonePe reconciliation`));
+      }
+
+      // SECURITY-002D: Prevent payment on cancelled bookings or invalid states (PhonePe path).
+      if (booking.status === BookingStatus.CANCELLED) {
+        this.logger.warn("PhonePe payment received for cancelled booking — rejecting", { bookingId: input.bookingId, transactionId: input.transactionId });
+        return err(new ValidationError("Booking is cancelled — payment cannot be processed"));
+      }
+
+      // Re-check quote expiry at payment time
+      if (booking.sourceQuoteId) {
+        const quote = await prisma.quote.findUnique({ where: { id: booking.sourceQuoteId } });
+        if (quote && quote.validTo && new Date(quote.validTo) < new Date()) {
+          this.logger.warn("PhonePe payment received for booking with expired quote — rejecting", { bookingId: input.bookingId, transactionId: input.transactionId });
+          return err(new ValidationError("Quote has expired — payment cannot be processed"));
+        }
       }
 
       const paymentAmount = input.amountPaise / 100;

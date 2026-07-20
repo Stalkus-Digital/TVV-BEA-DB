@@ -55,4 +55,12 @@ export interface Booking {
    * in the PACKAGE bucket regardless of what it actually was.
    */
   bookingCategory?: "PACKAGE" | "HOTEL" | "ACTIVITY";
+  /**
+   * CUSTOMER-001: display-only enrichment for the customer dashboard —
+   * resolved from destinationId/packageId/items by CustomerBookingService,
+   * never persisted. Optional and absent on Bookings returned by any other
+   * path (e.g. the admin API), which continue to expose raw IDs only.
+   */
+  destinationName?: string | null;
+  productLabel?: string | null;
 }

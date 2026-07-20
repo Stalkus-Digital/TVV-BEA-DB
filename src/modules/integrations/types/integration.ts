@@ -10,14 +10,8 @@ export const IntegrationCategory = {
 
 export type IntegrationCategory = (typeof IntegrationCategory)[keyof typeof IntegrationCategory];
 
-export const IntegrationStatus = {
-  DISCONNECTED: "DISCONNECTED",
-  CONNECTED: "CONNECTED",
-  ERROR: "ERROR",
-  DISABLED: "DISABLED",
-} as const;
-
-export type IntegrationStatus = (typeof IntegrationStatus)[keyof typeof IntegrationStatus];
+// Import new status model
+export { IntegrationStatusEnum, type IntegrationHealth, type IntegrationStatus, type ProviderValidator } from "./integration-status";
 
 export type SecretFieldKind = "secret" | "text" | "url" | "boolean";
 

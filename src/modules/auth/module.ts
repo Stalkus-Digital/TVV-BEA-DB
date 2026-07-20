@@ -123,6 +123,12 @@ class AuthModuleHealthCheck implements HealthCheck {
 }
 
 if (!moduleRegistry.getModule(authModule.name)) {
+  // SECURITY-002A: validated eagerly, at module-load time, not on first
+  // use — a production deployment with a missing/default/too-short
+  // AUTH_JWT_SECRET fails at startup here, before it can ever sign or
+  // verify a JWT with a forgeable secret. Same pattern as
+  // VaultSecurityConfigService in the integrations module.
+  AuthConfigService.getInstance();
   moduleRegistry.registerModule(authModule);
   authModule.register(container);
   healthCheckRegistry.register(new AuthModuleHealthCheck());

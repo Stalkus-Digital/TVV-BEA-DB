@@ -5,7 +5,7 @@ export function permissionKey(resource: PermissionResource, action: PermissionAc
   return `${resource}:${action}`;
 }
 
-/** Granular CRUD × 11 resources = 44 permissions, seeded once at module registration. */
+/** Granular CRUD × 14 resources = 56 permissions, seeded once at module registration. */
 export const PERMISSION_SEED_DATA: { resource: PermissionResource; action: PermissionAction; description: string }[] = Object.values(
   PermissionResource
 ).flatMap((resource) =>
@@ -55,6 +55,8 @@ export const ROLE_PERMISSION_MATRIX: Record<RoleName, string[]> = {
     ...grant(PermissionResource.DESTINATION, READ_ONLY),
     ...grant(PermissionResource.INVENTORY, READ_ONLY),
     ...grant(PermissionResource.WEBSITE, READ_ONLY),
+    // SECURITY-002B: sales needs to see who a quote/booking belongs to.
+    ...grant(PermissionResource.CUSTOMERS, READ_ONLY),
   ],
   [RoleName.RESERVATIONS]: [
     ...grant(PermissionResource.BOOKING, [PermissionAction.CREATE, PermissionAction.READ, PermissionAction.UPDATE]),
@@ -62,6 +64,8 @@ export const ROLE_PERMISSION_MATRIX: Record<RoleName, string[]> = {
     ...grant(PermissionResource.PACKAGE, READ_ONLY),
     ...grant(PermissionResource.INVENTORY, READ_ONLY),
     ...grant(PermissionResource.DESTINATION, READ_ONLY),
+    // SECURITY-002B: reservations manages bookings tied to a customer.
+    ...grant(PermissionResource.CUSTOMERS, READ_ONLY),
   ],
   [RoleName.OPERATIONS]: [
     ...grant(PermissionResource.INVENTORY),
@@ -74,11 +78,15 @@ export const ROLE_PERMISSION_MATRIX: Record<RoleName, string[]> = {
     ...grant(PermissionResource.BOOKING, [PermissionAction.READ, PermissionAction.UPDATE]),
     ...grant(PermissionResource.QUOTE, READ_ONLY),
     ...grant(PermissionResource.PACKAGE, READ_ONLY),
+    // SECURITY-002B: finance needs customer lookups for billing/refunds.
+    ...grant(PermissionResource.CUSTOMERS, READ_ONLY),
   ],
   [RoleName.SUPPORT]: [
     ...grant(PermissionResource.QUOTE, READ_ONLY),
     ...grant(PermissionResource.BOOKING, READ_ONLY),
     ...grant(PermissionResource.USERS, READ_ONLY),
+    // SECURITY-002B: support needs customer lookups to handle tickets.
+    ...grant(PermissionResource.CUSTOMERS, READ_ONLY),
   ],
   // AUTH-003: MARKETING resource grant added so this role keeps the
   // /api/marketing/* access it already had under the old fail-closed
@@ -100,6 +108,23 @@ export const ROLE_PERMISSION_MATRIX: Record<RoleName, string[]> = {
     ...grant(PermissionResource.DESTINATION, READ_ONLY),
     ...grant(PermissionResource.BOOKING, READ_ONLY),
   ],
-  [RoleName.CUSTOMER]: [...grant(PermissionResource.QUOTE, READ_ONLY), ...grant(PermissionResource.BOOKING, READ_ONLY)],
+  /**
+   * SECURITY-002B: CUSTOMER previously held resource-level QUOTE:READ and
+   * BOOKING:READ. Those same permission keys gate the STAFF-facing
+   * /api/quotes/* and /api/bookings/* surfaces (list-all and get-by-id,
+   * neither of which filters or checks ownership — verified by reading
+   * both route files), so any customer account could list or fetch every
+   * OTHER customer's quotes and bookings by id, not just their own. A
+   * customer's actual, correct access path is /api/me/quotes/* and
+   * /api/me/bookings/* — those routes are not in RESOURCE_PREFIX_MAP at
+   * all (different prefix, "/api/me" not "/api/quotes"/"/api/bookings"),
+   * so they fall through to "authenticated only" and are gated by their
+   * own handlers, which already correctly derive customerId from
+   * AuthContext and 404 on a mismatch (see customer-quote.service.ts /
+   * customer-booking.service.ts). Removing this grant closes the general
+   * endpoints to CUSTOMER entirely without touching /api/me/* or any
+   * quote/booking business logic.
+   */
+  [RoleName.CUSTOMER]: [],
   [RoleName.API]: Object.values(PermissionResource).flatMap((r) => grant(r, READ_ONLY)),
 };

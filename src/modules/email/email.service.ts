@@ -45,12 +45,12 @@ export class EmailService extends BaseService {
     try {
       const { transporter, from } = await this.getTransporter();
       if (!transporter) {
-        // Dev fallback: log instead of failing hard so local flows remain usable.
-        this.logger.warn("SMTP is not configured — logging email instead of sending", {
+        // Dev fallback: acknowledge instead of failing hard so local flows remain usable.
+        // Never log the email body — it can embed a live password-reset/verification link.
+        this.logger.warn("SMTP is not configured — email was not sent", {
           to: data.to,
           subject: data.subject,
         });
-        this.logger.info("Email body (dev)", { html: data.html });
         return ok(undefined);
       }
 

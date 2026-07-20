@@ -29,4 +29,15 @@ export interface HotelDetails {
   bannerImage?: string | null;
   images?: string[];
   roomTypes?: HotelRoomType[];
+  /**
+   * BUSINESS-001: per-property booking strategy — ENQUIRY (customer submits
+   * a request, staff quote/convert as today) or INSTANT_BOOKING (customer
+   * books directly, same real-Booking path Activities already use). Lives
+   * on `details` rather than a new column/table: this is the same
+   * extensibility point every other per-kind inventory field already uses,
+   * and a single hotel-level setting doesn't warrant its own migration.
+   * Missing/invalid values default to ENQUIRY (the current behavior for
+   * every hotel today) so existing hotels need no data migration either.
+   */
+  bookingMode?: "ENQUIRY" | "INSTANT_BOOKING";
 }

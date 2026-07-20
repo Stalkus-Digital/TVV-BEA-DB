@@ -273,6 +273,7 @@ export type BookingPaymentOrderByWithRelationInput = {
 
 export type BookingPaymentWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  reference?: string
   AND?: Prisma.BookingPaymentWhereInput | Prisma.BookingPaymentWhereInput[]
   OR?: Prisma.BookingPaymentWhereInput[]
   NOT?: Prisma.BookingPaymentWhereInput | Prisma.BookingPaymentWhereInput[]
@@ -281,11 +282,10 @@ export type BookingPaymentWhereUniqueInput = Prisma.AtLeast<{
   currency?: Prisma.StringFilter<"BookingPayment"> | string
   method?: Prisma.StringNullableFilter<"BookingPayment"> | string | null
   status?: Prisma.StringFilter<"BookingPayment"> | string
-  reference?: Prisma.StringNullableFilter<"BookingPayment"> | string | null
   paidAt?: Prisma.DateTimeNullableFilter<"BookingPayment"> | Date | string | null
   notes?: Prisma.StringNullableFilter<"BookingPayment"> | string | null
   createdAt?: Prisma.DateTimeFilter<"BookingPayment"> | Date | string
-}, "id">
+}, "id" | "reference">
 
 export type BookingPaymentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder

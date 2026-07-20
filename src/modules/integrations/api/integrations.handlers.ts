@@ -90,3 +90,74 @@ export async function listWebhookEventsHandler(
   if (!auth.ok) return auth;
   return getIntegrationService().listRecentWebhookEvents();
 }
+
+export async function deleteIntegrationHandler(
+  context: AuthContext | null,
+  key: string
+): Promise<Result<{ deleted: boolean }, AppError>> {
+  const auth = requireAuth(context);
+  if (!auth.ok) return auth;
+  return getIntegrationService().deleteIntegration(key, auth.value.userId);
+}
+
+export async function enableIntegrationHandler(
+  context: AuthContext | null,
+  key: string
+): Promise<Result<IntegrationProviderDetail, AppError>> {
+  const auth = requireAuth(context);
+  if (!auth.ok) return auth;
+  return getIntegrationService().setIntegrationEnabled(key, true, auth.value.userId);
+}
+
+export async function disableIntegrationHandler(
+  context: AuthContext | null,
+  key: string
+): Promise<Result<IntegrationProviderDetail, AppError>> {
+  const auth = requireAuth(context);
+  if (!auth.ok) return auth;
+  return getIntegrationService().setIntegrationEnabled(key, false, auth.value.userId);
+}
+
+export async function resetCredentialsHandler(
+  context: AuthContext | null,
+  key: string
+): Promise<Result<IntegrationProviderDetail, AppError>> {
+  const auth = requireAuth(context);
+  if (!auth.ok) return auth;
+  return getIntegrationService().resetCredentials(key, auth.value.userId);
+}
+
+export async function getConnectionHistoryHandler(
+  context: AuthContext | null,
+  key: string,
+  limit: number = 50,
+  offset: number = 0
+): Promise<Result<{ entries: Array<{
+  id: string;
+  timestamp: string;
+  operation: string;
+  success: boolean;
+  durationMs: number;
+  httpStatus: number | null;
+  summary: string;
+  errorMessage: string | null;
+}>; total: number }, AppError>> {
+  const auth = requireAuth(context);
+  if (!auth.ok) return auth;
+  return getIntegrationService().getConnectionHistory(key, limit, offset);
+}
+
+export async function getHealthStatusHandler(
+  context: AuthContext | null,
+  key: string
+): Promise<Result<{
+  status: string;
+  isAuthValid: boolean;
+  lastCheckAt: string | null;
+  responseTimeMs: number | null;
+  consecutiveFailures: number;
+}, AppError>> {
+  const auth = requireAuth(context);
+  if (!auth.ok) return auth;
+  return getIntegrationService().getHealthStatus(key);
+}

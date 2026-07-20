@@ -1,6 +1,6 @@
 import { prisma } from "@/shared/database/prisma-client";
 import { createLogger } from "@/shared/logger";
-import { IntegrationStatus } from "@/modules/integrations/types/integration";
+import { IntegrationStatusEnum } from "@/modules/integrations/types/integration-status";
 import { TransferMode } from "@/modules/inventory/types/kinds/transfer.types";
 
 const logger = createLogger("package.ai.context");
@@ -203,7 +203,7 @@ export async function buildAiPackageContext(
     const { getIntegrationService } = await import("@/modules/integrations");
     const tj = await getIntegrationService().getByKey("tripjack");
     const tripjackConnected =
-      tj.ok && tj.value.status === IntegrationStatus.CONNECTED && tj.value.lastTestOk === true;
+      tj.ok && tj.value.status === IntegrationStatusEnum.CONNECTED && tj.value.lastTestOk === true;
 
     if (!tripjackConnected) {
       warnings.push("TripJack not connected — live hotel rates skipped.");

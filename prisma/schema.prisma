@@ -442,7 +442,7 @@ model BookingPayment {
   currency  String
   method    String?
   status    String
-  reference String?
+  reference String?   @unique
   paidAt    DateTime?
   notes     String?
   createdAt DateTime

@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { useCreateEnquiryMutation } from "../hooks/useEnquiryMutations";
+import { LEAD_SOURCE_OPTIONS } from "../constants";
 
 interface LeadCreateDialogProps {
   open: boolean;
@@ -14,7 +15,7 @@ export function LeadCreateDialog({ open, onClose, onCreated }: LeadCreateDialogP
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [sourceUrl, setSourceUrl] = useState("Manual Entry");
+  const [source, setSource] = useState("Manual Entry");
 
   const createMutation = useCreateEnquiryMutation();
 
@@ -23,13 +24,13 @@ export function LeadCreateDialog({ open, onClose, onCreated }: LeadCreateDialogP
     if (!name || !email) return;
 
     createMutation.mutate(
-      { name, email, phone, sourceUrl },
+      { name, email, phone, source },
       {
         onSuccess: (data) => {
           setName("");
           setEmail("");
           setPhone("");
-          setSourceUrl("Manual Entry");
+          setSource("Manual Entry");
           onCreated?.(data.id);
           onClose();
         },
@@ -86,14 +87,19 @@ export function LeadCreateDialog({ open, onClose, onCreated }: LeadCreateDialogP
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="sourceUrl" className="text-sm font-medium leading-none">Source</label>
-            <input
-              id="sourceUrl"
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              value={sourceUrl}
-              onChange={(e) => setSourceUrl(e.target.value)}
-              placeholder="e.g. Phone Call, Walk-in"
-            />
+            <label htmlFor="source" className="text-sm font-medium leading-none">Lead Source</label>
+            <select
+              id="source"
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+            >
+              {LEAD_SOURCE_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t mt-6">

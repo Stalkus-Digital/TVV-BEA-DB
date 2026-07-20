@@ -34,6 +34,8 @@ export interface Enquiry {
   source: string | null;
   status: EnquiryStatus;
   assignedToUserId: string | null;
+  followUpDate: string | null;
+  priority: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -66,6 +68,7 @@ export interface EnquiryListFilters {
   status?: EnquiryStatus;
   type?: EnquiryType;
   assignedToUserId?: string;
+  source?: string;
   search?: string;
   dateFrom?: string;
   dateTo?: string;

@@ -66,6 +66,20 @@ export function EnquiryFiltersBar({
         ))}
       </select>
 
+      <select
+        value={filters.source ?? ""}
+        onChange={(e) => onFiltersChange({ source: e.target.value || undefined, page: 1 })}
+        className="rounded-md border border-input bg-background px-2.5 py-1.5 text-sm"
+        aria-label="Source"
+      >
+        <option value="">All sources</option>
+        {["Website", "Google Ads", "Meta Ads", "WhatsApp", "Phone", "Email", "Referral", "Manual Entry"].map((source) => (
+          <option key={source} value={source}>
+            {source}
+          </option>
+        ))}
+      </select>
+
       <input
         type="date"
         value={filters.dateFrom ?? ""}

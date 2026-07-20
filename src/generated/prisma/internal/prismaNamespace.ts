@@ -427,6 +427,7 @@ export const ModelName = {
   CustomerProfile: 'CustomerProfile',
   Enquiry: 'Enquiry',
   EnquiryNote: 'EnquiryNote',
+  CustomerNote: 'CustomerNote',
   Notification: 'Notification',
   Lead: 'Lead',
   FerryRate: 'FerryRate',
@@ -461,7 +462,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "loginHistory" | "passwordReset" | "emailVerification" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "notification" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent" | "integrationProvider" | "integrationSecret" | "integrationWebhook" | "guide" | "ferryRoute" | "ferrySchedule" | "review"
+    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "loginHistory" | "passwordReset" | "emailVerification" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "customerNote" | "notification" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent" | "integrationProvider" | "integrationSecret" | "integrationWebhook" | "guide" | "ferryRoute" | "ferrySchedule" | "review"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3647,6 +3648,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    CustomerNote: {
+      payload: Prisma.$CustomerNotePayload<ExtArgs>
+      fields: Prisma.CustomerNoteFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CustomerNoteFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerNotePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CustomerNoteFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerNotePayload>
+        }
+        findFirst: {
+          args: Prisma.CustomerNoteFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerNotePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CustomerNoteFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerNotePayload>
+        }
+        findMany: {
+          args: Prisma.CustomerNoteFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerNotePayload>[]
+        }
+        create: {
+          args: Prisma.CustomerNoteCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerNotePayload>
+        }
+        createMany: {
+          args: Prisma.CustomerNoteCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CustomerNoteCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerNotePayload>[]
+        }
+        delete: {
+          args: Prisma.CustomerNoteDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerNotePayload>
+        }
+        update: {
+          args: Prisma.CustomerNoteUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerNotePayload>
+        }
+        deleteMany: {
+          args: Prisma.CustomerNoteDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CustomerNoteUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CustomerNoteUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerNotePayload>[]
+        }
+        upsert: {
+          args: Prisma.CustomerNoteUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerNotePayload>
+        }
+        aggregate: {
+          args: Prisma.CustomerNoteAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCustomerNote>
+        }
+        groupBy: {
+          args: Prisma.CustomerNoteGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CustomerNoteGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CustomerNoteCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CustomerNoteCountAggregateOutputType> | number
+        }
+      }
+    }
     Notification: {
       payload: Prisma.$NotificationPayload<ExtArgs>
       fields: Prisma.NotificationFieldRefs
@@ -5745,6 +5820,8 @@ export const EnquiryScalarFieldEnum = {
   source: 'source',
   status: 'status',
   assignedToUserId: 'assignedToUserId',
+  followUpDate: 'followUpDate',
+  priority: 'priority',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -5761,6 +5838,17 @@ export const EnquiryNoteScalarFieldEnum = {
 } as const
 
 export type EnquiryNoteScalarFieldEnum = (typeof EnquiryNoteScalarFieldEnum)[keyof typeof EnquiryNoteScalarFieldEnum]
+
+
+export const CustomerNoteScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  authorUserId: 'authorUserId',
+  body: 'body',
+  createdAt: 'createdAt'
+} as const
+
+export type CustomerNoteScalarFieldEnum = (typeof CustomerNoteScalarFieldEnum)[keyof typeof CustomerNoteScalarFieldEnum]
 
 
 export const NotificationScalarFieldEnum = {
@@ -6305,6 +6393,7 @@ export type GlobalOmitConfig = {
   customerProfile?: Prisma.CustomerProfileOmit
   enquiry?: Prisma.EnquiryOmit
   enquiryNote?: Prisma.EnquiryNoteOmit
+  customerNote?: Prisma.CustomerNoteOmit
   notification?: Prisma.NotificationOmit
   lead?: Prisma.LeadOmit
   ferryRate?: Prisma.FerryRateOmit

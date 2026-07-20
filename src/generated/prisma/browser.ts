@@ -236,6 +236,11 @@ export type Enquiry = Prisma.EnquiryModel
  */
 export type EnquiryNote = Prisma.EnquiryNoteModel
 /**
+ * Model CustomerNote
+ * 
+ */
+export type CustomerNote = Prisma.CustomerNoteModel
+/**
  * Model Notification
  * Placeholder only, per this sprint's explicit instruction — no
  * email/SMS/WhatsApp delivery exists yet. Exists so `/api/me/dashboard`'s

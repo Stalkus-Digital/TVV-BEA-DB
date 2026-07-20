@@ -1,12 +1,16 @@
 import { err, isErr, ok, type PaginatedResult, type Result } from "@/shared/types";
 import { BaseService, type ServiceContext } from "@/shared/services";
 import { NotFoundError, type AppError } from "@/shared/errors";
+import { AuditEventType } from "@/modules/auth/types/audit-log";
+import type { AuditLogService } from "@/modules/auth/audit/audit-log.service";
 import { EnquiryStatus, type Enquiry, type EnquiryNote } from "../types/enquiry";
 import type { EnquiryListFilter, EnquiryRepository } from "../repositories/enquiry.repository";
 import {
   validateAssignEnquiry,
+  validateCreateAdminEnquiry,
   validateEnquiryNoteBody,
   validateSubmitEnquiry,
+  validateUpdateEnquiryFollowUp,
   validateUpdateEnquiryStatus,
 } from "../validation/enquiry.validation";
 
@@ -24,9 +28,24 @@ export class EnquiryService extends BaseService {
   constructor(
     context: ServiceContext,
     private readonly enquiries: EnquiryRepository,
-    private readonly sembark: SembarkService
+    private readonly sembark: SembarkService,
+    private readonly auditLog?: AuditLogService
   ) {
     super(context);
+  }
+
+  private async recordAudit(
+    eventType: AuditEventType,
+    enquiry: Enquiry,
+    actorUserId: string | null,
+    details?: Record<string, unknown>
+  ) {
+    if (!this.auditLog) return;
+    await this.auditLog.record({
+      eventType,
+      actorUserId,
+      details: { enquiryId: enquiry.id, enquiryName: enquiry.name, ...details },
+    });
   }
 
   async submit(input: unknown, customerId: string | null = null): Promise<Result<Enquiry, AppError>> {
@@ -42,6 +61,8 @@ export class EnquiryService extends BaseService {
       customerId,
       status: EnquiryStatus.NEW,
       assignedToUserId: null,
+      followUpDate: null,
+      priority: null,
       createdAt: now,
       updatedAt: now,
     });
@@ -69,7 +90,7 @@ export class EnquiryService extends BaseService {
     return ok(result.value);
   }
 
-  async updateStatus(id: string, input: unknown): Promise<Result<Enquiry, AppError>> {
+  async updateStatus(id: string, input: unknown, actorUserId: string | null = null): Promise<Result<Enquiry, AppError>> {
     const validated = validateUpdateEnquiryStatus(input);
     if (isErr(validated)) return validated;
 
@@ -77,11 +98,18 @@ export class EnquiryService extends BaseService {
     if (isErr(existing)) return existing;
     if (!existing.value) return err(new NotFoundError(`Enquiry "${id}" not found`));
 
+    const previousStatus = existing.value.status;
     this.logger.info("Enquiry status updated", { id, status: validated.value.status });
-    return this.enquiries.update(id, { status: validated.value.status, updatedAt: new Date().toISOString() });
+    const updated = await this.enquiries.update(id, { status: validated.value.status, updatedAt: new Date().toISOString() });
+    if (!isErr(updated)) {
+      await this.recordAudit(AuditEventType.ENQUIRY_STATUS_CHANGED, updated.value, actorUserId, {
+        changes: { status: { from: previousStatus, to: validated.value.status } },
+      });
+    }
+    return updated;
   }
 
-  async assign(id: string, input: unknown): Promise<Result<Enquiry, AppError>> {
+  async assign(id: string, input: unknown, actorUserId: string | null = null): Promise<Result<Enquiry, AppError>> {
     const validated = validateAssignEnquiry(input);
     if (isErr(validated)) return validated;
 
@@ -90,7 +118,80 @@ export class EnquiryService extends BaseService {
     if (!existing.value) return err(new NotFoundError(`Enquiry "${id}" not found`));
 
     this.logger.info("Enquiry assigned", { id, assignedToUserId: validated.value.assignedToUserId });
-    return this.enquiries.update(id, { assignedToUserId: validated.value.assignedToUserId, updatedAt: new Date().toISOString() });
+    const updated = await this.enquiries.update(id, { assignedToUserId: validated.value.assignedToUserId, updatedAt: new Date().toISOString() });
+    if (!isErr(updated)) {
+      await this.recordAudit(AuditEventType.ENQUIRY_UPDATED, updated.value, actorUserId, {
+        action: "assigned",
+        assignedToUserId: validated.value.assignedToUserId,
+      });
+    }
+    return updated;
+  }
+
+  async createAdmin(input: unknown, actorUserId: string | null = null): Promise<Result<Enquiry, AppError>> {
+    const validated = validateCreateAdminEnquiry(input);
+    if (isErr(validated)) return validated;
+    const value = validated.value;
+    const now = new Date().toISOString();
+
+    const createdResult = await this.enquiries.create({
+      type: value.type ?? "GENERAL",
+      name: value.name,
+      email: value.email,
+      phone: value.phone ?? null,
+      message: value.message ?? null,
+      destinationSlug: null,
+      packageSlug: null,
+      hotelSlug: null,
+      activitySlug: null,
+      customerId: null,
+      source: value.source ?? "Manual Entry",
+      status: EnquiryStatus.NEW,
+      assignedToUserId: null,
+      followUpDate: value.followUpDate ?? null,
+      priority: value.priority ?? null,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    if (isErr(createdResult)) return createdResult;
+    await this.recordAudit(AuditEventType.ENQUIRY_CREATED, createdResult.value, actorUserId, { source: value.source });
+    this.sembark.pushLead(createdResult.value).catch((pushErr) => {
+      this.logger.error("Failed to push lead to Sembark asynchronously", { err: pushErr });
+    });
+    return createdResult;
+  }
+
+  async updateFollowUp(id: string, input: unknown, actorUserId: string | null = null): Promise<Result<Enquiry, AppError>> {
+    const validated = validateUpdateEnquiryFollowUp(input);
+    if (isErr(validated)) return validated;
+
+    const existing = await this.enquiries.findById(id);
+    if (isErr(existing)) return existing;
+    if (!existing.value) return err(new NotFoundError(`Enquiry "${id}" not found`));
+
+    const updated = await this.enquiries.update(id, {
+      followUpDate: validated.value.followUpDate,
+      ...(validated.value.priority !== undefined ? { priority: validated.value.priority } : {}),
+      updatedAt: new Date().toISOString(),
+    });
+    if (!isErr(updated)) {
+      await this.recordAudit(AuditEventType.ENQUIRY_UPDATED, updated.value, actorUserId, {
+        action: "follow-up updated",
+        followUpDate: validated.value.followUpDate,
+        priority: validated.value.priority,
+      });
+    }
+    return updated;
+  }
+
+  async delete(id: string, actorUserId: string | null = null): Promise<Result<void, AppError>> {
+    const existing = await this.enquiries.findById(id);
+    if (isErr(existing)) return existing;
+    if (!existing.value) return err(new NotFoundError(`Enquiry "${id}" not found`));
+
+    await this.recordAudit(AuditEventType.ENQUIRY_DELETED, existing.value, actorUserId, {});
+    return this.enquiries.delete(id);
   }
 
   async listNotes(enquiryId: string): Promise<Result<EnquiryNote[], AppError>> {

@@ -42,6 +42,8 @@ export type EnquiryMinAggregateOutputType = {
   source: string | null
   status: string | null
   assignedToUserId: string | null
+  followUpDate: Date | null
+  priority: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -61,6 +63,8 @@ export type EnquiryMaxAggregateOutputType = {
   source: string | null
   status: string | null
   assignedToUserId: string | null
+  followUpDate: Date | null
+  priority: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -80,6 +84,8 @@ export type EnquiryCountAggregateOutputType = {
   source: number
   status: number
   assignedToUserId: number
+  followUpDate: number
+  priority: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -101,6 +107,8 @@ export type EnquiryMinAggregateInputType = {
   source?: true
   status?: true
   assignedToUserId?: true
+  followUpDate?: true
+  priority?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -120,6 +128,8 @@ export type EnquiryMaxAggregateInputType = {
   source?: true
   status?: true
   assignedToUserId?: true
+  followUpDate?: true
+  priority?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -139,6 +149,8 @@ export type EnquiryCountAggregateInputType = {
   source?: true
   status?: true
   assignedToUserId?: true
+  followUpDate?: true
+  priority?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -231,6 +243,8 @@ export type EnquiryGroupByOutputType = {
   source: string | null
   status: string
   assignedToUserId: string | null
+  followUpDate: Date | null
+  priority: string | null
   createdAt: Date
   updatedAt: Date
   _count: EnquiryCountAggregateOutputType | null
@@ -271,6 +285,8 @@ export type EnquiryWhereInput = {
   source?: Prisma.StringNullableFilter<"Enquiry"> | string | null
   status?: Prisma.StringFilter<"Enquiry"> | string
   assignedToUserId?: Prisma.StringNullableFilter<"Enquiry"> | string | null
+  followUpDate?: Prisma.DateTimeNullableFilter<"Enquiry"> | Date | string | null
+  priority?: Prisma.StringNullableFilter<"Enquiry"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Enquiry"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Enquiry"> | Date | string
 }
@@ -290,6 +306,8 @@ export type EnquiryOrderByWithRelationInput = {
   source?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   assignedToUserId?: Prisma.SortOrderInput | Prisma.SortOrder
+  followUpDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  priority?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -312,6 +330,8 @@ export type EnquiryWhereUniqueInput = Prisma.AtLeast<{
   source?: Prisma.StringNullableFilter<"Enquiry"> | string | null
   status?: Prisma.StringFilter<"Enquiry"> | string
   assignedToUserId?: Prisma.StringNullableFilter<"Enquiry"> | string | null
+  followUpDate?: Prisma.DateTimeNullableFilter<"Enquiry"> | Date | string | null
+  priority?: Prisma.StringNullableFilter<"Enquiry"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Enquiry"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Enquiry"> | Date | string
 }, "id">
@@ -331,6 +351,8 @@ export type EnquiryOrderByWithAggregationInput = {
   source?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   assignedToUserId?: Prisma.SortOrderInput | Prisma.SortOrder
+  followUpDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  priority?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.EnquiryCountOrderByAggregateInput
@@ -356,6 +378,8 @@ export type EnquiryScalarWhereWithAggregatesInput = {
   source?: Prisma.StringNullableWithAggregatesFilter<"Enquiry"> | string | null
   status?: Prisma.StringWithAggregatesFilter<"Enquiry"> | string
   assignedToUserId?: Prisma.StringNullableWithAggregatesFilter<"Enquiry"> | string | null
+  followUpDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Enquiry"> | Date | string | null
+  priority?: Prisma.StringNullableWithAggregatesFilter<"Enquiry"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Enquiry"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Enquiry"> | Date | string
 }
@@ -375,6 +399,8 @@ export type EnquiryCreateInput = {
   source?: string | null
   status?: string
   assignedToUserId?: string | null
+  followUpDate?: Date | string | null
+  priority?: string | null
   createdAt: Date | string
   updatedAt: Date | string
 }
@@ -394,6 +420,8 @@ export type EnquiryUncheckedCreateInput = {
   source?: string | null
   status?: string
   assignedToUserId?: string | null
+  followUpDate?: Date | string | null
+  priority?: string | null
   createdAt: Date | string
   updatedAt: Date | string
 }
@@ -413,6 +441,8 @@ export type EnquiryUpdateInput = {
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   assignedToUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  priority?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -432,6 +462,8 @@ export type EnquiryUncheckedUpdateInput = {
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   assignedToUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  priority?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -451,6 +483,8 @@ export type EnquiryCreateManyInput = {
   source?: string | null
   status?: string
   assignedToUserId?: string | null
+  followUpDate?: Date | string | null
+  priority?: string | null
   createdAt: Date | string
   updatedAt: Date | string
 }
@@ -470,6 +504,8 @@ export type EnquiryUpdateManyMutationInput = {
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   assignedToUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  priority?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -489,6 +525,8 @@ export type EnquiryUncheckedUpdateManyInput = {
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   assignedToUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  priority?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -508,6 +546,8 @@ export type EnquiryCountOrderByAggregateInput = {
   source?: Prisma.SortOrder
   status?: Prisma.SortOrder
   assignedToUserId?: Prisma.SortOrder
+  followUpDate?: Prisma.SortOrder
+  priority?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -527,6 +567,8 @@ export type EnquiryMaxOrderByAggregateInput = {
   source?: Prisma.SortOrder
   status?: Prisma.SortOrder
   assignedToUserId?: Prisma.SortOrder
+  followUpDate?: Prisma.SortOrder
+  priority?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -546,6 +588,8 @@ export type EnquiryMinOrderByAggregateInput = {
   source?: Prisma.SortOrder
   status?: Prisma.SortOrder
   assignedToUserId?: Prisma.SortOrder
+  followUpDate?: Prisma.SortOrder
+  priority?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -567,6 +611,8 @@ export type EnquirySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   source?: boolean
   status?: boolean
   assignedToUserId?: boolean
+  followUpDate?: boolean
+  priority?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["enquiry"]>
@@ -586,6 +632,8 @@ export type EnquirySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   source?: boolean
   status?: boolean
   assignedToUserId?: boolean
+  followUpDate?: boolean
+  priority?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["enquiry"]>
@@ -605,6 +653,8 @@ export type EnquirySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   source?: boolean
   status?: boolean
   assignedToUserId?: boolean
+  followUpDate?: boolean
+  priority?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["enquiry"]>
@@ -624,11 +674,13 @@ export type EnquirySelectScalar = {
   source?: boolean
   status?: boolean
   assignedToUserId?: boolean
+  followUpDate?: boolean
+  priority?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type EnquiryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "type" | "name" | "email" | "phone" | "message" | "destinationSlug" | "packageSlug" | "hotelSlug" | "activitySlug" | "customerId" | "source" | "status" | "assignedToUserId" | "createdAt" | "updatedAt", ExtArgs["result"]["enquiry"]>
+export type EnquiryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "type" | "name" | "email" | "phone" | "message" | "destinationSlug" | "packageSlug" | "hotelSlug" | "activitySlug" | "customerId" | "source" | "status" | "assignedToUserId" | "followUpDate" | "priority" | "createdAt" | "updatedAt", ExtArgs["result"]["enquiry"]>
 
 export type $EnquiryPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Enquiry"
@@ -656,6 +708,14 @@ export type $EnquiryPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
      * Management screen, never by the public submitter.
      */
     assignedToUserId: string | null
+    /**
+     * Next follow-up date set by sales team.
+     */
+    followUpDate: Date | null
+    /**
+     * Optional priority: LOW, MEDIUM, HIGH
+     */
+    priority: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["enquiry"]>
@@ -1095,6 +1155,8 @@ export interface EnquiryFieldRefs {
   readonly source: Prisma.FieldRef<"Enquiry", 'String'>
   readonly status: Prisma.FieldRef<"Enquiry", 'String'>
   readonly assignedToUserId: Prisma.FieldRef<"Enquiry", 'String'>
+  readonly followUpDate: Prisma.FieldRef<"Enquiry", 'DateTime'>
+  readonly priority: Prisma.FieldRef<"Enquiry", 'String'>
   readonly createdAt: Prisma.FieldRef<"Enquiry", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Enquiry", 'DateTime'>
 }

@@ -720,6 +720,10 @@ model Enquiry {
   /// Admin/agent this lead is assigned to — set via the admin Lead
   /// Management screen, never by the public submitter.
   assignedToUserId String?
+  /// Next follow-up date set by sales team.
+  followUpDate      DateTime?
+  /// Optional priority: LOW, MEDIUM, HIGH
+  priority          String?
   createdAt       DateTime
   updatedAt       DateTime
 
@@ -727,6 +731,7 @@ model Enquiry {
   @@index([status])
   @@index([customerId])
   @@index([assignedToUserId])
+  @@index([followUpDate])
   @@map("enquiries")
 }
 
@@ -739,6 +744,17 @@ model EnquiryNote {
 
   @@index([enquiryId])
   @@map("enquiry_notes")
+}
+
+model CustomerNote {
+  id           String   @id @default(uuid())
+  userId       String
+  authorUserId String?
+  body         String
+  createdAt    DateTime
+
+  @@index([userId])
+  @@map("customer_notes")
 }
 
 /// Placeholder only, per this sprint's explicit instruction — no

@@ -7,6 +7,7 @@ export * from "./types";
 export * from "./api";
 export {
   getCustomerProfileService,
+  getAdminCustomerService,
   getCustomerQuoteService,
   getCustomerBookingService,
   getCustomerPaymentService,

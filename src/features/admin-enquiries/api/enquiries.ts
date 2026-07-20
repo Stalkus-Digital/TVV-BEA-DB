@@ -17,6 +17,8 @@ export async function fetchEnquiries(filters: EnquiryListFilters = {}): Promise<
       status: filters.status,
       type: filters.type,
       assignedToUserId: filters.assignedToUserId,
+      source: filters.source,
+      search: filters.search,
       page: filters.page ?? 1,
       pageSize: filters.pageSize ?? 20,
     },
@@ -63,9 +65,26 @@ export async function assignEnquiry(id: string, assignedToUserId: string | null)
   return result;
 }
 
-export async function createEnquiry(data: { name: string; email: string; phone?: string; sourceUrl?: string }): Promise<Enquiry> {
+export async function createEnquiry(data: {
+  name: string;
+  email: string;
+  phone?: string;
+  source?: string;
+  sourceUrl?: string;
+  followUpDate?: string | null;
+  priority?: string | null;
+}): Promise<Enquiry> {
   const result = await adminApiClient.post<Enquiry>(adminEndpoints.enquiriesInbox, data);
   if (!result) throw new Error("Failed to create lead");
+  return result;
+}
+
+export async function updateEnquiryFollowUp(
+  id: string,
+  data: { followUpDate: string | null; priority?: string | null }
+): Promise<Enquiry> {
+  const result = await adminApiClient.patch<Enquiry>(`${enquiryPath(id)}/follow-up`, data);
+  if (!result) throw new Error("Failed to update follow-up");
   return result;
 }
 

@@ -2,9 +2,11 @@ import { container, createToken, moduleRegistry, type ModuleDefinition } from "@
 import { healthCheckRegistry, type HealthCheck, type HealthCheckResult } from "@/shared/health";
 import { createLogger } from "@/shared/logger";
 import { PrismaCustomerProfileRepository } from "./repositories/customer-profile.repository.prisma";
+import { PrismaCustomerNoteRepository } from "./repositories/customer-note.repository.prisma";
 import { PrismaEnquiryRepository } from "./repositories/enquiry.repository.prisma";
 import { PrismaNotificationRepository } from "./repositories/notification.repository.prisma";
 import { CustomerProfileService } from "./services/customer-profile.service";
+import { AdminCustomerService } from "./services/admin-customer.service";
 import { CustomerQuoteService } from "./services/customer-quote.service";
 import { CustomerBookingService } from "./services/customer-booking.service";
 import { CustomerPaymentService } from "./services/customer-payment.service";
@@ -12,12 +14,15 @@ import { EnquiryService } from "./services/enquiry.service";
 import { CustomerDocumentService } from "./documents/document.service";
 import { DashboardService } from "./dashboard/dashboard.service";
 import { SembarkService } from "./services/sembark.service";
+import { getAuditLogService } from "@/modules/auth";
 
+export const CUSTOMER_NOTE_REPOSITORY_TOKEN = createToken<PrismaCustomerNoteRepository>("customer.repository.note");
 export const CUSTOMER_PROFILE_REPOSITORY_TOKEN = createToken<PrismaCustomerProfileRepository>("customer.repository.profile");
 export const ENQUIRY_REPOSITORY_TOKEN = createToken<PrismaEnquiryRepository>("customer.repository.enquiry");
 export const NOTIFICATION_REPOSITORY_TOKEN = createToken<PrismaNotificationRepository>("customer.repository.notification");
 
 export const CUSTOMER_PROFILE_SERVICE_TOKEN = createToken<CustomerProfileService>("customer.service.profile");
+export const ADMIN_CUSTOMER_SERVICE_TOKEN = createToken<AdminCustomerService>("customer.service.admin");
 export const CUSTOMER_QUOTE_SERVICE_TOKEN = createToken<CustomerQuoteService>("customer.service.quote");
 export const CUSTOMER_BOOKING_SERVICE_TOKEN = createToken<CustomerBookingService>("customer.service.booking");
 export const CUSTOMER_PAYMENT_SERVICE_TOKEN = createToken<CustomerPaymentService>("customer.service.payment");
@@ -41,6 +46,7 @@ export const customerModule: ModuleDefinition = {
   name: "customer",
   register(c) {
     c.registerFactory(CUSTOMER_PROFILE_REPOSITORY_TOKEN, () => new PrismaCustomerProfileRepository());
+    c.registerFactory(CUSTOMER_NOTE_REPOSITORY_TOKEN, () => new PrismaCustomerNoteRepository());
     c.registerFactory(ENQUIRY_REPOSITORY_TOKEN, () => new PrismaEnquiryRepository());
     c.registerFactory(NOTIFICATION_REPOSITORY_TOKEN, () => new PrismaNotificationRepository());
 
@@ -53,12 +59,28 @@ export const customerModule: ModuleDefinition = {
       CUSTOMER_PROFILE_SERVICE_TOKEN,
       () => new CustomerProfileService({ logger: createLogger("customer.profile") }, c.resolve(CUSTOMER_PROFILE_REPOSITORY_TOKEN))
     );
+    c.registerFactory(
+      ADMIN_CUSTOMER_SERVICE_TOKEN,
+      () =>
+        new AdminCustomerService(
+          { logger: createLogger("customer.admin") },
+          c.resolve(CUSTOMER_PROFILE_REPOSITORY_TOKEN),
+          c.resolve(CUSTOMER_NOTE_REPOSITORY_TOKEN),
+          getAuditLogService()
+        )
+    );
     c.registerFactory(CUSTOMER_QUOTE_SERVICE_TOKEN, () => new CustomerQuoteService({ logger: createLogger("customer.quote") }));
     c.registerFactory(CUSTOMER_BOOKING_SERVICE_TOKEN, () => new CustomerBookingService({ logger: createLogger("customer.booking") }));
     c.registerFactory(CUSTOMER_PAYMENT_SERVICE_TOKEN, () => new CustomerPaymentService({ logger: createLogger("customer.payment") }));
     c.registerFactory(
       ENQUIRY_SERVICE_TOKEN,
-      () => new EnquiryService({ logger: createLogger("customer.enquiry") }, c.resolve(ENQUIRY_REPOSITORY_TOKEN), c.resolve(SEMBARK_SERVICE_TOKEN))
+      () =>
+        new EnquiryService(
+          { logger: createLogger("customer.enquiry") },
+          c.resolve(ENQUIRY_REPOSITORY_TOKEN),
+          c.resolve(SEMBARK_SERVICE_TOKEN),
+          getAuditLogService()
+        )
     );
     c.registerFactory(CUSTOMER_DOCUMENT_SERVICE_TOKEN, () => new CustomerDocumentService({ logger: createLogger("customer.document") }));
     c.registerFactory(
@@ -88,6 +110,9 @@ if (!moduleRegistry.getModule(customerModule.name)) {
 
 export function getCustomerProfileService(): CustomerProfileService {
   return container.resolve(CUSTOMER_PROFILE_SERVICE_TOKEN);
+}
+export function getAdminCustomerService(): AdminCustomerService {
+  return container.resolve(ADMIN_CUSTOMER_SERVICE_TOKEN);
 }
 export function getCustomerQuoteService(): CustomerQuoteService {
   return container.resolve(CUSTOMER_QUOTE_SERVICE_TOKEN);

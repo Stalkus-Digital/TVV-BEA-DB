@@ -43,6 +43,8 @@ export const adminQueryKeys = {
     allUsers: ["admin", "customers", "all-users"] as const,
     relationshipData: ["admin", "customers", "relationship-data"] as const,
     detail: (id: string) => ["admin", "customers", "detail", id] as const,
+    notes: (id: string) => ["admin", "customers", "notes", id] as const,
+    payments: (id: string) => ["admin", "customers", "payments", id] as const,
   },
   quotes: {
     list: (filters: Record<string, unknown>) => ["admin", "quotes", "list", filters] as const,

@@ -9,6 +9,7 @@ import {
   deleteEnquiryNote,
   updateEnquiryNote,
   updateEnquiryStatus,
+  updateEnquiryFollowUp,
 } from "../api/enquiries";
 import type { EnquiryStatus } from "../types";
 import { adminQueryKeys } from "@/shared/lib/query-client";
@@ -70,10 +71,20 @@ export function useDeleteEnquiryNoteMutation(enquiryId: string) {
 export function useCreateEnquiryMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string; email: string; phone?: string; sourceUrl?: string }) => createEnquiry(data),
+    mutationFn: (data: { name: string; email: string; phone?: string; source?: string; sourceUrl?: string }) =>
+      createEnquiry(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "enquiries"] });
     },
+  });
+}
+
+export function useUpdateEnquiryFollowUpMutation(enquiryId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { followUpDate: string | null; priority?: string | null }) =>
+      updateEnquiryFollowUp(enquiryId, data),
+    onSuccess: () => invalidateEnquiryQueries(queryClient, enquiryId),
   });
 }
 

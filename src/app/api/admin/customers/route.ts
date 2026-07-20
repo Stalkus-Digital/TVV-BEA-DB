@@ -1,29 +1,27 @@
 import type { NextRequest } from "next/server";
-import { getCustomerProfileService } from "@/modules/customer";
-import { getUserHandler } from "@/modules/auth";
-import { isErr } from "@/shared/types";
 import { jsonError, jsonSuccess } from "@/api";
+import { createAdminCustomerHandler, listAdminCustomersHandler } from "@/modules/customer";
+import { isErr } from "@/shared/types";
 
 export async function GET(request: NextRequest) {
-  // Point data source to CustomerProfile instead of system users
-  const profilesResult = await getCustomerProfileService().listCustomers();
-  if (isErr(profilesResult)) return jsonError(profilesResult.error);
-  
-  // We need to return PublicUser objects since the frontend expects them.
-  // listCustomers() returns CustomerFullProfile, but we can fetch the original users.
-  // Actually, listCustomers already fetches the users internally, but returns a mapped type.
-  // Let's just fetch the PublicUsers for these profiles.
-  const users = [];
-  for (const p of profilesResult.value) {
-    const user = await getUserHandler(p.id); // p.id is userId in CustomerAccount
-    if (!isErr(user)) users.push(user.value);
-  }
+  const { searchParams } = new URL(request.url);
+  const emailVerified = searchParams.get("emailVerified") as "all" | "verified" | "unverified" | null;
+  const isActiveParam = searchParams.get("isActive");
 
-  return jsonSuccess({
-    items: users,
-    page: 1,
-    pageSize: Math.max(1, users.length),
-    total: users.length,
-    totalPages: 1
+  const result = await listAdminCustomersHandler({
+    search: searchParams.get("search") ?? undefined,
+    emailVerified: emailVerified ?? undefined,
+    isActive: isActiveParam === null ? undefined : isActiveParam === "true",
+    page: searchParams.get("page") ? Number(searchParams.get("page")) : undefined,
+    pageSize: searchParams.get("pageSize") ? Number(searchParams.get("pageSize")) : undefined,
   });
+  if (isErr(result)) return jsonError(result.error);
+  return jsonSuccess(result.value);
+}
+
+export async function POST(request: NextRequest) {
+  const body = await request.json().catch(() => null);
+  const result = await createAdminCustomerHandler(body, null);
+  if (isErr(result)) return jsonError(result.error);
+  return jsonSuccess(result.value, { status: 201 });
 }

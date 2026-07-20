@@ -7,6 +7,8 @@ export interface EnquiryListFilter extends PaginationParams {
   status?: string;
   type?: string;
   assignedToUserId?: string;
+  source?: string;
+  search?: string;
 }
 
 export interface EnquiryRepository extends BaseRepository<Enquiry, string> {

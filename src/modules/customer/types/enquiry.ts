@@ -42,6 +42,8 @@ export interface Enquiry {
   status: EnquiryStatus;
   /** Admin/agent this lead is assigned to — null when unassigned. */
   assignedToUserId: string | null;
+  followUpDate: string | null;
+  priority: string | null;
   createdAt: string;
   updatedAt: string;
 }

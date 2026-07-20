@@ -17,6 +17,7 @@ function toDomain(row: PrismaEnquiryRow): Enquiry {
     ...row,
     type: row.type as Enquiry["type"],
     status: row.status as Enquiry["status"],
+    followUpDate: row.followUpDate?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -27,6 +28,15 @@ function toWhere(filter: EnquiryListFilter): Prisma.EnquiryWhereInput {
   if (filter.status) where.status = filter.status;
   if (filter.type) where.type = filter.type;
   if (filter.assignedToUserId) where.assignedToUserId = filter.assignedToUserId;
+  if (filter.source) where.source = filter.source;
+  if (filter.search?.trim()) {
+    const q = filter.search.trim();
+    where.OR = [
+      { name: { contains: q, mode: "insensitive" } },
+      { email: { contains: q, mode: "insensitive" } },
+      { phone: { contains: q, mode: "insensitive" } },
+    ];
+  }
   return where;
 }
 
@@ -56,13 +66,29 @@ export class PrismaEnquiryRepository implements EnquiryRepository {
   }
 
   async create(data: Omit<Enquiry, "id">): Promise<Result<Enquiry, AppError>> {
-    const row = await prisma.enquiry.create({ data });
+    const { followUpDate, ...rest } = data;
+    const row = await prisma.enquiry.create({
+      data: {
+        ...rest,
+        followUpDate: followUpDate ? new Date(followUpDate) : null,
+        createdAt: new Date(rest.createdAt),
+        updatedAt: new Date(rest.updatedAt),
+      },
+    });
     return ok(toDomain(row));
   }
 
   async update(id: string, data: Partial<Omit<Enquiry, "id">>): Promise<Result<Enquiry, AppError>> {
     try {
-      const row = await prisma.enquiry.update({ where: { id }, data });
+      const { followUpDate, createdAt: _c, updatedAt, ...rest } = data;
+      const row = await prisma.enquiry.update({
+        where: { id },
+        data: {
+          ...rest,
+          ...(followUpDate !== undefined ? { followUpDate: followUpDate ? new Date(followUpDate) : null } : {}),
+          ...(updatedAt !== undefined ? { updatedAt: new Date(updatedAt) } : {}),
+        },
+      });
       return ok(toDomain(row));
     } catch {
       return err(new NotFoundError(`Enquiry "${id}" not found`));

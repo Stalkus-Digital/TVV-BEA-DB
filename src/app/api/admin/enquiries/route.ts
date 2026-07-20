@@ -1,90 +1,26 @@
 import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { prisma } from "@/shared/database/prisma-client";
+import { jsonError, jsonSuccess } from "@/api";
+import { createAdminEnquiryHandler, listAdminEnquiriesHandler } from "@/modules/customer";
+import { isErr } from "@/shared/types";
 
 export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status");
-    const assignedTo = searchParams.get("assignedToUserId");
-    const type = searchParams.get("type");
-    const page = Number(searchParams.get("page") ?? "1");
-    const pageSize = Number(searchParams.get("pageSize") ?? "20");
-
-    let where: any = {};
-    if (status) where.status = status;
-    if (assignedTo) where.assignedToUserId = assignedTo;
-    if (type) where.type = type;
-
-    const [enquiries, total] = await Promise.all([
-      prisma.enquiry.findMany({
-        where,
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.enquiry.count({ where }),
-    ]);
-
-    const items = enquiries.map((enquiry) => ({
-      id: enquiry.id,
-      type: enquiry.type,
-      name: enquiry.name,
-      email: enquiry.email,
-      phone: enquiry.phone,
-      message: enquiry.message,
-      destinationSlug: enquiry.destinationSlug,
-      packageSlug: enquiry.packageSlug,
-      hotelSlug: enquiry.hotelSlug,
-      activitySlug: enquiry.activitySlug,
-      customerId: enquiry.customerId,
-      source: enquiry.source,
-      status: enquiry.status,
-      assignedToUserId: enquiry.assignedToUserId,
-      createdAt: enquiry.createdAt.toISOString(),
-      updatedAt: enquiry.updatedAt.toISOString(),
-    }));
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        items,
-        total,
-        page,
-        pageSize,
-        totalPages: Math.ceil(total / pageSize),
-      },
-    });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: "Failed to fetch enquiries" }, { status: 500 });
-  }
-}
-
-export async function PATCH(request: NextRequest) {
-  return NextResponse.json({ success: false, error: "Not implemented. Use /status or /assign endpoints." }, { status: 501 });
+  const { searchParams } = new URL(request.url);
+  const result = await listAdminEnquiriesHandler({
+    status: (searchParams.get("status") as never) ?? undefined,
+    type: (searchParams.get("type") as never) ?? undefined,
+    assignedToUserId: searchParams.get("assignedToUserId") ?? undefined,
+    source: searchParams.get("source") ?? undefined,
+    search: searchParams.get("search") ?? undefined,
+    page: searchParams.get("page") ? Number(searchParams.get("page")) : undefined,
+    pageSize: searchParams.get("pageSize") ? Number(searchParams.get("pageSize")) : undefined,
+  });
+  if (isErr(result)) return jsonError(result.error);
+  return jsonSuccess(result.value);
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const now = new Date().toISOString();
-    const enquiry = await prisma.enquiry.create({
-      data: {
-        type: body.type || "GENERAL",
-        name: body.name || "",
-        email: body.email || "",
-        phone: body.phone,
-        message: body.message,
-        destinationSlug: body.destinationSlug,
-        packageSlug: body.packageSlug,
-        source: body.source || "WEB",
-        status: "NEW",
-        createdAt: now,
-        updatedAt: now,
-      },
-    });
-    return NextResponse.json({ success: true, data: enquiry });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: "Failed to create enquiry" }, { status: 500 });
-  }
+  const body = await request.json().catch(() => null);
+  const result = await createAdminEnquiryHandler(body, null);
+  if (isErr(result)) return jsonError(result.error);
+  return jsonSuccess(result.value, { status: 201 });
 }

@@ -94,6 +94,7 @@ export const ModelName = {
   CustomerProfile: 'CustomerProfile',
   Enquiry: 'Enquiry',
   EnquiryNote: 'EnquiryNote',
+  CustomerNote: 'CustomerNote',
   Notification: 'Notification',
   Lead: 'Lead',
   FerryRate: 'FerryRate',
@@ -784,6 +785,8 @@ export const EnquiryScalarFieldEnum = {
   source: 'source',
   status: 'status',
   assignedToUserId: 'assignedToUserId',
+  followUpDate: 'followUpDate',
+  priority: 'priority',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -800,6 +803,17 @@ export const EnquiryNoteScalarFieldEnum = {
 } as const
 
 export type EnquiryNoteScalarFieldEnum = (typeof EnquiryNoteScalarFieldEnum)[keyof typeof EnquiryNoteScalarFieldEnum]
+
+
+export const CustomerNoteScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  authorUserId: 'authorUserId',
+  body: 'body',
+  createdAt: 'createdAt'
+} as const
+
+export type CustomerNoteScalarFieldEnum = (typeof CustomerNoteScalarFieldEnum)[keyof typeof CustomerNoteScalarFieldEnum]
 
 
 export const NotificationScalarFieldEnum = {

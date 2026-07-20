@@ -84,6 +84,22 @@ export interface AssignEnquiryInput {
   assignedToUserId: string | null;
 }
 
+export interface UpdateEnquiryFollowUpInput {
+  followUpDate: string | null;
+  priority?: string | null;
+}
+
+export interface CreateAdminEnquiryInput {
+  type?: EnquiryType;
+  name: string;
+  email: string;
+  phone?: string | null;
+  message?: string | null;
+  source?: string | null;
+  followUpDate?: string | null;
+  priority?: string | null;
+}
+
 export function validateAssignEnquiry(input: unknown): Result<AssignEnquiryInput, ValidationError> {
   if (typeof input !== "object" || input === null) return err(new ValidationError("Request body must be an object"));
   const { assignedToUserId } = input as Record<string, unknown>;
@@ -103,4 +119,46 @@ export function validateEnquiryNoteBody(input: unknown): Result<EnquiryNoteInput
   const { body } = input as Record<string, unknown>;
   if (!isNonEmptyString(body)) return err(new ValidationError("body is required"));
   return ok({ body });
+}
+
+export function validateCreateAdminEnquiry(input: unknown): Result<CreateAdminEnquiryInput, ValidationError> {
+  if (typeof input !== "object" || input === null) return err(new ValidationError("Request body must be an object"));
+  const body = input as Record<string, unknown>;
+
+  const type =
+    typeof body.type === "string" && VALID_TYPES.includes(body.type) ? (body.type as EnquiryType) : EnquiryType.GENERAL;
+  if (!isNonEmptyString(body.name)) return err(new ValidationError("name is required"));
+  if (!isNonEmptyString(body.email)) return err(new ValidationError("email is required"));
+
+  for (const field of ["phone", "message", "source", "followUpDate", "priority"] as const) {
+    if (body[field] !== undefined && body[field] !== null && typeof body[field] !== "string") {
+      return err(new ValidationError(`${field} must be a string or null`));
+    }
+  }
+
+  return ok({
+    type,
+    name: body.name.trim(),
+    email: body.email.trim(),
+    phone: (body.phone as string | undefined)?.trim() ?? null,
+    message: (body.message as string | undefined)?.trim() ?? null,
+    source: (body.source as string | undefined)?.trim() ?? (body.sourceUrl as string | undefined)?.trim() ?? "Manual Entry",
+    followUpDate: (body.followUpDate as string | undefined) ?? null,
+    priority: (body.priority as string | undefined) ?? null,
+  });
+}
+
+export function validateUpdateEnquiryFollowUp(input: unknown): Result<UpdateEnquiryFollowUpInput, ValidationError> {
+  if (typeof input !== "object" || input === null) return err(new ValidationError("Request body must be an object"));
+  const body = input as Record<string, unknown>;
+  if (body.followUpDate !== null && body.followUpDate !== undefined && typeof body.followUpDate !== "string") {
+    return err(new ValidationError("followUpDate must be a string or null"));
+  }
+  if (body.priority !== undefined && body.priority !== null && typeof body.priority !== "string") {
+    return err(new ValidationError("priority must be a string or null"));
+  }
+  return ok({
+    followUpDate: (body.followUpDate as string | null | undefined) ?? null,
+    priority: body.priority === undefined ? undefined : ((body.priority as string | null) ?? null),
+  });
 }

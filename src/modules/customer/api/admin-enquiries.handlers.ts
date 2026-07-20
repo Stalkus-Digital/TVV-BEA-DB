@@ -8,6 +8,8 @@ export interface ListAdminEnquiriesQuery {
   status?: EnquiryStatus;
   type?: EnquiryType;
   assignedToUserId?: string;
+  source?: string;
+  search?: string;
   page?: number;
   pageSize?: number;
 }
@@ -50,4 +52,20 @@ export async function updateAdminEnquiryNoteHandler(
 
 export async function deleteAdminEnquiryNoteHandler(enquiryId: string, noteId: string): Promise<Result<void, AppError>> {
   return getEnquiryService().deleteNote(enquiryId, noteId);
+}
+
+export async function createAdminEnquiryHandler(body: unknown, context: AuthContext | null): Promise<Result<Enquiry, AppError>> {
+  return getEnquiryService().createAdmin(body, context?.userId ?? null);
+}
+
+export async function deleteAdminEnquiryHandler(id: string, context: AuthContext | null): Promise<Result<void, AppError>> {
+  return getEnquiryService().delete(id, context?.userId ?? null);
+}
+
+export async function updateAdminEnquiryFollowUpHandler(
+  id: string,
+  body: unknown,
+  context: AuthContext | null
+): Promise<Result<Enquiry, AppError>> {
+  return getEnquiryService().updateFollowUp(id, body, context?.userId ?? null);
 }

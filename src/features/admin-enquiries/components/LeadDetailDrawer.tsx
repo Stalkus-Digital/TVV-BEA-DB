@@ -6,8 +6,12 @@ import { ENQUIRY_STATUS_LABELS, ENQUIRY_TYPE_LABELS } from "../constants";
 import {
   useAssignEnquiryMutation,
   useDeleteEnquiryMutation,
+  useUpdateEnquiryFollowUpMutation,
   useUpdateEnquiryStatusMutation,
 } from "../hooks/useEnquiryMutations";
+import { EntityActivityTimeline } from "@/components/admin/EntityActivityTimeline";
+import { adminEndpoints } from "@/lib/admin-api/endpoints";
+import { LEAD_PRIORITY_OPTIONS } from "../constants";
 import { useEnquiryNotesQuery } from "../hooks/useEnquiryNotesQuery";
 import { useEnquiryQuery } from "../hooks/useEnquiryQuery";
 import { useStaffUsersQuery } from "../hooks/useStaffUsersQuery";
@@ -92,8 +96,11 @@ function LeadDetailContent({
 }) {
   const updateStatus = useUpdateEnquiryStatusMutation(enquiry.id);
   const assign = useAssignEnquiryMutation(enquiry.id);
+  const updateFollowUp = useUpdateEnquiryFollowUpMutation(enquiry.id);
   const deleteMutation = useDeleteEnquiryMutation();
   const details = parseEnquiryMessage(enquiry.message);
+
+  const followUpValue = enquiry.followUpDate ? enquiry.followUpDate.slice(0, 10) : "";
 
   const assignedLabel = enquiry.assignedToUserId
     ? staffNameById.get(enquiry.assignedToUserId) ?? enquiry.assignedToUserId
@@ -136,6 +143,8 @@ function LeadDetailContent({
           )}
           {details.budget && <DetailRow label="Budget" value={details.budget} />}
           <DetailRow label="Source" value={enquiry.source ?? "—"} />
+          <DetailRow label="Priority" value={enquiry.priority ?? "—"} />
+          <DetailRow label="Follow-up" value={enquiry.followUpDate ? formatEnquiryDate(enquiry.followUpDate) : "—"} />
           <DetailRow label="Created" value={formatEnquiryDate(enquiry.createdAt)} />
           <DetailRow label="Last updated" value={formatEnquiryDate(enquiry.updatedAt)} />
           <DetailRow label="Assigned to" value={assignedLabel} />
@@ -150,6 +159,41 @@ function LeadDetailContent({
           </p>
         </section>
       )}
+
+      <section className="space-y-3">
+        <h4 className="text-sm font-semibold">Follow-up</h4>
+        <div className="grid grid-cols-1 gap-2">
+          <input
+            type="date"
+            value={followUpValue}
+            disabled={updateFollowUp.isPending}
+            onChange={(e) =>
+              updateFollowUp.mutate({
+                followUpDate: e.target.value ? new Date(e.target.value).toISOString() : null,
+              })
+            }
+            className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
+          />
+          <select
+            value={enquiry.priority ?? ""}
+            disabled={updateFollowUp.isPending}
+            onChange={(e) =>
+              updateFollowUp.mutate({
+                followUpDate: enquiry.followUpDate,
+                priority: e.target.value || null,
+              })
+            }
+            className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
+          >
+            <option value="">No priority</option>
+            {LEAD_PRIORITY_OPTIONS.map((priority) => (
+              <option key={priority} value={priority}>
+                {priority}
+              </option>
+            ))}
+          </select>
+        </div>
+      </section>
 
       <section className="space-y-3">
         <h4 className="text-sm font-semibold">Status</h4>
@@ -198,6 +242,15 @@ function LeadDetailContent({
             {assign.error instanceof Error ? assign.error.message : "Assignment failed"}
           </p>
         )}
+      </section>
+
+      <section className="space-y-3">
+        <h4 className="text-sm font-semibold">Audit Log</h4>
+        <EntityActivityTimeline
+          endpoint={`${adminEndpoints.enquiriesInbox}/${enquiry.id}/audit-logs`}
+          eventPrefix="ENQUIRY_"
+          queryKey={[enquiry.id]}
+        />
       </section>
 
       <section className="space-y-3">

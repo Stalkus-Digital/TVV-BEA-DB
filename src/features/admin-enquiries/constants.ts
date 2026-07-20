@@ -24,6 +24,19 @@ export const CRM_COLUMNS: { status: EnquiryStatus; title: string; color: string 
   { status: EnquiryStatus.CLOSED, title: "Closed", color: "bg-slate-400" },
 ];
 
+export const LEAD_SOURCE_OPTIONS = [
+  "Website",
+  "Google Ads",
+  "Meta Ads",
+  "WhatsApp",
+  "Phone",
+  "Email",
+  "Referral",
+  "Manual Entry",
+] as const;
+
+export const LEAD_PRIORITY_OPTIONS = ["LOW", "MEDIUM", "HIGH"] as const;
+
 export const STATUS_BADGE_CLASSES: Record<EnquiryStatus, string> = {
   NEW: "bg-blue-100 text-blue-700",
   CONTACTED: "bg-amber-100 text-amber-700",

@@ -45,7 +45,7 @@ export function DestinationActivityTimeline({ destinationId }: DestinationActivi
   return (
     <div className="space-y-4">
       {data.map((entry, index) => {
-        const details = entry.details as Record<string, unknown>;
+        const details = (entry.details ?? {}) as Record<string, unknown>;
         const eventType = entry.eventType;
         const timestamp = new Date(entry.occurredAt);
         const formattedTime = timestamp.toLocaleString();
@@ -104,23 +104,28 @@ export function DestinationActivityTimeline({ destinationId }: DestinationActivi
                 {relativeTime}
               </p>
 
-              {details && (
+              {Object.keys(details).length > 0 && (
                 <div className="mt-2 text-xs text-foreground/80 space-y-1">
-                  {details.action && (
-                    <p className="text-xs text-muted-foreground">{details.action}</p>
+                  {typeof details.action === "string" && (
+                    <p className="text-xs text-muted-foreground">{String(details.action)}</p>
                   )}
-                  {details.changes && typeof details.changes === "object" && (
-                    <div className="text-xs text-muted-foreground">
-                      {Object.entries(details.changes).map(([key, change]) => {
-                        const changeObj = change as any;
-                        return (
-                          <p key={key}>
-                            <span className="font-medium">{key}:</span> {String(changeObj.from)} → {String(changeObj.to)}
-                          </p>
-                        );
-                      })}
-                    </div>
-                  )}
+                  {(() => {
+                    const changes = details.changes;
+                    if (changes && typeof changes === "object") {
+                      return (
+                        <div className="text-xs text-muted-foreground">
+                          {Object.entries(changes as Record<string, any>).map(([key, change]) => {
+                            return (
+                              <p key={key}>
+                                <span className="font-medium">{key}:</span> {String(change?.from)} → {String(change?.to)}
+                              </p>
+                            );
+                          })}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               )}
             </div>

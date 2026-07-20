@@ -28,7 +28,7 @@ export class DestinationService extends BaseService {
     if (!this.auditLog) return;
     await this.auditLog.record({
       eventType: eventType as any,
-      actorUserId: this.context.userId ?? null,
+      actorUserId: null,
       details: {
         destinationId: destination.id,
         destinationName: destination.name,
@@ -400,8 +400,9 @@ export class DestinationService extends BaseService {
       stateId: source.stateId,
       regionId: source.regionId,
       cityId: source.cityId,
-      categoryId: source.categoryId,
-      airportId: source.airportId,
+      categoryIds: source.categoryIds,
+      latitude: source.latitude,
+      longitude: source.longitude,
       isFeatured: false,
       gallery: source.gallery,
       faqs: source.faqs,
@@ -426,7 +427,7 @@ export class DestinationService extends BaseService {
   async bulkUpdateStatus(ids: string[], status: string): Promise<Result<{ updated: number }, AppError>> {
     let updated = 0;
     for (const id of ids) {
-      const result = await this.repository.update(id, { status });
+      const result = await this.repository.update(id, { status: status as DestinationStatus });
       if (!isErr(result)) updated++;
     }
     return ok({ updated });

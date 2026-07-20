@@ -3,7 +3,8 @@ import { jsonError, jsonSuccess } from "@/api";
 import { getAuditLogService } from "@/modules/auth";
 import { isErr } from "@/shared/types";
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   const { searchParams } = new URL(request.url);
   const page = searchParams.get("page") ? Number(searchParams.get("page")) : 1;
   const pageSize = searchParams.get("pageSize") ? Number(searchParams.get("pageSize")) : 20;
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     ...result.value,
     items: result.value.items.filter(
       (log) =>
-        log.details && typeof log.details === "object" && "destinationId" in log.details && log.details.destinationId === params.id
+        log.details && typeof log.details === "object" && "destinationId" in log.details && (log.details as Record<string, unknown>).destinationId === resolvedParams.id
     ),
   };
 

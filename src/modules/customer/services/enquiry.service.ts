@@ -209,34 +209,72 @@ export class EnquiryService extends BaseService {
     if (isErr(existing)) return existing;
     if (!existing.value) return err(new NotFoundError(`Enquiry "${enquiryId}" not found`));
 
-    return this.enquiries.addNote({
+    const created = await this.enquiries.addNote({
       enquiryId,
       authorUserId,
       body: validated.value.body,
       createdAt: new Date().toISOString(),
     });
+    if (!isErr(created)) {
+      await this.recordAudit(AuditEventType.ENQUIRY_UPDATED, existing.value, authorUserId, {
+        action: "note added",
+        noteId: created.value.id,
+      });
+    }
+    return created;
   }
 
-  async updateNote(enquiryId: string, noteId: string, input: unknown): Promise<Result<EnquiryNote, AppError>> {
+  async updateNote(
+    enquiryId: string,
+    noteId: string,
+    input: unknown,
+    actorUserId: string | null = null
+  ): Promise<Result<EnquiryNote, AppError>> {
     const validated = validateEnquiryNoteBody(input);
     if (isErr(validated)) return validated;
 
+    const existing = await this.enquiries.findById(enquiryId);
+    if (isErr(existing)) return existing;
+    if (!existing.value) return err(new NotFoundError(`Enquiry "${enquiryId}" not found`));
+
     const note = await this.enquiries.findNoteById(noteId);
     if (isErr(note)) return note;
     if (!note.value || note.value.enquiryId !== enquiryId) {
       return err(new NotFoundError(`Enquiry note "${noteId}" not found`));
     }
 
-    return this.enquiries.updateNote(noteId, validated.value.body);
+    const updated = await this.enquiries.updateNote(noteId, validated.value.body);
+    if (!isErr(updated)) {
+      await this.recordAudit(AuditEventType.ENQUIRY_UPDATED, existing.value, actorUserId, {
+        action: "note updated",
+        noteId,
+      });
+    }
+    return updated;
   }
 
-  async deleteNote(enquiryId: string, noteId: string): Promise<Result<void, AppError>> {
+  async deleteNote(
+    enquiryId: string,
+    noteId: string,
+    actorUserId: string | null = null
+  ): Promise<Result<void, AppError>> {
+    const existing = await this.enquiries.findById(enquiryId);
+    if (isErr(existing)) return existing;
+    if (!existing.value) return err(new NotFoundError(`Enquiry "${enquiryId}" not found`));
+
     const note = await this.enquiries.findNoteById(noteId);
     if (isErr(note)) return note;
     if (!note.value || note.value.enquiryId !== enquiryId) {
       return err(new NotFoundError(`Enquiry note "${noteId}" not found`));
     }
 
-    return this.enquiries.deleteNote(noteId);
+    const deleted = await this.enquiries.deleteNote(noteId);
+    if (!isErr(deleted)) {
+      await this.recordAudit(AuditEventType.ENQUIRY_UPDATED, existing.value, actorUserId, {
+        action: "note deleted",
+        noteId,
+      });
+    }
+    return deleted;
   }
 }

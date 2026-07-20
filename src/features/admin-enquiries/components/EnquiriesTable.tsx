@@ -1,10 +1,8 @@
 "use client";
 
 import { Mail, Phone, Trash2 } from "lucide-react";
-import { useMemo } from "react";
 import { ENQUIRY_TYPE_LABELS } from "../constants";
 import { useDeleteEnquiryMutation } from "../hooks/useEnquiryMutations";
-import { useStaffUsersQuery } from "../hooks/useStaffUsersQuery";
 import type { Enquiry, PaginatedEnquiries } from "../types";
 import { enquiryContextLabel, enquiryDetailsSummary, formatEnquiryDate } from "../utils";
 import { EnquiryStatusBadge } from "./EnquiryStatusBadge";
@@ -31,15 +29,6 @@ export function EnquiriesTable({
   page,
   onPageChange,
 }: EnquiriesTableProps) {
-  const staffQuery = useStaffUsersQuery();
-  const staffNameById = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const user of staffQuery.data ?? []) {
-      map.set(user.id, user.fullName || user.email);
-    }
-    return map;
-  }, [staffQuery.data]);
-
   if (isLoading) return <WidgetLoading label="Loading enquiries…" />;
   if (isError) return <WidgetError message={errorMessage ?? "Failed to load enquiries"} onRetry={onRetry} />;
   if (!data?.items.length) return <WidgetEmpty message="No enquiries match your filters" />;
@@ -54,7 +43,6 @@ export function EnquiriesTable({
               <th className="px-4 py-3 font-semibold">Contact</th>
               <th className="px-4 py-3 font-semibold">Details</th>
               <th className="px-4 py-3 font-semibold">Context</th>
-              <th className="px-4 py-3 font-semibold">Assigned</th>
               <th className="px-4 py-3 font-semibold">Status</th>
               <th className="px-4 py-3 font-semibold">Created</th>
               <th className="px-4 py-3 font-semibold text-right">Actions</th>
@@ -62,16 +50,7 @@ export function EnquiriesTable({
           </thead>
           <tbody className="divide-y divide-border">
             {data.items.map((enquiry) => (
-              <EnquiryRow
-                key={enquiry.id}
-                enquiry={enquiry}
-                assignedLabel={
-                  enquiry.assignedToUserId
-                    ? staffNameById.get(enquiry.assignedToUserId) ?? "Unknown user"
-                    : "Unassigned"
-                }
-                onSelect={onSelect}
-              />
+              <EnquiryRow key={enquiry.id} enquiry={enquiry} onSelect={onSelect} />
             ))}
           </tbody>
         </table>
@@ -106,11 +85,9 @@ export function EnquiriesTable({
 
 function EnquiryRow({
   enquiry,
-  assignedLabel,
   onSelect,
 }: {
   enquiry: Enquiry;
-  assignedLabel: string;
   onSelect: (id: string) => void;
 }) {
   const deleteMutation = useDeleteEnquiryMutation();
@@ -156,7 +133,6 @@ function EnquiryRow({
       <td className="px-4 py-3 whitespace-nowrap text-primary text-xs font-medium">
         {enquiryContextLabel(enquiry)}
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-muted-foreground text-xs">{assignedLabel}</td>
       <td className="px-4 py-3 whitespace-nowrap">
         <EnquiryStatusBadge status={enquiry.status} />
       </td>

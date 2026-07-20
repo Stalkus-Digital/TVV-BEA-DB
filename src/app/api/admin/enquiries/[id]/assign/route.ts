@@ -1,22 +1,18 @@
 import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { prisma } from "@/shared/database/prisma-client";
+import { jsonError, jsonSuccess } from "@/api";
+import { readAuthContextFromHeaders } from "@/modules/auth";
+import { assignAdminEnquiryHandler } from "@/modules/customer";
+import { isErr } from "@/shared/types";
 
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id } = await params;
-    const { assignedToUserId } = await request.json();
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
 
-    const enquiry = await prisma.enquiry.update({
-      where: { id },
-      data: { assignedToUserId, updatedAt: new Date() },
-    });
-
-    return NextResponse.json({
-      id: enquiry.id,
-      assignedToUserId: enquiry.assignedToUserId,
-    });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: "Failed to assign enquiry" }, { status: 500 });
-  }
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  const { id } = await params;
+  const context = readAuthContextFromHeaders(request.headers);
+  const body = await request.json().catch(() => null);
+  const result = await assignAdminEnquiryHandler(id, body, context);
+  if (isErr(result)) return jsonError(result.error);
+  return jsonSuccess(result.value);
 }

@@ -22,7 +22,7 @@ async function fetchAllPages<T>(path: string): Promise<T[]> {
 
 export async function fetchCustomerRelationshipBundle(): Promise<CustomerRelationshipBundle> {
   const [enquiries, quotes, bookings] = await Promise.all([
-    fetchAllPages<CustomerEnquiryRecord>(adminEndpoints.enquiries),
+    fetchAllPages<CustomerEnquiryRecord>(adminEndpoints.enquiriesInbox),
     fetchAllPages<CustomerQuoteRecord>(adminEndpoints.quotes),
     fetchAllPages<CustomerBookingRecord>(adminEndpoints.bookings),
   ]);

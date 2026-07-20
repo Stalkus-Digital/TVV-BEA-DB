@@ -22,7 +22,7 @@ export function EnquiriesInboxPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Enquiries</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Monitor client vacation requests, assign support agents, and track conversion statuses.
+          Monitor client vacation requests and track conversion statuses.
         </p>
       </div>
 

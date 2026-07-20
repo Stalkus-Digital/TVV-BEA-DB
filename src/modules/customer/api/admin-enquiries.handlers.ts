@@ -22,12 +22,20 @@ export async function getAdminEnquiryHandler(id: string): Promise<Result<Enquiry
   return getEnquiryService().getById(id);
 }
 
-export async function updateAdminEnquiryStatusHandler(id: string, body: unknown): Promise<Result<Enquiry, AppError>> {
-  return getEnquiryService().updateStatus(id, body);
+export async function updateAdminEnquiryStatusHandler(
+  id: string,
+  body: unknown,
+  context: AuthContext | null
+): Promise<Result<Enquiry, AppError>> {
+  return getEnquiryService().updateStatus(id, body, context?.userId ?? null);
 }
 
-export async function assignAdminEnquiryHandler(id: string, body: unknown): Promise<Result<Enquiry, AppError>> {
-  return getEnquiryService().assign(id, body);
+export async function assignAdminEnquiryHandler(
+  id: string,
+  body: unknown,
+  context: AuthContext | null
+): Promise<Result<Enquiry, AppError>> {
+  return getEnquiryService().assign(id, body, context?.userId ?? null);
 }
 
 export async function listAdminEnquiryNotesHandler(enquiryId: string): Promise<Result<EnquiryNote[], AppError>> {
@@ -45,13 +53,18 @@ export async function addAdminEnquiryNoteHandler(
 export async function updateAdminEnquiryNoteHandler(
   enquiryId: string,
   noteId: string,
-  body: unknown
+  body: unknown,
+  context: AuthContext | null
 ): Promise<Result<EnquiryNote, AppError>> {
-  return getEnquiryService().updateNote(enquiryId, noteId, body);
+  return getEnquiryService().updateNote(enquiryId, noteId, body, context?.userId ?? null);
 }
 
-export async function deleteAdminEnquiryNoteHandler(enquiryId: string, noteId: string): Promise<Result<void, AppError>> {
-  return getEnquiryService().deleteNote(enquiryId, noteId);
+export async function deleteAdminEnquiryNoteHandler(
+  enquiryId: string,
+  noteId: string,
+  context: AuthContext | null
+): Promise<Result<void, AppError>> {
+  return getEnquiryService().deleteNote(enquiryId, noteId, context?.userId ?? null);
 }
 
 export async function createAdminEnquiryHandler(body: unknown, context: AuthContext | null): Promise<Result<Enquiry, AppError>> {

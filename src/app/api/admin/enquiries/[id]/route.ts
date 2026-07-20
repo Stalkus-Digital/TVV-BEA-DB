@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { jsonError, jsonSuccess } from "@/api";
+import { readAuthContextFromHeaders } from "@/modules/auth";
 import { deleteAdminEnquiryHandler, getAdminEnquiryHandler } from "@/modules/customer";
 import { isErr } from "@/shared/types";
 
@@ -14,9 +15,10 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
   return jsonSuccess(result.value);
 }
 
-export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   const { id } = await params;
-  const result = await deleteAdminEnquiryHandler(id, null);
+  const context = readAuthContextFromHeaders(request.headers);
+  const result = await deleteAdminEnquiryHandler(id, context);
   if (isErr(result)) return jsonError(result.error);
   return jsonSuccess({ id });
 }

@@ -1,22 +1,18 @@
 import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { prisma } from "@/shared/database/prisma-client";
+import { jsonError, jsonSuccess } from "@/api";
+import { readAuthContextFromHeaders } from "@/modules/auth";
+import { updateAdminEnquiryStatusHandler } from "@/modules/customer";
+import { isErr } from "@/shared/types";
 
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id } = await params;
-    const { status } = await request.json();
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
 
-    const enquiry = await prisma.enquiry.update({
-      where: { id },
-      data: { status, updatedAt: new Date() },
-    });
-
-    return NextResponse.json({
-      id: enquiry.id,
-      status: enquiry.status,
-    });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: "Failed to update status" }, { status: 500 });
-  }
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  const { id } = await params;
+  const context = readAuthContextFromHeaders(request.headers);
+  const body = await request.json().catch(() => null);
+  const result = await updateAdminEnquiryStatusHandler(id, body, context);
+  if (isErr(result)) return jsonError(result.error);
+  return jsonSuccess(result.value);
 }

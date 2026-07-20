@@ -4,7 +4,6 @@ import { Trash2, X } from "lucide-react";
 import { useMemo } from "react";
 import { ENQUIRY_STATUS_LABELS, ENQUIRY_TYPE_LABELS } from "../constants";
 import {
-  useAssignEnquiryMutation,
   useDeleteEnquiryMutation,
   useUpdateEnquiryFollowUpMutation,
   useUpdateEnquiryStatusMutation,
@@ -64,9 +63,6 @@ export function LeadDetailDrawer({ enquiryId, onClose }: LeadDetailDrawerProps) 
             <LeadDetailContent
               enquiry={enquiryQuery.data}
               staffNameById={staffNameById}
-              staffUsers={staffQuery.data ?? []}
-              staffLoading={staffQuery.isLoading}
-              staffError={staffQuery.isError}
               notes={notesQuery.data ?? []}
               onDeleted={onClose}
             />
@@ -80,31 +76,20 @@ export function LeadDetailDrawer({ enquiryId, onClose }: LeadDetailDrawerProps) 
 function LeadDetailContent({
   enquiry,
   staffNameById,
-  staffUsers,
-  staffLoading,
-  staffError,
   notes,
   onDeleted,
 }: {
   enquiry: Enquiry;
   staffNameById: Map<string, string>;
-  staffUsers: { id: string; fullName: string; email: string }[];
-  staffLoading: boolean;
-  staffError: boolean;
   notes: { id: string; body: string; createdAt: string; authorUserId: string | null }[];
   onDeleted: () => void;
 }) {
   const updateStatus = useUpdateEnquiryStatusMutation(enquiry.id);
-  const assign = useAssignEnquiryMutation(enquiry.id);
   const updateFollowUp = useUpdateEnquiryFollowUpMutation(enquiry.id);
   const deleteMutation = useDeleteEnquiryMutation();
   const details = parseEnquiryMessage(enquiry.message);
 
   const followUpValue = enquiry.followUpDate ? enquiry.followUpDate.slice(0, 10) : "";
-
-  const assignedLabel = enquiry.assignedToUserId
-    ? staffNameById.get(enquiry.assignedToUserId) ?? enquiry.assignedToUserId
-    : "Unassigned";
 
   async function handleDelete() {
     if (!confirm(`Delete lead “${enquiry.name}”? This cannot be undone.`)) return;
@@ -147,7 +132,6 @@ function LeadDetailContent({
           <DetailRow label="Follow-up" value={enquiry.followUpDate ? formatEnquiryDate(enquiry.followUpDate) : "—"} />
           <DetailRow label="Created" value={formatEnquiryDate(enquiry.createdAt)} />
           <DetailRow label="Last updated" value={formatEnquiryDate(enquiry.updatedAt)} />
-          <DetailRow label="Assigned to" value={assignedLabel} />
         </dl>
       </section>
 
@@ -216,32 +200,12 @@ function LeadDetailContent({
         )}
       </section>
 
-      <section className="space-y-3">
+      <section className="space-y-2 rounded-md border border-dashed border-border bg-muted/20 px-3 py-3">
         <h4 className="text-sm font-semibold">Assignment</h4>
-        <select
-          value={enquiry.assignedToUserId ?? ""}
-          disabled={assign.isPending || staffLoading || staffError || staffUsers.length === 0}
-          onChange={(e) => assign.mutate(e.target.value || null)}
-          className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm disabled:opacity-60"
-        >
-          <option value="">Unassigned</option>
-          {staffUsers.map((user) => (
-            <option key={user.id} value={user.id}>
-              {user.fullName || user.email}
-            </option>
-          ))}
-        </select>
-        {staffError && (
-          <p className="text-xs text-muted-foreground">Staff list unavailable — assignment disabled.</p>
-        )}
-        {!staffError && staffUsers.length === 0 && !staffLoading && (
-          <p className="text-xs text-muted-foreground">No staff users found.</p>
-        )}
-        {assign.isError && (
-          <p className="text-xs text-destructive">
-            {assign.error instanceof Error ? assign.error.message : "Assignment failed"}
-          </p>
-        )}
+        <p className="text-xs text-muted-foreground">
+          Lead assignment is not available yet. The system currently supports a single owner
+          account; employee assignment will be added in a future phase.
+        </p>
       </section>
 
       <section className="space-y-3">
@@ -256,7 +220,7 @@ function LeadDetailContent({
       <section className="space-y-3">
         <h4 className="text-sm font-semibold">Activity</h4>
         <p className="text-xs text-muted-foreground">
-          Full status history API is not available — showing created/updated timestamps and notes.
+          Showing created/updated timestamps and notes.
         </p>
         <ul className="space-y-2 text-sm">
           <li className="rounded-md border border-border px-3 py-2">
@@ -264,7 +228,7 @@ function LeadDetailContent({
           </li>
           {enquiry.updatedAt !== enquiry.createdAt && (
             <li className="rounded-md border border-border px-3 py-2">
-              Status/assignment updated · {formatEnquiryDate(enquiry.updatedAt)} (
+              Updated · {formatEnquiryDate(enquiry.updatedAt)} (
               {ENQUIRY_STATUS_LABELS[enquiry.status]})
             </li>
           )}

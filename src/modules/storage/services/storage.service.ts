@@ -1,5 +1,5 @@
-import { isErr, ok, type Result } from "@/shared/types";
-import type { AppError } from "@/shared/errors";
+import { err, isErr, ok, type Result } from "@/shared/types";
+import { ValidationError, type AppError } from "@/shared/errors";
 import { BaseService, type ServiceContext } from "@/shared/services";
 import type { StorageProvider, ProviderObjectMetadata } from "../providers/storage-provider";
 import type { SignedUrlService } from "../signed-urls/signed-url.service";
@@ -11,6 +11,7 @@ import { isImageCategory } from "../uploads/file-validation";
 import { validateOwnership } from "../uploads/ownership";
 import { validateImageUpload } from "../images/image-validation";
 import { validateDocumentUpload } from "../documents/document-validation";
+import type { VirusScanner } from "../uploads/virus-scanner";
 
 export interface SignedUrlResult {
   url: string;
@@ -28,18 +29,25 @@ export class StorageService extends BaseService {
   constructor(
     context: ServiceContext,
     private readonly provider: StorageProvider,
-    private readonly signedUrls: SignedUrlService
+    private readonly signedUrls: SignedUrlService,
+    private readonly virusScanner: VirusScanner
   ) {
     super(context);
   }
 
   async upload(body: Buffer, options: UploadOptions): Promise<Result<StorageObject, AppError>> {
     const validated = isImageCategory(options.category)
-      ? validateImageUpload(options.category, options.contentType, body.length)
-      : validateDocumentUpload(options.category, options.contentType, body.length);
+      ? validateImageUpload(options.category, options.contentType, body.length, body)
+      : validateDocumentUpload(options.category, options.contentType, body.length, body);
     if (isErr(validated)) return validated;
 
-    const key = generateStorageKey(options.category, options.ownerId, options.fileName);
+    const scan = await this.virusScanner.scan(body, options.contentType);
+    if (!scan.clean) {
+      this.logger.warn("Upload rejected by virus scanner", { category: options.category, reason: scan.reason ?? "unspecified" });
+      return err(new ValidationError("This file failed a security scan and cannot be uploaded."));
+    }
+
+    const key = generateStorageKey(options.category, options.ownerId, options.contentType);
     const visibility = CATEGORY_VISIBILITY[options.category];
     const uploaded = await this.provider.upload({ key, body, contentType: options.contentType, visibility });
     if (isErr(uploaded)) return uploaded;

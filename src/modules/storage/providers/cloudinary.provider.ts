@@ -11,18 +11,31 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+/**
+ * SECURITY-002C: `resource_type` is derived from the already
+ * magic-byte-validated `contentType` (file-validation.ts), not left as
+ * `"auto"`. `"auto"` lets Cloudinary accept and store whatever bytes
+ * arrive regardless of what was validated upstream — pinning it to
+ * `"image"` for image content types makes Cloudinary itself reject
+ * non-image bytes as a second, independent check, rather than relying
+ * solely on this app's own validation.
+ */
+function resourceTypeForContentType(contentType: string): "image" | "raw" {
+  return contentType.trim().toLowerCase().startsWith("image/") ? "image" : "raw";
+}
+
 export class CloudinaryProvider implements StorageProvider {
   async upload(input: ProviderUploadInput): Promise<Result<ProviderObjectMetadata, AppError>> {
     try {
       return new Promise((resolve) => {
-        // Remove file extension as Cloudinary manages formats automatically 
+        // Remove file extension as Cloudinary manages formats automatically
         // and appends its own extensions if not careful
         const publicId = input.key.replace(/\.[^/.]+$/, "");
-        
+
         const uploadStream = cloudinary.uploader.upload_stream(
           {
             public_id: publicId,
-            resource_type: "auto",
+            resource_type: resourceTypeForContentType(input.contentType),
             type: input.visibility === "PUBLIC" ? "upload" : "private",
           },
           (error, result) => {

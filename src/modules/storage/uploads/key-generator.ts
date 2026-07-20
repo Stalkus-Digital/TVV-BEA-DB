@@ -5,10 +5,65 @@ function purposeSlug(category: StorageCategory): string {
   return category.toLowerCase().replace(/_/g, "-");
 }
 
-function extensionFromFileName(fileName: string): string {
-  const dot = fileName.lastIndexOf(".");
-  if (dot === -1 || dot === fileName.length - 1) return "bin";
-  return fileName.slice(dot + 1).toLowerCase();
+/**
+ * SECURITY-002C: the storage extension is derived from the already
+ * magic-byte-validated `contentType` (see file-validation.ts), never from
+ * the client-supplied filename. The original filename is preserved only
+ * as metadata (see storage.handlers.ts's mediaAsset record) and never
+ * used to build a path or pick an extension — this is what closes the
+ * "invoice.pdf.exe" / "holiday.png.php" double-extension class of attack
+ * at the source: by the time a key is generated, the bytes have already
+ * been proven to be a real JPEG/PNG/WEBP/GIF/PDF, so the extension always
+ * matches what the file actually is.
+ */
+const EXTENSION_FOR_CONTENT_TYPE: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "application/pdf": "pdf",
+};
+
+function extensionForContentType(contentType: string): string {
+  return EXTENSION_FOR_CONTENT_TYPE[contentType.trim().toLowerCase()] ?? "bin";
+}
+
+/**
+ * SECURITY-002C: `ownerId` is interpolated directly into the storage key
+ * path — for non-self-owned categories it's still a client-supplied
+ * target entity id (see storage.handlers.ts's resolveOwnerId), so it must
+ * be restricted to a safe id charset before being used to build a path.
+ * Without this, a value like `../other-owner` or one containing `/` would
+ * corrupt the path structure `extractOwnerIdFromKey` relies on to parse
+ * the owner back out (`rest.split("/")[0]`), which is exactly the kind of
+ * path-traversal-shaped input this sprint's Task 5 asks to reject —
+ * Cloudinary has no real filesystem to traverse, but the same input would
+ * still break this module's own ownership-parsing invariant.
+ */
+const SAFE_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
+
+export function isSafeOwnerId(ownerId: string): boolean {
+  return SAFE_ID_PATTERN.test(ownerId);
+}
+
+/**
+ * SECURITY-002C: validates a client-supplied storage key (delete/metadata/
+ * signed-url/replace all take one back from the client, since that's how
+ * they identify which previously-uploaded object to act on). Restricted
+ * to the exact charset `generateStorageKey` itself produces, and
+ * explicitly rejects `..` segments, a leading `/` (absolute path), and
+ * backslashes — Cloudinary's `public_id` namespace has no real filesystem
+ * to traverse, but a key this shape could still corrupt the
+ * `extractOwnerIdFromKey` parsing this module's ownership check relies
+ * on, which is the concrete impact here.
+ */
+const SAFE_KEY_PATTERN = /^[a-zA-Z0-9_\-./]+$/;
+
+export function isSafeStorageKey(key: string): boolean {
+  if (!SAFE_KEY_PATTERN.test(key)) return false;
+  if (key.includes("..")) return false;
+  if (key.startsWith("/")) return false;
+  return true;
 }
 
 /**
@@ -17,11 +72,17 @@ function extensionFromFileName(fileName: string): string {
  * folder or new Prisma model for Storage). `ownerId`'s segment is what
  * `extractOwnerIdFromKey` later parses back out for the ownership check,
  * so a key can never be generated without an owner to validate later.
+ *
+ * Callers must reject an unsafe `ownerId` (see `isSafeOwnerId`) before
+ * calling this — validated at the input boundary in
+ * `storage.handlers.ts`'s `resolveOwnerId`, not here, so a bad value
+ * surfaces as a normal `ValidationError` Result rather than a thrown
+ * exception this deep in the call stack.
  */
-export function generateStorageKey(category: StorageCategory, ownerId: string, fileName: string): string {
+export function generateStorageKey(category: StorageCategory, ownerId: string, contentType: string): string {
   const prefix = CATEGORY_KEY_PREFIX[category];
   const purpose = purposeSlug(category);
-  const ext = extensionFromFileName(fileName);
+  const ext = extensionForContentType(contentType);
   return `${prefix}/${ownerId}/${purpose}-${randomUUID()}.${ext}`;
 }
 

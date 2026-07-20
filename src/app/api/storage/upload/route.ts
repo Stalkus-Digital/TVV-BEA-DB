@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     contentType,
     fileName,
     category: formData.get("category"),
-    ownerId: formData.get("ownerId") || context?.userId || "system",
+    ownerId: formData.get("ownerId"),
   });
   if (isErr(result)) return jsonError(result.error);
   return jsonSuccess(result.value, { status: 201 });

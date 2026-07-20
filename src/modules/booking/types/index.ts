@@ -10,3 +10,4 @@ export * from "./booking-voucher";
 export * from "./booking-status-history";
 export * from "./booking-timeline";
 export * from "./booking-note";
+export * from "./booking-activity";

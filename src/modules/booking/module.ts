@@ -33,7 +33,9 @@ import { BookingNoteService } from "./services/booking-note.service";
 import { BookingStatusHistoryService } from "./services/booking-status-history.service";
 import { BookingTimelineService } from "./services/booking-timeline.service";
 import { BookingPaymentService } from "./services/booking-payment.service";
+import { BookingActivityService } from "./services/booking-activity.service";
 import { FulfillmentService } from "./services/fulfillment.service";
+import { getAuditLogService } from "@/modules/auth";
 
 export const BOOKING_REPOSITORY_TOKEN = createToken<BookingRepository>("booking.repository.booking");
 export const BOOKING_ITEM_REPOSITORY_TOKEN = createToken<BookingItemRepository>("booking.repository.item");
@@ -56,17 +58,16 @@ export const VOUCHER_SERVICE_TOKEN = createToken<VoucherService>("booking.servic
 export const BOOKING_STATUS_HISTORY_SERVICE_TOKEN = createToken<BookingStatusHistoryService>("booking.service.statusHistory");
 export const BOOKING_TIMELINE_SERVICE_TOKEN = createToken<BookingTimelineService>("booking.service.timeline");
 export const BOOKING_NOTE_SERVICE_TOKEN = createToken<BookingNoteService>("booking.service.note");
+export const BOOKING_ACTIVITY_SERVICE_TOKEN = createToken<BookingActivityService>("booking.service.activity");
 export const FULFILLMENT_SERVICE_TOKEN = createToken<FulfillmentService>("booking.service.fulfillment");
 
 /**
  * Booking Engine — created ONLY from an APPROVED Quote. Touches Quote
- * exactly once per booking, through Quote's own public
- * `getQuoteService().convertToBooking()` call (never a Quote repository,
- * never a Package repository — grep-verified zero imports from
- * `src/modules/supplier` or a direct write path into Quote/Package). No
- * TripJack/Ferry/payment-gateway/AI/CRM integration — SupplierBookingReference
- * stays a placeholder (NOT_REQUIRED/null) and payments are manually
- * recorded, never processed through a gateway.
+ * through `buildBookingHandoff` + `completeConversion` (never a Quote
+ * repository, never a Package repository). No TripJack/Ferry/payment-gateway
+ * /AI/CRM integration beyond optional Sembark push — SupplierBookingReference
+ * stays a placeholder (NOT_REQUIRED/null) and admin payments are manually
+ * recorded (gateway checkout lives in the payments module).
  */
 export const bookingModule: ModuleDefinition = {
   name: "booking",
@@ -83,10 +84,26 @@ export const bookingModule: ModuleDefinition = {
     c.registerFactory(NOTE_REPOSITORY_TOKEN, () => new PrismaNoteRepository());
 
     c.registerFactory(BOOKING_ITEM_SERVICE_TOKEN, () => new BookingItemService({ logger: createLogger("booking.item") }, c.resolve(BOOKING_ITEM_REPOSITORY_TOKEN)));
-    c.registerFactory(TRAVELLER_SERVICE_TOKEN, () => new TravellerService({ logger: createLogger("booking.traveller") }, c.resolve(TRAVELLER_REPOSITORY_TOKEN)));
+    c.registerFactory(
+      TRAVELLER_SERVICE_TOKEN,
+      () =>
+        new TravellerService(
+          { logger: createLogger("booking.traveller") },
+          c.resolve(TRAVELLER_REPOSITORY_TOKEN),
+          c.resolve(BOOKING_REPOSITORY_TOKEN),
+          getAuditLogService()
+        )
+    );
     c.registerFactory(
       PASSENGER_DOCUMENT_SERVICE_TOKEN,
-      () => new PassengerDocumentService({ logger: createLogger("booking.document") }, c.resolve(DOCUMENT_REPOSITORY_TOKEN), c.resolve(TRAVELLER_REPOSITORY_TOKEN))
+      () =>
+        new PassengerDocumentService(
+          { logger: createLogger("booking.document") },
+          c.resolve(DOCUMENT_REPOSITORY_TOKEN),
+          c.resolve(TRAVELLER_REPOSITORY_TOKEN),
+          c.resolve(BOOKING_REPOSITORY_TOKEN),
+          getAuditLogService()
+        )
     );
     c.registerFactory(BOOKING_PAYMENT_SERVICE_TOKEN, () => new BookingPaymentService({ logger: createLogger("booking.payment") }, c.resolve(PAYMENT_REPOSITORY_TOKEN)));
     c.registerFactory(
@@ -111,7 +128,15 @@ export const bookingModule: ModuleDefinition = {
     );
     c.registerFactory(BOOKING_STATUS_HISTORY_SERVICE_TOKEN, () => new BookingStatusHistoryService({ logger: createLogger("booking.statusHistory") }, c.resolve(STATUS_HISTORY_REPOSITORY_TOKEN)));
     c.registerFactory(BOOKING_TIMELINE_SERVICE_TOKEN, () => new BookingTimelineService({ logger: createLogger("booking.timeline") }, c.resolve(TIMELINE_REPOSITORY_TOKEN)));
-    c.registerFactory(BOOKING_NOTE_SERVICE_TOKEN, () => new BookingNoteService({ logger: createLogger("booking.note") }, c.resolve(NOTE_REPOSITORY_TOKEN)));
+    c.registerFactory(
+      BOOKING_NOTE_SERVICE_TOKEN,
+      () =>
+        new BookingNoteService(
+          { logger: createLogger("booking.note") },
+          c.resolve(NOTE_REPOSITORY_TOKEN),
+          getAuditLogService()
+        )
+    );
     c.registerFactory(FULFILLMENT_SERVICE_TOKEN, () => new FulfillmentService({ logger: createLogger("booking.fulfillment") }));
 
     c.registerFactory(
@@ -125,6 +150,22 @@ export const bookingModule: ModuleDefinition = {
           c.resolve(BOOKING_PAYMENT_SERVICE_TOKEN),
           c.resolve(BOOKING_STATUS_HISTORY_SERVICE_TOKEN),
           c.resolve(BOOKING_TIMELINE_SERVICE_TOKEN),
+          c.resolve(VOUCHER_SERVICE_TOKEN),
+          c.resolve(INVOICE_SERVICE_TOKEN),
+          getAuditLogService()
+        )
+    );
+    c.registerFactory(
+      BOOKING_ACTIVITY_SERVICE_TOKEN,
+      () =>
+        new BookingActivityService(
+          { logger: createLogger("booking.activity") },
+          c.resolve(BOOKING_PAYMENT_SERVICE_TOKEN),
+          c.resolve(BOOKING_NOTE_SERVICE_TOKEN),
+          c.resolve(BOOKING_STATUS_HISTORY_SERVICE_TOKEN),
+          c.resolve(BOOKING_TIMELINE_SERVICE_TOKEN),
+          c.resolve(TRAVELLER_SERVICE_TOKEN),
+          c.resolve(PASSENGER_DOCUMENT_SERVICE_TOKEN),
           c.resolve(VOUCHER_SERVICE_TOKEN),
           c.resolve(INVOICE_SERVICE_TOKEN)
         )
@@ -174,6 +215,9 @@ export function getBookingTimelineService(): BookingTimelineService {
 }
 export function getBookingNoteService(): BookingNoteService {
   return container.resolve(BOOKING_NOTE_SERVICE_TOKEN);
+}
+export function getBookingActivityService(): BookingActivityService {
+  return container.resolve(BOOKING_ACTIVITY_SERVICE_TOKEN);
 }
 export function getFulfillmentService(): FulfillmentService {
   return container.resolve(FULFILLMENT_SERVICE_TOKEN);

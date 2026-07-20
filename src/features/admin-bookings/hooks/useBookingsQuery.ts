@@ -3,24 +3,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAllUsersQuery } from "@/features/admin-customers/hooks/useAllUsersQuery";
 import { useCustomerRelationshipDataQuery } from "@/features/admin-customers/hooks/useCustomerRelationshipDataQuery";
-import { fetchAllBookings, fetchBookings } from "../api/bookings";
+import { fetchBookings } from "../api/bookings";
 import type { BookingListFilters } from "../types";
-import {
-  applyBookingDateFilter,
-  applyBookingSearch,
-  applyPaymentStatusFilter,
-  enrichBookingRows,
-  needsClientBookingFiltering,
-  paginateBookings,
-  sortBookings,
-} from "../utils";
+import { enrichBookingRows } from "../utils";
 import { adminQueryKeys } from "@/shared/lib/query-client";
 
 function serializeFilters(filters: BookingListFilters) {
   return {
     status: filters.status ?? "",
-    hasItemKind: filters.hasItemKind ?? "",
     paymentStatus: filters.paymentStatus ?? "",
+    hasItemKind: filters.hasItemKind ?? "",
+    customerId: filters.customerId ?? "",
     search: filters.search ?? "",
     dateFrom: filters.dateFrom ?? "",
     dateTo: filters.dateTo ?? "",
@@ -33,25 +26,13 @@ function serializeFilters(filters: BookingListFilters) {
 
 export function useBookingsQuery(filters: BookingListFilters) {
   const serialized = serializeFilters(filters);
-  const clientMode = needsClientBookingFiltering(filters);
   const usersQuery = useAllUsersQuery();
 
   return useQuery({
-    queryKey: clientMode ? adminQueryKeys.bookings.all(serialized) : adminQueryKeys.bookings.list(serialized),
+    queryKey: adminQueryKeys.bookings.list(serialized),
     queryFn: async () => {
       const users = usersQuery.data ?? [];
       const usersById = new Map(users.map((user) => [user.id, user]));
-
-      if (clientMode) {
-        const all = await fetchAllBookings({ status: filters.status, hasItemKind: filters.hasItemKind });
-        let filtered = applyBookingSearch(all, filters.search);
-        filtered = applyPaymentStatusFilter(filtered, filters.paymentStatus);
-        filtered = applyBookingDateFilter(filtered, filters.dateFrom, filters.dateTo);
-        const rows = enrichBookingRows(filtered, usersById);
-        const sorted = sortBookings(rows, filters.sortBy ?? "createdAt", filters.sortDir ?? "desc");
-        return paginateBookings(sorted, filters.page ?? 1, filters.pageSize ?? 20);
-      }
-
       const page = await fetchBookings(filters);
       const rows = enrichBookingRows(page.items, usersById);
       return { ...page, items: rows };

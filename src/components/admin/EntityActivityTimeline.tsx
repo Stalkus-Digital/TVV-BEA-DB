@@ -31,6 +31,23 @@ const LABELS: Record<string, string> = {
   RESTORED: "Restored",
   DUPLICATED: "Duplicated",
   DELETED: "Deleted",
+  STATUS_CHANGED: "Status changed",
+  CANCELLED: "Cancelled",
+  TRAVELLER_ADDED: "Traveller added",
+  TRAVELLER_UPDATED: "Traveller updated",
+  TRAVELLER_REMOVED: "Traveller removed",
+  PAYMENT_RECORDED: "Payment confirmed",
+  PAYMENT_FAILED: "Payment failed",
+  PAYMENT_ADJUSTED: "Manual adjustment",
+  REFUND_RECORDED: "Payment refunded",
+  NOTE_ADDED: "Note added",
+  DOCUMENT_ADDED: "Document uploaded",
+  DOCUMENT_DELETED: "Document deleted",
+  VOUCHER_GENERATED: "Voucher generated",
+  INVOICE_GENERATED: "Invoice generated",
+  EMAIL_SENT: "Email sent",
+  EMAIL_FAILED: "Email failed",
+  EMAIL_RETRIED: "Email retried",
 };
 
 export function EntityActivityTimeline({ endpoint, eventPrefix, queryKey }: EntityActivityTimelineProps) {

@@ -13,11 +13,23 @@ import {
   generateInvoice,
   generateVoucher,
   recordPayment,
+  refundBooking,
+  reconcileBookingPayments,
+  removeDocument,
   removeTraveller,
   ticketBooking,
   updateBooking,
+  updateDocument,
+  updateTraveller,
 } from "../api/bookings";
-import type { AddDocumentInput, AddTravellerInput, CreateBookingInput, RecordPaymentInput } from "../types";
+import type {
+  AddDocumentInput,
+  AddTravellerInput,
+  CreateBookingInput,
+  RecordPaymentInput,
+  UpdateDocumentInput,
+  UpdateTravellerInput,
+} from "../types";
 import { adminQueryKeys } from "@/shared/lib/query-client";
 
 function invalidateBookingQueries(queryClient: ReturnType<typeof useQueryClient>, bookingId?: string) {
@@ -25,14 +37,18 @@ function invalidateBookingQueries(queryClient: ReturnType<typeof useQueryClient>
   void queryClient.invalidateQueries({ queryKey: adminQueryKeys.customers.relationshipData });
   void queryClient.invalidateQueries({ queryKey: adminQueryKeys.dashboard.activity });
   void queryClient.invalidateQueries({ queryKey: adminQueryKeys.quotes.all({}) });
+  void queryClient.invalidateQueries({ queryKey: ["admin", "customers"] });
   if (bookingId) {
     void queryClient.invalidateQueries({ queryKey: adminQueryKeys.bookings.detail(bookingId) });
     void queryClient.invalidateQueries({ queryKey: adminQueryKeys.bookings.travellers(bookingId) });
     void queryClient.invalidateQueries({ queryKey: adminQueryKeys.bookings.payments(bookingId) });
     void queryClient.invalidateQueries({ queryKey: adminQueryKeys.bookings.documents(bookingId) });
+    void queryClient.invalidateQueries({ queryKey: adminQueryKeys.bookings.invoices(bookingId) });
+    void queryClient.invalidateQueries({ queryKey: adminQueryKeys.bookings.vouchers(bookingId) });
     void queryClient.invalidateQueries({ queryKey: adminQueryKeys.bookings.notes(bookingId) });
     void queryClient.invalidateQueries({ queryKey: adminQueryKeys.bookings.timeline(bookingId) });
     void queryClient.invalidateQueries({ queryKey: adminQueryKeys.bookings.statusHistory(bookingId) });
+    void queryClient.invalidateQueries({ queryKey: ["admin", "booking-activity", bookingId] });
   }
 }
 
@@ -100,10 +116,35 @@ export function useRecordPaymentMutation(bookingId: string) {
   });
 }
 
+export function useRefundBookingMutation(bookingId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { amount?: number; reason?: string } = {}) => refundBooking(bookingId, input),
+    onSuccess: () => invalidateBookingQueries(queryClient, bookingId),
+  });
+}
+
+export function useReconcilePaymentsMutation(bookingId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => reconcileBookingPayments(bookingId),
+    onSuccess: () => invalidateBookingQueries(queryClient, bookingId),
+  });
+}
+
 export function useAddTravellerMutation(bookingId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: AddTravellerInput) => addTraveller(bookingId, input),
+    onSuccess: () => invalidateBookingQueries(queryClient, bookingId),
+  });
+}
+
+export function useUpdateTravellerMutation(bookingId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ travellerId, input }: { travellerId: string; input: UpdateTravellerInput }) =>
+      updateTraveller(bookingId, travellerId, input),
     onSuccess: () => invalidateBookingQueries(queryClient, bookingId),
   });
 }
@@ -124,6 +165,23 @@ export function useAddDocumentMutation(bookingId: string) {
   });
 }
 
+export function useUpdateDocumentMutation(bookingId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ documentId, input }: { documentId: string; input: UpdateDocumentInput }) =>
+      updateDocument(bookingId, documentId, input),
+    onSuccess: () => invalidateBookingQueries(queryClient, bookingId),
+  });
+}
+
+export function useRemoveDocumentMutation(bookingId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (documentId: string) => removeDocument(bookingId, documentId),
+    onSuccess: () => invalidateBookingQueries(queryClient, bookingId),
+  });
+}
+
 export function useAddNoteMutation(bookingId: string) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -133,13 +191,17 @@ export function useAddNoteMutation(bookingId: string) {
 }
 
 export function useGenerateVoucherMutation(bookingId: string) {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => generateVoucher(bookingId),
+    onSuccess: () => invalidateBookingQueries(queryClient, bookingId),
   });
 }
 
 export function useGenerateInvoiceMutation(bookingId: string) {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => generateInvoice(bookingId),
+    onSuccess: () => invalidateBookingQueries(queryClient, bookingId),
   });
 }

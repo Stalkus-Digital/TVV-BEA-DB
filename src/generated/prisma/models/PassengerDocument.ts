@@ -34,6 +34,7 @@ export type PassengerDocumentMinAggregateOutputType = {
   issuedAt: Date | null
   expiresAt: Date | null
   notes: string | null
+  verificationStatus: string | null
   createdAt: Date | null
 }
 
@@ -47,6 +48,7 @@ export type PassengerDocumentMaxAggregateOutputType = {
   issuedAt: Date | null
   expiresAt: Date | null
   notes: string | null
+  verificationStatus: string | null
   createdAt: Date | null
 }
 
@@ -60,6 +62,7 @@ export type PassengerDocumentCountAggregateOutputType = {
   issuedAt: number
   expiresAt: number
   notes: number
+  verificationStatus: number
   createdAt: number
   _all: number
 }
@@ -75,6 +78,7 @@ export type PassengerDocumentMinAggregateInputType = {
   issuedAt?: true
   expiresAt?: true
   notes?: true
+  verificationStatus?: true
   createdAt?: true
 }
 
@@ -88,6 +92,7 @@ export type PassengerDocumentMaxAggregateInputType = {
   issuedAt?: true
   expiresAt?: true
   notes?: true
+  verificationStatus?: true
   createdAt?: true
 }
 
@@ -101,6 +106,7 @@ export type PassengerDocumentCountAggregateInputType = {
   issuedAt?: true
   expiresAt?: true
   notes?: true
+  verificationStatus?: true
   createdAt?: true
   _all?: true
 }
@@ -187,6 +193,7 @@ export type PassengerDocumentGroupByOutputType = {
   issuedAt: Date | null
   expiresAt: Date | null
   notes: string | null
+  verificationStatus: string
   createdAt: Date
   _count: PassengerDocumentCountAggregateOutputType | null
   _min: PassengerDocumentMinAggregateOutputType | null
@@ -221,6 +228,7 @@ export type PassengerDocumentWhereInput = {
   issuedAt?: Prisma.DateTimeNullableFilter<"PassengerDocument"> | Date | string | null
   expiresAt?: Prisma.DateTimeNullableFilter<"PassengerDocument"> | Date | string | null
   notes?: Prisma.StringNullableFilter<"PassengerDocument"> | string | null
+  verificationStatus?: Prisma.StringFilter<"PassengerDocument"> | string
   createdAt?: Prisma.DateTimeFilter<"PassengerDocument"> | Date | string
 }
 
@@ -234,6 +242,7 @@ export type PassengerDocumentOrderByWithRelationInput = {
   issuedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   expiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  verificationStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -250,6 +259,7 @@ export type PassengerDocumentWhereUniqueInput = Prisma.AtLeast<{
   issuedAt?: Prisma.DateTimeNullableFilter<"PassengerDocument"> | Date | string | null
   expiresAt?: Prisma.DateTimeNullableFilter<"PassengerDocument"> | Date | string | null
   notes?: Prisma.StringNullableFilter<"PassengerDocument"> | string | null
+  verificationStatus?: Prisma.StringFilter<"PassengerDocument"> | string
   createdAt?: Prisma.DateTimeFilter<"PassengerDocument"> | Date | string
 }, "id">
 
@@ -263,6 +273,7 @@ export type PassengerDocumentOrderByWithAggregationInput = {
   issuedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   expiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  verificationStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.PassengerDocumentCountOrderByAggregateInput
   _max?: Prisma.PassengerDocumentMaxOrderByAggregateInput
@@ -282,6 +293,7 @@ export type PassengerDocumentScalarWhereWithAggregatesInput = {
   issuedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PassengerDocument"> | Date | string | null
   expiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PassengerDocument"> | Date | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"PassengerDocument"> | string | null
+  verificationStatus?: Prisma.StringWithAggregatesFilter<"PassengerDocument"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PassengerDocument"> | Date | string
 }
 
@@ -295,6 +307,7 @@ export type PassengerDocumentCreateInput = {
   issuedAt?: Date | string | null
   expiresAt?: Date | string | null
   notes?: string | null
+  verificationStatus?: string
   createdAt: Date | string
 }
 
@@ -308,6 +321,7 @@ export type PassengerDocumentUncheckedCreateInput = {
   issuedAt?: Date | string | null
   expiresAt?: Date | string | null
   notes?: string | null
+  verificationStatus?: string
   createdAt: Date | string
 }
 
@@ -321,6 +335,7 @@ export type PassengerDocumentUpdateInput = {
   issuedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -334,6 +349,7 @@ export type PassengerDocumentUncheckedUpdateInput = {
   issuedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -347,6 +363,7 @@ export type PassengerDocumentCreateManyInput = {
   issuedAt?: Date | string | null
   expiresAt?: Date | string | null
   notes?: string | null
+  verificationStatus?: string
   createdAt: Date | string
 }
 
@@ -360,6 +377,7 @@ export type PassengerDocumentUpdateManyMutationInput = {
   issuedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -373,6 +391,7 @@ export type PassengerDocumentUncheckedUpdateManyInput = {
   issuedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -386,6 +405,7 @@ export type PassengerDocumentCountOrderByAggregateInput = {
   issuedAt?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  verificationStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -399,6 +419,7 @@ export type PassengerDocumentMaxOrderByAggregateInput = {
   issuedAt?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  verificationStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -412,6 +433,7 @@ export type PassengerDocumentMinOrderByAggregateInput = {
   issuedAt?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  verificationStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -427,6 +449,7 @@ export type PassengerDocumentSelect<ExtArgs extends runtime.Types.Extensions.Int
   issuedAt?: boolean
   expiresAt?: boolean
   notes?: boolean
+  verificationStatus?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["passengerDocument"]>
 
@@ -440,6 +463,7 @@ export type PassengerDocumentSelectCreateManyAndReturn<ExtArgs extends runtime.T
   issuedAt?: boolean
   expiresAt?: boolean
   notes?: boolean
+  verificationStatus?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["passengerDocument"]>
 
@@ -453,6 +477,7 @@ export type PassengerDocumentSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   issuedAt?: boolean
   expiresAt?: boolean
   notes?: boolean
+  verificationStatus?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["passengerDocument"]>
 
@@ -466,10 +491,11 @@ export type PassengerDocumentSelectScalar = {
   issuedAt?: boolean
   expiresAt?: boolean
   notes?: boolean
+  verificationStatus?: boolean
   createdAt?: boolean
 }
 
-export type PassengerDocumentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingId" | "travellerId" | "kind" | "fileUrl" | "fileName" | "issuedAt" | "expiresAt" | "notes" | "createdAt", ExtArgs["result"]["passengerDocument"]>
+export type PassengerDocumentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingId" | "travellerId" | "kind" | "fileUrl" | "fileName" | "issuedAt" | "expiresAt" | "notes" | "verificationStatus" | "createdAt", ExtArgs["result"]["passengerDocument"]>
 
 export type $PassengerDocumentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PassengerDocument"
@@ -484,6 +510,7 @@ export type $PassengerDocumentPayload<ExtArgs extends runtime.Types.Extensions.I
     issuedAt: Date | null
     expiresAt: Date | null
     notes: string | null
+    verificationStatus: string
     createdAt: Date
   }, ExtArgs["result"]["passengerDocument"]>
   composites: {}
@@ -917,6 +944,7 @@ export interface PassengerDocumentFieldRefs {
   readonly issuedAt: Prisma.FieldRef<"PassengerDocument", 'DateTime'>
   readonly expiresAt: Prisma.FieldRef<"PassengerDocument", 'DateTime'>
   readonly notes: Prisma.FieldRef<"PassengerDocument", 'String'>
+  readonly verificationStatus: Prisma.FieldRef<"PassengerDocument", 'String'>
   readonly createdAt: Prisma.FieldRef<"PassengerDocument", 'DateTime'>
 }
     

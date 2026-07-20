@@ -6,6 +6,7 @@
 export * from "./types";
 export * from "./api";
 export {
+  getBookingActivityService,
   getBookingItemService,
   getBookingNoteService,
   getBookingPaymentService,

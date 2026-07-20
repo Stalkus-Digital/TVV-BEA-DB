@@ -209,20 +209,28 @@ function QuoteDetailContent({
               </button>
             </>
           )}
-          {quote.status === QuoteStatus.APPROVED && (
+          {quote.status === QuoteStatus.APPROVED && !quote.convertedBookingId && (
             <button
               type="button"
               disabled={convertQuote.isPending}
               onClick={() =>
                 void convertQuote
                   .mutateAsync()
-                  .then((payload) => setConvertResult(`${payload.quoteNumber} handoff at ${formatQuoteDate(payload.convertedAt)}`))
+                  .then((booking) => setConvertResult(`Created ${booking.bookingNumber}`))
                   .catch(() => undefined)
               }
               className="rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:opacity-60"
             >
               Convert to booking
             </button>
+          )}
+          {quote.convertedBookingId && (
+            <Link
+              href={`/bookings?selected=${quote.convertedBookingId}`}
+              className="rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted"
+            >
+              View booking
+            </Link>
           )}
           <button
             type="button"

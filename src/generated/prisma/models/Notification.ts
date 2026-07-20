@@ -14,10 +14,8 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model Notification
- * Placeholder only, per this sprint's explicit instruction — no
- * email/SMS/WhatsApp delivery exists yet. Exists so `/api/me/dashboard`'s
- * "unread notifications" field has a real (always-empty-for-now) source
- * instead of a hardcoded literal.
+ * Placeholder only — in-app customer notifications for `/api/me/dashboard`
+ * unread count. Separate from outbound EmailDispatch (SMTP delivery log).
  */
 export type NotificationModel = runtime.Types.Result.DefaultSelection<Prisma.$NotificationPayload>
 

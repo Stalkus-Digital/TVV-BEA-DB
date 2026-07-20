@@ -89,7 +89,10 @@ export function useConvertQuoteMutation(quoteId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => convertQuote(quoteId),
-    onSuccess: () => invalidateQuoteQueries(queryClient, quoteId),
+    onSuccess: () => {
+      invalidateQuoteQueries(queryClient, quoteId);
+      void queryClient.invalidateQueries({ queryKey: ["admin", "bookings"] });
+    },
   });
 }
 

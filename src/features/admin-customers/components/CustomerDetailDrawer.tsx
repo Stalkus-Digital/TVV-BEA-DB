@@ -191,11 +191,14 @@ function CustomerDetailContent({
                 <div className="flex justify-between gap-2">
                   <span className="font-medium">{payment.bookingNumber}</span>
                   <span>
+                    {payment.status === "REFUNDED" ? "−" : ""}
                     {payment.currency} {payment.amount.toLocaleString("en-IN")}
                   </span>
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">
-                  {payment.method} · {payment.status} · {formatCustomerDate(payment.createdAt)}
+                  {payment.method} · {payment.status}
+                  {payment.reference ? ` · Ref ${payment.reference}` : ""} ·{" "}
+                  {formatCustomerDate(payment.createdAt)}
                 </div>
               </li>
             ))}

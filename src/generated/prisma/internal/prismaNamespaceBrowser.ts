@@ -96,6 +96,7 @@ export const ModelName = {
   EnquiryNote: 'EnquiryNote',
   CustomerNote: 'CustomerNote',
   Notification: 'Notification',
+  EmailDispatch: 'EmailDispatch',
   Lead: 'Lead',
   FerryRate: 'FerryRate',
   LandingPage: 'LandingPage',
@@ -514,6 +515,7 @@ export const PassengerDocumentScalarFieldEnum = {
   issuedAt: 'issuedAt',
   expiresAt: 'expiresAt',
   notes: 'notes',
+  verificationStatus: 'verificationStatus',
   createdAt: 'createdAt'
 } as const
 
@@ -828,6 +830,22 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const EmailDispatchScalarFieldEnum = {
+  id: 'id',
+  dedupeKey: 'dedupeKey',
+  bookingId: 'bookingId',
+  event: 'event',
+  templateId: 'templateId',
+  status: 'status',
+  recipient: 'recipient',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmailDispatchScalarFieldEnum = (typeof EmailDispatchScalarFieldEnum)[keyof typeof EmailDispatchScalarFieldEnum]
 
 
 export const LeadScalarFieldEnum = {

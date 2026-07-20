@@ -1,8 +1,8 @@
 import { adminApiClient } from "@/lib/admin-api/client";
 import { adminEndpoints } from "@/lib/admin-api/endpoints";
 import type { PaginatedResult } from "@/lib/admin-api/types";
+import type { Booking } from "@/features/admin-bookings/types";
 import type {
-  BookingHandoffPayload,
   CreateQuoteInput,
   CreateQuoteItemInput,
   DestinationOption,
@@ -90,9 +90,9 @@ export async function duplicateQuote(id: string): Promise<Quote> {
   return result;
 }
 
-export async function convertQuote(id: string): Promise<BookingHandoffPayload> {
-  const result = await adminApiClient.post<BookingHandoffPayload>(`${quotePath(id)}/convert`, {});
-  if (!result) throw new Error("Failed to convert quote");
+export async function convertQuote(id: string): Promise<Booking> {
+  const result = await adminApiClient.post<Booking>(`${quotePath(id)}/convert`, {});
+  if (!result) throw new Error("Failed to convert quote to booking");
   return result;
 }
 

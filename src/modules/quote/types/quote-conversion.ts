@@ -3,11 +3,9 @@ import type { QuoteItem } from "./quote-item";
 import type { QuotePriceResult } from "./quote-pricing";
 
 /**
- * Handoff payload returned by QuoteService.convertToBooking() — the shape a
- * future Booking Engine (Sprint 8, not built here) would consume to create
- * a real booking. This module never imports a booking module (it doesn't
- * exist yet) and never fabricates a booking ID; Quote.convertedBookingId
- * stays null until that future module writes to it itself.
+ * Handoff payload built by QuoteService.buildBookingHandoff() for
+ * BookingService.createFromQuote(). Does not mutate quote status —
+ * BookingService completes conversion via completeConversion(quoteId, bookingId).
  */
 export interface BookingHandoffPayload {
   quoteId: string;
@@ -17,5 +15,6 @@ export interface BookingHandoffPayload {
   travelerDetails: TravelerDetails;
   items: QuoteItem[];
   pricing: QuotePriceResult;
-  convertedAt: string;
+  /** ISO timestamp when the handoff was prepared (not necessarily quote.convertedAt). */
+  preparedAt: string;
 }

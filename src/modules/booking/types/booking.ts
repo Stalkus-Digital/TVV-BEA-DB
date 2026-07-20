@@ -10,12 +10,10 @@ import type { Traveller } from "./traveller";
  * snapshot this booking was created from (the Quote's own currentVersionId
  * at the moment of conversion); `totalAmount`/`currency` are frozen from
  * that snapshot's computed pricing, not re-derived later. This module never
- * writes to Quote's or Package's repositories — the one touch on Quote is
- * a single call to Quote's own public `convertToBooking()` service method
- * (the sanctioned state transition Quote itself exposes), same
- * public-service-boundary discipline as every other module edge in this
- * project (Package → Inventory/Destination, Quote → Package/Destination/
- * Inventory).
+ * writes to Quote's or Package's repositories — conversion uses Quote's
+ * `buildBookingHandoff` + `completeConversion` so `convertedBookingId` is
+ * always set, same public-service-boundary discipline as every other module
+ * edge in this project.
  */
 export interface Booking {
   id: string;

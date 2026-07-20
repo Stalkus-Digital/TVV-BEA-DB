@@ -8,8 +8,9 @@ import { BookingStatus } from "../types/booking-status";
 export const BOOKING_STATUS_TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
   [BookingStatus.DRAFT]: [BookingStatus.CONFIRMED, BookingStatus.CANCELLED],
   [BookingStatus.CONFIRMED]: [BookingStatus.PARTIALLY_PAID, BookingStatus.PAID, BookingStatus.CANCELLED],
-  [BookingStatus.PARTIALLY_PAID]: [BookingStatus.PAID, BookingStatus.CANCELLED],
-  [BookingStatus.PAID]: [BookingStatus.TICKETED, BookingStatus.CANCELLED],
+  // Refunds may reduce paid amount — allow stepping back toward CONFIRMED
+  [BookingStatus.PARTIALLY_PAID]: [BookingStatus.PAID, BookingStatus.CONFIRMED, BookingStatus.CANCELLED],
+  [BookingStatus.PAID]: [BookingStatus.TICKETED, BookingStatus.PARTIALLY_PAID, BookingStatus.CONFIRMED, BookingStatus.CANCELLED],
   [BookingStatus.TICKETED]: [BookingStatus.COMPLETED, BookingStatus.CANCELLED],
   [BookingStatus.COMPLETED]: [],
   [BookingStatus.CANCELLED]: [],

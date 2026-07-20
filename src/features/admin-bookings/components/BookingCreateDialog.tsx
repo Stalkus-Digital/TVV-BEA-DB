@@ -48,7 +48,8 @@ export function BookingCreateDialog({ open, onClose, onCreated }: BookingCreateD
         </div>
         <div className="p-6 space-y-4">
           <p className="text-xs text-muted-foreground">
-            Bookings are created automatically when a quote is approved.
+            Select an approved quote to create a booking. Approval alone does not create a booking —
+            conversion (or Create from quote) is required so the quote is linked via convertedBookingId.
           </p>
           {approvedQuotesQuery.isLoading ? (
             <WidgetLoading label="Loading approved quotes…" />

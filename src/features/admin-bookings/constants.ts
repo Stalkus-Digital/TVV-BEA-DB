@@ -41,6 +41,8 @@ export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
 export const DocumentKind = {
   PASSPORT: "PASSPORT",
   VISA: "VISA",
+  NATIONAL_ID: "NATIONAL_ID",
+  OTHER: "OTHER",
   TICKET: "TICKET",
   INSURANCE: "INSURANCE",
 } as const;

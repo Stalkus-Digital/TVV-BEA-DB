@@ -429,6 +429,7 @@ export const ModelName = {
   EnquiryNote: 'EnquiryNote',
   CustomerNote: 'CustomerNote',
   Notification: 'Notification',
+  EmailDispatch: 'EmailDispatch',
   Lead: 'Lead',
   FerryRate: 'FerryRate',
   LandingPage: 'LandingPage',
@@ -462,7 +463,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "loginHistory" | "passwordReset" | "emailVerification" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "customerNote" | "notification" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent" | "integrationProvider" | "integrationSecret" | "integrationWebhook" | "guide" | "ferryRoute" | "ferrySchedule" | "review"
+    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "loginHistory" | "passwordReset" | "emailVerification" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "customerNote" | "notification" | "emailDispatch" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent" | "integrationProvider" | "integrationSecret" | "integrationWebhook" | "guide" | "ferryRoute" | "ferrySchedule" | "review"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3796,6 +3797,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    EmailDispatch: {
+      payload: Prisma.$EmailDispatchPayload<ExtArgs>
+      fields: Prisma.EmailDispatchFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmailDispatchFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailDispatchPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmailDispatchFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailDispatchPayload>
+        }
+        findFirst: {
+          args: Prisma.EmailDispatchFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailDispatchPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmailDispatchFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailDispatchPayload>
+        }
+        findMany: {
+          args: Prisma.EmailDispatchFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailDispatchPayload>[]
+        }
+        create: {
+          args: Prisma.EmailDispatchCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailDispatchPayload>
+        }
+        createMany: {
+          args: Prisma.EmailDispatchCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EmailDispatchCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailDispatchPayload>[]
+        }
+        delete: {
+          args: Prisma.EmailDispatchDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailDispatchPayload>
+        }
+        update: {
+          args: Prisma.EmailDispatchUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailDispatchPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmailDispatchDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmailDispatchUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EmailDispatchUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailDispatchPayload>[]
+        }
+        upsert: {
+          args: Prisma.EmailDispatchUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailDispatchPayload>
+        }
+        aggregate: {
+          args: Prisma.EmailDispatchAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmailDispatch>
+        }
+        groupBy: {
+          args: Prisma.EmailDispatchGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailDispatchGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmailDispatchCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailDispatchCountAggregateOutputType> | number
+        }
+      }
+    }
     Lead: {
       payload: Prisma.$LeadPayload<ExtArgs>
       fields: Prisma.LeadFieldRefs
@@ -5549,6 +5624,7 @@ export const PassengerDocumentScalarFieldEnum = {
   issuedAt: 'issuedAt',
   expiresAt: 'expiresAt',
   notes: 'notes',
+  verificationStatus: 'verificationStatus',
   createdAt: 'createdAt'
 } as const
 
@@ -5863,6 +5939,22 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const EmailDispatchScalarFieldEnum = {
+  id: 'id',
+  dedupeKey: 'dedupeKey',
+  bookingId: 'bookingId',
+  event: 'event',
+  templateId: 'templateId',
+  status: 'status',
+  recipient: 'recipient',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmailDispatchScalarFieldEnum = (typeof EmailDispatchScalarFieldEnum)[keyof typeof EmailDispatchScalarFieldEnum]
 
 
 export const LeadScalarFieldEnum = {
@@ -6395,6 +6487,7 @@ export type GlobalOmitConfig = {
   enquiryNote?: Prisma.EnquiryNoteOmit
   customerNote?: Prisma.CustomerNoteOmit
   notification?: Prisma.NotificationOmit
+  emailDispatch?: Prisma.EmailDispatchOmit
   lead?: Prisma.LeadOmit
   ferryRate?: Prisma.FerryRateOmit
   landingPage?: Prisma.LandingPageOmit

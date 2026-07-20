@@ -334,39 +334,80 @@ export class QuoteService extends BaseService {
   }
 
   /**
-   * Terminal transition — requires APPROVED. Returns the handoff payload a
-   * future Booking Engine (Sprint 8, not built here) would consume.
-   * convertedBookingId is deliberately never set here: this module has no
-   * import from a booking module (doesn't exist yet), so it cannot create
-   * or reference a real booking ID — reserved-but-inert, same pattern as
-   * Package.aiGeneratedFromId.
+   * Builds the booking handoff without changing quote status.
+   * Eligible: APPROVED, or CONVERTED with no convertedBookingId (orphan recovery).
    */
-  async convertToBooking(id: string): Promise<Result<BookingHandoffPayload, AppError>> {
+  async buildBookingHandoff(id: string): Promise<Result<BookingHandoffPayload, AppError>> {
     const quote = await this.getById(id);
     if (isErr(quote)) return quote;
-    if (quote.value.status !== QuoteStatus.APPROVED) {
-      return err(new ConflictError(`Quote "${id}" must be APPROVED before it can be converted (current status: ${quote.value.status})`));
+
+    if (quote.value.convertedBookingId) {
+      return err(
+        new ConflictError(
+          `Quote "${id}" is already linked to booking "${quote.value.convertedBookingId}"`
+        )
+      );
+    }
+
+    const eligible =
+      quote.value.status === QuoteStatus.APPROVED ||
+      (quote.value.status === QuoteStatus.CONVERTED && !quote.value.convertedBookingId);
+    if (!eligible) {
+      return err(
+        new ConflictError(
+          `Quote "${id}" must be APPROVED before it can create a booking (current status: ${quote.value.status})`
+        )
+      );
     }
 
     const itemsResult = await this.items.findByQuote(id);
     if (isErr(itemsResult)) return itemsResult;
     const pricing = computeQuotePrice(itemsResult.value, quote.value.adjustments, quote.value.currency);
+    const preparedAt = new Date().toISOString();
 
-    const now = new Date().toISOString();
-    const updated = await this.quotes.update(id, { status: QuoteStatus.CONVERTED, convertedAt: now, updatedAt: now });
-    if (isErr(updated)) return updated;
-
-    this.logger.info("Converted quote", { id });
     return ok({
-      quoteId: updated.value.id,
-      quoteNumber: updated.value.quoteNumber,
-      destinationId: updated.value.destinationId,
-      packageId: updated.value.packageId,
-      travelerDetails: updated.value.travelerDetails,
+      quoteId: quote.value.id,
+      quoteNumber: quote.value.quoteNumber,
+      destinationId: quote.value.destinationId,
+      packageId: quote.value.packageId,
+      travelerDetails: quote.value.travelerDetails,
       items: itemsResult.value,
       pricing,
-      convertedAt: now,
+      preparedAt,
     });
+  }
+
+  /**
+   * Marks the quote CONVERTED and links the real booking id.
+   * Called only after BookingService successfully creates the booking.
+   */
+  async completeConversion(id: string, bookingId: string): Promise<Result<Quote, AppError>> {
+    const quote = await this.getById(id);
+    if (isErr(quote)) return quote;
+
+    if (quote.value.convertedBookingId && quote.value.convertedBookingId !== bookingId) {
+      return err(
+        new ConflictError(
+          `Quote "${id}" is already linked to booking "${quote.value.convertedBookingId}"`
+        )
+      );
+    }
+
+    const now = new Date().toISOString();
+    return this.quotes.update(id, {
+      status: QuoteStatus.CONVERTED,
+      convertedAt: quote.value.convertedAt ?? now,
+      convertedBookingId: bookingId,
+      updatedAt: now,
+    });
+  }
+
+  /**
+   * @deprecated Use buildBookingHandoff + BookingService.createFromQuote.
+   * Kept as an alias that prepares handoff only (does not mark CONVERTED).
+   */
+  async convertToBooking(id: string): Promise<Result<BookingHandoffPayload, AppError>> {
+    return this.buildBookingHandoff(id);
   }
 
   async getPdfData(id: string): Promise<Result<QuotePdfData, AppError>> {

@@ -136,7 +136,7 @@ export interface BookingHandoffPayload {
   travelerDetails: TravelerDetails;
   items: QuoteItem[];
   pricing: QuotePriceResult;
-  convertedAt: string;
+  preparedAt: string;
 }
 
 export interface QuoteTimelineEvent {

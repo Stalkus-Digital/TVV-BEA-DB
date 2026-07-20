@@ -188,7 +188,7 @@ export function buildQuoteTimeline(quote: Quote, versions: QuoteVersion[]): Quot
     events.push({
       id: `${quote.id}-converted`,
       kind: "converted",
-      title: "Converted to booking handoff",
+      title: "Converted to booking",
       subtitle: quote.convertedBookingId ? `Booking ${quote.convertedBookingId}` : "Booking ID not linked yet",
       createdAt: quote.convertedAt,
     });

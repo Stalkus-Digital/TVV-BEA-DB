@@ -3,16 +3,39 @@ import { NotFoundError, type AppError } from "@/shared/errors";
 import { prisma } from "@/shared/database/prisma-client";
 import type { Prisma } from "@/generated/prisma/client";
 import type { Booking } from "../types/booking";
-import type { BookingListFilter, BookingRepository } from "./booking.repository";
+import type {
+  BookingListFilter,
+  BookingRepository,
+  BookingSortDir,
+  BookingSortField,
+} from "./booking.repository";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 
+const SORT_FIELDS: ReadonlySet<BookingSortField> = new Set([
+  "createdAt",
+  "bookingNumber",
+  "status",
+  "paymentStatus",
+  "totalAmount",
+  "amountPaid",
+]);
+
 export type BookingCategory = "PACKAGE" | "HOTEL" | "ACTIVITY";
 
-function toDomain(row: any): Booking {
+function toDomain(row: Record<string, unknown> & {
+  status: string;
+  paymentStatus: string;
+  confirmedAt: Date | null;
+  ticketedAt: Date | null;
+  completedAt: Date | null;
+  cancelledAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}): Booking {
   return {
-    ...row,
+    ...(row as unknown as Booking),
     status: row.status as Booking["status"],
     paymentStatus: row.paymentStatus as Booking["paymentStatus"],
     confirmedAt: row.confirmedAt?.toISOString() ?? null,
@@ -55,7 +78,6 @@ function categorizeFromSignals(input: {
   if (input.packageId || input.itemKinds.has("PACKAGE")) return "PACKAGE";
   const fromNotes = parseExternalBookingType(input.internalNotes);
   if (fromNotes) return fromNotes;
-  // Orphans (no items, no packageId, no notes tag) still appear under Holiday Bookings
   return "PACKAGE";
 }
 
@@ -80,23 +102,14 @@ async function bookingIdsWithExternalType(category: BookingCategory): Promise<st
     where: {
       OR: needles.map((needle) => ({ internalNotes: { contains: needle } })),
     },
-    select: { id: true, internalNotes: true, packageId: true },
+    select: { id: true, internalNotes: true },
   });
 
-  // Re-parse to avoid false positives from substring matches
   return rows.filter((row) => parseExternalBookingType(row.internalNotes) === category).map((row) => row.id);
 }
 
-async function buildWhere(filter: BookingListFilter): Promise<Prisma.BookingWhereInput> {
-  const where: Prisma.BookingWhereInput = {};
-  if (filter.status) where.status = filter.status;
-  if (filter.destinationId) where.destinationId = filter.destinationId;
-  if (filter.sourceQuoteId) where.sourceQuoteId = filter.sourceQuoteId;
-  if (filter.customerId) where.customerId = filter.customerId;
-
-  if (!filter.hasItemKind) return where;
-
-  if (filter.hasItemKind === "HOLIDAY_OR_PACKAGE") {
+async function resolveProductKindIds(hasItemKind: string): Promise<string[] | null> {
+  if (hasItemKind === "HOLIDAY_OR_PACKAGE") {
     const [hotelIds, activityIds, noteHotelIds, noteActivityIds, allBookings] = await Promise.all([
       bookingIdsForInventoryKind("HOTEL"),
       bookingIdsForInventoryKind("ACTIVITY"),
@@ -110,26 +123,94 @@ async function buildWhere(filter: BookingListFilter): Promise<Prisma.BookingWher
       ...noteHotelIds,
       ...noteActivityIds,
     ]);
-    // Everything not claimed by Hotel/Activity (including orphans) lands on Holiday Bookings
-    where.id = {
-      in: allBookings.filter((b) => !claimedByHotelOrActivity.has(b.id)).map((b) => b.id),
-    };
-    return where;
+    return allBookings.filter((b) => !claimedByHotelOrActivity.has(b.id)).map((b) => b.id);
   }
 
-  if ((PRODUCT_INVENTORY_KINDS as readonly string[]).includes(filter.hasItemKind)) {
-    const kind = filter.hasItemKind as "HOTEL" | "ACTIVITY";
+  if ((PRODUCT_INVENTORY_KINDS as readonly string[]).includes(hasItemKind)) {
+    const kind = hasItemKind as "HOTEL" | "ACTIVITY";
     const [fromItems, fromNotes] = await Promise.all([
       bookingIdsForInventoryKind(kind),
       bookingIdsWithExternalType(kind),
     ]);
-    where.id = { in: [...new Set([...fromItems, ...fromNotes])] };
-    return where;
+    return [...new Set([...fromItems, ...fromNotes])];
   }
 
-  const items = await prisma.bookingItem.findMany({ where: { kind: filter.hasItemKind }, select: { bookingId: true } });
-  where.id = { in: items.map((i) => i.bookingId) };
-  return where;
+  const items = await prisma.bookingItem.findMany({
+    where: { kind: hasItemKind },
+    select: { bookingId: true },
+  });
+  return items.map((i) => i.bookingId);
+}
+
+async function resolveSearchBookingIds(search: string): Promise<{ or: Prisma.BookingWhereInput[]; travellerIds: string[] }> {
+  const q = search.trim();
+  const travellerMatches = await prisma.traveller.findMany({
+    where: {
+      OR: [
+        { fullName: { contains: q, mode: "insensitive" } },
+        { email: { contains: q, mode: "insensitive" } },
+        { phone: { contains: q, mode: "insensitive" } },
+      ],
+    },
+    select: { bookingId: true },
+  });
+  const travellerIds = [...new Set(travellerMatches.map((t) => t.bookingId))];
+
+  const or: Prisma.BookingWhereInput[] = [
+    { bookingNumber: { contains: q, mode: "insensitive" } },
+    { sourceQuoteNumber: { contains: q, mode: "insensitive" } },
+    { id: { equals: q } },
+  ];
+  if (travellerIds.length > 0) {
+    or.push({ id: { in: travellerIds } });
+  }
+  return { or, travellerIds };
+}
+
+function endOfDayIso(dateOnly: string): Date {
+  const d = new Date(dateOnly);
+  d.setHours(23, 59, 59, 999);
+  return d;
+}
+
+async function buildWhere(filter: BookingListFilter): Promise<Prisma.BookingWhereInput> {
+  const and: Prisma.BookingWhereInput[] = [];
+
+  if (filter.status) and.push({ status: filter.status });
+  if (filter.paymentStatus) and.push({ paymentStatus: filter.paymentStatus });
+  if (filter.destinationId) and.push({ destinationId: filter.destinationId });
+  if (filter.sourceQuoteId) and.push({ sourceQuoteId: filter.sourceQuoteId });
+  if (filter.customerId) and.push({ customerId: filter.customerId });
+
+  if (filter.dateFrom || filter.dateTo) {
+    const createdAt: Prisma.DateTimeFilter = {};
+    if (filter.dateFrom) createdAt.gte = new Date(filter.dateFrom);
+    if (filter.dateTo) createdAt.lte = endOfDayIso(filter.dateTo);
+    and.push({ createdAt });
+  }
+
+  if (filter.hasItemKind) {
+    const ids = await resolveProductKindIds(filter.hasItemKind);
+    and.push({ id: { in: ids ?? [] } });
+  }
+
+  if (filter.search?.trim()) {
+    const { or } = await resolveSearchBookingIds(filter.search);
+    and.push({ OR: or });
+  }
+
+  if (and.length === 0) return {};
+  if (and.length === 1) return and[0]!;
+  return { AND: and };
+}
+
+function resolveOrderBy(
+  sortBy: BookingSortField | undefined,
+  sortDir: BookingSortDir | undefined
+): Prisma.BookingOrderByWithRelationInput {
+  const field: BookingSortField = sortBy && SORT_FIELDS.has(sortBy) ? sortBy : "createdAt";
+  const dir: BookingSortDir = sortDir === "asc" ? "asc" : "desc";
+  return { [field]: dir };
 }
 
 /**
@@ -138,7 +219,7 @@ async function buildWhere(filter: BookingListFilter): Promise<Prisma.BookingWher
  */
 async function resolveCategories(
   bookings: Array<{ id: string; packageId: string | null; internalNotes: string | null }>,
-  itemsByBooking: Map<string, any[]>
+  itemsByBooking: Map<string, Array<{ kind: string; inventoryItemId: string | null }>>
 ): Promise<Map<string, BookingCategory>> {
   const inventoryIds = new Set<string>();
   for (const items of itemsByBooking.values()) {
@@ -201,31 +282,39 @@ export class PrismaBookingRepository implements BookingRepository {
     const page = filter.page ?? DEFAULT_PAGE;
     const pageSize = filter.pageSize ?? DEFAULT_PAGE_SIZE;
     const where = await buildWhere(filter);
+    const orderBy = resolveOrderBy(filter.sortBy, filter.sortDir);
+
     const [rows, total] = await Promise.all([
       prisma.booking.findMany({
         where,
         skip: (page - 1) * pageSize,
         take: pageSize,
-        orderBy: { createdAt: "desc" },
+        orderBy,
       }),
       prisma.booking.count({ where }),
     ]);
 
     const bookingIds = rows.map((r) => r.id);
     const [allItems, allTravellers] = await Promise.all([
-      bookingIds.length > 0 ? prisma.bookingItem.findMany({ where: { bookingId: { in: bookingIds } } }) : Promise.resolve([]),
-      bookingIds.length > 0 ? prisma.traveller.findMany({ where: { bookingId: { in: bookingIds } } }) : Promise.resolve([]),
+      bookingIds.length > 0
+        ? prisma.bookingItem.findMany({ where: { bookingId: { in: bookingIds } } })
+        : Promise.resolve([] as Awaited<ReturnType<typeof prisma.bookingItem.findMany>>),
+      bookingIds.length > 0
+        ? prisma.traveller.findMany({ where: { bookingId: { in: bookingIds } } })
+        : Promise.resolve([] as Awaited<ReturnType<typeof prisma.traveller.findMany>>),
     ]);
 
-    const itemsByBooking = new Map<string, any[]>();
-    const travellersByBooking = new Map<string, any[]>();
+    const itemsByBooking = new Map<string, typeof allItems>();
+    const travellersByBooking = new Map<string, typeof allTravellers>();
     for (const item of allItems) {
-      if (!itemsByBooking.has(item.bookingId)) itemsByBooking.set(item.bookingId, []);
-      itemsByBooking.get(item.bookingId)!.push(item);
+      const list = itemsByBooking.get(item.bookingId) ?? [];
+      list.push(item);
+      itemsByBooking.set(item.bookingId, list);
     }
     for (const traveller of allTravellers) {
-      if (!travellersByBooking.has(traveller.bookingId)) travellersByBooking.set(traveller.bookingId, []);
-      travellersByBooking.get(traveller.bookingId)!.push(traveller);
+      const list = travellersByBooking.get(traveller.bookingId) ?? [];
+      list.push(traveller);
+      travellersByBooking.set(traveller.bookingId, list);
     }
 
     const categories = await resolveCategories(
@@ -241,7 +330,13 @@ export class PrismaBookingRepository implements BookingRepository {
       })
     );
 
-    return ok({ items: domainRows, page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) });
+    return ok({
+      items: domainRows,
+      page,
+      pageSize,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    });
   }
 
   async countAll(): Promise<Result<number, AppError>> {
@@ -249,13 +344,13 @@ export class PrismaBookingRepository implements BookingRepository {
   }
 
   async create(data: Omit<Booking, "id">): Promise<Result<Booking, AppError>> {
-    const row = await prisma.booking.create({ data });
+    const row = await prisma.booking.create({ data: data as Prisma.BookingCreateInput });
     return ok(toDomain(row));
   }
 
   async update(id: string, data: Partial<Omit<Booking, "id">>): Promise<Result<Booking, AppError>> {
     try {
-      const row = await prisma.booking.update({ where: { id }, data });
+      const row = await prisma.booking.update({ where: { id }, data: data as Prisma.BookingUpdateInput });
       return ok(toDomain(row));
     } catch {
       return err(new NotFoundError(`Booking "${id}" not found`));

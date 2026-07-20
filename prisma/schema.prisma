@@ -313,6 +313,7 @@ model Quote {
   @@index([destinationId])
   @@index([status])
   @@index([customerId])
+  @@index([convertedBookingId])
   @@map("quotes")
 }
 
@@ -376,6 +377,8 @@ model Booking {
   @@index([sourceQuoteId])
   @@index([status])
   @@index([customerId])
+  @@index([paymentStatus])
+  @@index([createdAt])
   @@map("bookings")
 }
 
@@ -420,16 +423,17 @@ model Traveller {
 }
 
 model PassengerDocument {
-  id          String    @id @default(uuid())
-  bookingId   String
-  travellerId String?
-  kind        String
-  fileUrl     String?
-  fileName    String?
-  issuedAt    DateTime?
-  expiresAt   DateTime?
-  notes       String?
-  createdAt   DateTime
+  id                 String    @id @default(uuid())
+  bookingId          String
+  travellerId        String?
+  kind               String
+  fileUrl            String?
+  fileName           String?
+  issuedAt           DateTime?
+  expiresAt          DateTime?
+  notes              String?
+  verificationStatus String    @default("PENDING")
+  createdAt          DateTime
 
   @@index([bookingId])
   @@map("passenger_documents")
@@ -757,10 +761,8 @@ model CustomerNote {
   @@map("customer_notes")
 }
 
-/// Placeholder only, per this sprint's explicit instruction — no
-/// email/SMS/WhatsApp delivery exists yet. Exists so `/api/me/dashboard`'s
-/// "unread notifications" field has a real (always-empty-for-now) source
-/// instead of a hardcoded literal.
+/// Placeholder only — in-app customer notifications for `/api/me/dashboard`
+/// unread count. Separate from outbound EmailDispatch (SMTP delivery log).
 model Notification {
   id        String    @id @default(uuid())
   userId    String
@@ -774,6 +776,24 @@ model Notification {
   @@index([userId])
   @@map("notifications")
 }
+
+/// Outbound booking email dispatch log — dedupe + delivery status (PP-002C-6).
+model EmailDispatch {
+  id           String   @id @default(uuid())
+  dedupeKey    String   @unique
+  bookingId    String?
+  event        String
+  templateId   String
+  status       String
+  recipient    String?
+  errorMessage String?
+  createdAt    DateTime
+  updatedAt    DateTime
+
+  @@index([bookingId])
+  @@map("email_dispatches")
+}
+
 
 // ── Sprint 14 & PRD Implementations ─────────────────────────────────────
 

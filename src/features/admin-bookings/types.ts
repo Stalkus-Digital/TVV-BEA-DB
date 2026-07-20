@@ -81,6 +81,7 @@ export interface BookingListFilters {
   page?: number;
   pageSize?: number;
   hasItemKind?: string;
+  customerId?: string;
 }
 
 export interface Traveller {
@@ -125,6 +126,9 @@ export interface PassengerDocument {
   issuedAt: string | null;
   expiresAt: string | null;
   notes: string | null;
+  verificationStatus?: string;
+  uploadStatus?: string;
+  isExpired?: boolean;
   createdAt: string;
 }
 
@@ -223,4 +227,30 @@ export interface AddDocumentInput {
   issuedAt?: string | null;
   expiresAt?: string | null;
   notes?: string | null;
+  verificationStatus?: string;
+}
+
+export interface UpdateTravellerInput {
+  type?: string;
+  isLeadTraveller?: boolean;
+  fullName?: string;
+  email?: string | null;
+  phone?: string | null;
+  dateOfBirth?: string | null;
+  gender?: string | null;
+  nationality?: string | null;
+  passportNumber?: string | null;
+  passportExpiry?: string | null;
+  visaRequired?: boolean;
+}
+
+export interface UpdateDocumentInput {
+  travellerId?: string | null;
+  kind?: string;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  issuedAt?: string | null;
+  expiresAt?: string | null;
+  notes?: string | null;
+  verificationStatus?: string;
 }

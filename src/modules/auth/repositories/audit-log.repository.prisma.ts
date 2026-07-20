@@ -33,6 +33,9 @@ export class PrismaAuditLogRepository implements AuditLogRepository {
     const where: Prisma.AuditLogWhereInput = {};
     if (filter.eventType) where.eventType = filter.eventType;
     if (filter.actorUserId) where.actorUserId = filter.actorUserId;
+    if (filter.bookingId) {
+      where.details = { path: ["bookingId"], equals: filter.bookingId };
+    }
 
     const [rows, total] = await Promise.all([
       prisma.auditLog.findMany({ where, skip: (page - 1) * pageSize, take: pageSize, orderBy: { occurredAt: "desc" } }),

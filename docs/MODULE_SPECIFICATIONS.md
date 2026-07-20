@@ -1,193 +1,172 @@
 # Module Specifications
 
+Status legend: **Approved** = shipped and accepted · **Partial** = code exists, phase incomplete · **Planned** = roadmap only
+
 ---
 
-# Customers
+# Customers — Approved (PP-002B)
 
 Purpose
 
-Manage all customer records.
+Manage all customer records in Travel OS.
 
 Features
 
-Create Customer
+- Create / Edit / Archive / Restore
+- Search, filters, pagination
+- Customer profile
+- Notes
+- Booking history (relationship funnel)
+- Quote history
+- Payment history (read from booking payments)
+- Timeline + Audit log
+- Duplicate prevention (email / phone)
 
-Edit Customer
+Out of current scope
 
-Delete Customer
+- Tags, documents portal (customer self-service docs exist separately)
+- Multi-user assignment / RBAC
 
-Archive
+Primary APIs
 
-Restore
-
-Tags
-
-Notes
-
-Documents
-
-Booking History
-
-Quote History
-
-Timeline
-
-Audit
-
-Permissions
-
-API
-
-/customer
-
-/customer/:id
-
-/customer/search
-
-/customer/archive
-
-/customer/restore
+- `/api/admin/customers`
+- `/api/admin/customers/:id`
+- `/api/admin/customers/:id/archive|restore`
+- `/api/admin/customers/:id/notes`
+- `/api/admin/customers/:id/payments`
+- `/api/admin/customers/:id/audit-logs`
 
 ---
 
-# Leads
+# Leads (Enquiries) — Approved (PP-002B)
 
 Purpose
 
-Manage incoming enquiries.
+Manage incoming enquiries / leads. Enquiry is the CRM lead source of truth.
 
 Features
 
-Lead Pipeline
+- CRUD
+- Lead status pipeline (list + kanban)
+- Lead source
+- Follow-up date + priority
+- Notes
+- Timeline + Audit
+- Push to Sembark on create (async)
 
-Lead Status
+Deferred
 
-Lead Assignment
+- Employee lead assignment (single owner; UI disabled)
+- Conversion automation beyond manual status / quote workflows
 
-Lead Source
+Primary APIs
 
-Priority
-
-Follow-up
-
-Timeline
-
-Conversion
-
-Permissions
+- `/api/admin/enquiries`
+- `/api/admin/enquiries/:id`
+- `/api/admin/enquiries/:id/status`
+- `/api/admin/enquiries/:id/follow-up`
+- `/api/admin/enquiries/:id/notes`
+- `/api/admin/enquiries/:id/audit-logs`
 
 ---
 
-# Quotes
+# Quotes — Approved for current workflow (PP-002B)
 
 Purpose
 
-Create quotations.
+Store and manage quote records needed for Travel OS operations.
 
 Features
 
-Quote Builder
+- List / create / update / status workflow
+- Items, pricing, versions
+- Customer linking
+- Convert handoff / create booking from approved quote (booking module)
+- Timeline (version-based)
 
-Package Selection
+Explicitly not current scope
 
-Pricing
+- Quote PDF engine as primary quotation channel (Sembark handles discussions)
+- Full quote builder as replacement for Sembark
 
-Discount
+Primary APIs
 
-Taxes
-
-PDF
-
-Version History
-
-Approval
-
-Customer Link
-
-Timeline
+- `/api/quotes` and nested item / pricing / version / status routes
+- `/api/quotes/:id/audit-logs` (read; writers may be completed in later polish)
 
 ---
 
-# Bookings
+# Bookings — Partial (foundation exists; PP-002C)
 
 Purpose
 
-Manage bookings.
+Manage bookings across Hotel, Activity, and Holiday Package journeys.
 
-Features
+Existing (codebase)
 
-Booking Status
+- Booking, BookingItem, Traveller, PassengerDocument
+- Status lifecycle APIs (confirm, cancel, ticket, complete)
+- Notes, timeline, status history
+- Invoice / voucher generation endpoints
+- Admin Bookings UI (All / Hotels / Holidays / Activities)
+- Create from approved quote
+- Website external booking bridge
 
-Payment Status
+PP-002C focus
 
-Supplier
-
-Voucher
-
-Timeline
+- Unify quote→booking conversion (`convertedBookingId`)
+- Enterprise polish (search/filters/empty/toast/audit parity with CRM)
+- First-class product fields (hotel/activity) instead of `internalNotes` scraping
+- Payment optional workflows end-to-end
+- Email confirmation hooks (when email infrastructure ready)
+- TripJack fulfillment integration points
+- Ferry remains catalogue-only unless explicitly scoped later
 
 ---
 
-# Payments
+# Payments — Partial (PP-002C)
 
 Purpose
 
-Track payments.
+Track optional payments against bookings.
 
-Features
+Existing
 
-Payment Link
+- `BookingPayment` model
+- Manual admin payment recording
+- Razorpay / PhonePe checkout + webhooks
+- Refund / reconcile routes
+- Customer payment history on CRM profile
 
-Manual Payment
+PP-002C focus
 
-Refund
-
-Invoice
-
-Status
-
-Timeline
-
----
-
-# CMS
-
-Purpose
-
-Manage website content.
-
-Features
-
-Blogs
-
-Pages
-
-SEO
-
-Media
-
-Publishing
+- Admin payment UX consistency
+- Clear optional-payment status rules
+- Invoice linkage
+- Preserve payment history (no hard deletes)
 
 ---
 
-Continue for:
+# CMS — Planned (PP-002D)
 
-Media
+Blogs, landing pages, SEO pages, media, publishing.
 
-Users
+---
 
-Roles
+# Destinations / Inventory / Holiday Packages / Ferries — Approved (PP-002A)
 
-Settings
+Catalogue modules. Do not redesign unless fixing bugs.
 
-Notifications
+Ferries today: operators, routes, rates, credentials scaffolding — **not** a ferry booking engine.
 
-Integrations
+---
 
-Destinations
+# Integrations — Approved (PP-001)
 
-Inventory
+Vault, provider configs, health. Payment gateways and Sembark used by CRM/booking flows.
 
-Holiday Packages
+---
 
-Ferries
+# Users / Roles / Notifications / Settings — Planned (PP-002E)
+
+Single owner account today. RBAC and employee workflows deferred.

@@ -3,11 +3,13 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchDocuments,
+  fetchInvoices,
   fetchNotes,
   fetchPayments,
   fetchStatusHistory,
   fetchTimeline,
   fetchTravellers,
+  fetchVouchers,
 } from "../api/bookings";
 import { adminQueryKeys } from "@/shared/lib/query-client";
 
@@ -31,6 +33,22 @@ export function useBookingDocumentsQuery(bookingId: string | null) {
   return useQuery({
     queryKey: adminQueryKeys.bookings.documents(bookingId ?? ""),
     queryFn: () => fetchDocuments(bookingId!),
+    enabled: Boolean(bookingId),
+  });
+}
+
+export function useBookingInvoicesQuery(bookingId: string | null) {
+  return useQuery({
+    queryKey: adminQueryKeys.bookings.invoices(bookingId ?? ""),
+    queryFn: () => fetchInvoices(bookingId!),
+    enabled: Boolean(bookingId),
+  });
+}
+
+export function useBookingVouchersQuery(bookingId: string | null) {
+  return useQuery({
+    queryKey: adminQueryKeys.bookings.vouchers(bookingId ?? ""),
+    queryFn: () => fetchVouchers(bookingId!),
     enabled: Boolean(bookingId),
   });
 }

@@ -8,6 +8,7 @@ import { PaymentStatus, type BookingPayment as DomainBookingPayment } from "@/mo
 import { computePaymentAggregate } from "@/modules/booking/payments/payment-calculator";
 import { canTransition } from "@/modules/booking/status/booking-status-machine";
 import { BookingStatus } from "@/modules/booking/types/booking-status";
+import { AuditEventType } from "@/modules/auth/types/audit-log";
 
 /** Minimum valid payment (₹1 = lowest Razorpay denomination) */
 const MIN_PAYMENT_AMOUNT = 1;
@@ -23,6 +24,8 @@ export interface RefundInput {
   /** Omit for a full refund of the booking's current amountPaid. */
   amount?: number;
   reason?: string | null;
+  /** Admin actor for audit (PP-002C-3). */
+  actorUserId?: string | null;
 }
 
 export interface RefundResult {
@@ -74,8 +77,16 @@ async function recomputeBookingAggregate(
   let nextStatus = booking.status as BookingStatus;
   if (aggregate.paymentStatus === PaymentStatus.PAID && canTransition(booking.status as BookingStatus, BookingStatus.PAID)) {
     nextStatus = BookingStatus.PAID;
-  } else if (aggregate.paymentStatus === PaymentStatus.PARTIAL && canTransition(booking.status as BookingStatus, BookingStatus.PARTIALLY_PAID)) {
+  } else if (
+    aggregate.paymentStatus === PaymentStatus.PARTIAL &&
+    canTransition(booking.status as BookingStatus, BookingStatus.PARTIALLY_PAID)
+  ) {
     nextStatus = BookingStatus.PARTIALLY_PAID;
+  } else if (
+    aggregate.amountPaid === 0 &&
+    canTransition(booking.status as BookingStatus, BookingStatus.CONFIRMED)
+  ) {
+    nextStatus = BookingStatus.CONFIRMED;
   }
 
   await tx.booking.update({
@@ -92,6 +103,33 @@ async function recomputeBookingAggregate(
 }
 
 export { recomputeBookingAggregate };
+
+async function recordGatewayPaymentAudit(input: {
+  eventType: (typeof AuditEventType)[keyof typeof AuditEventType];
+  bookingId: string;
+  amount: number;
+  method: string;
+  reference: string | null;
+  status: string;
+  source: "razorpay" | "phonepe" | "manual";
+  actorUserId?: string | null;
+  extra?: Record<string, unknown>;
+}): Promise<void> {
+  const { getAuditLogService } = await import("@/modules/auth");
+  await getAuditLogService().record({
+    eventType: input.eventType,
+    actorUserId: input.actorUserId ?? null,
+    details: {
+      bookingId: input.bookingId,
+      amount: input.amount,
+      method: input.method,
+      reference: input.reference,
+      status: input.status,
+      source: input.source,
+      ...input.extra,
+    },
+  });
+}
 
 export class PaymentService extends BaseService {
   constructor(context: ServiceContext) {
@@ -274,7 +312,14 @@ export class PaymentService extends BaseService {
           return err(new ValidationError(`Payment amount ₹${paymentAmount} is below the minimum allowed`));
         }
 
-        const expectedAmount = booking.totalAmount - booking.amountPaid;
+        const expectedAmount = Math.max(0, booking.totalAmount - booking.amountPaid);
+        if (expectedAmount <= 0) {
+          this.logger.error("Payment received for fully paid booking — rejecting overpayment", {
+            paymentAmount, bookingId, razorpayPaymentId,
+          });
+          return err(new ValidationError(`Booking ${booking.bookingNumber} is already fully paid — cannot accept further payment`));
+        }
+
         const tolerance = expectedAmount * AMOUNT_TOLERANCE_PERCENT;
         if (paymentAmount < expectedAmount - tolerance) {
           this.logger.error("Payment amount does not match booking expected amount", {
@@ -282,6 +327,14 @@ export class PaymentService extends BaseService {
           });
           return err(new ValidationError(
             `Payment ₹${paymentAmount} is less than the expected ₹${expectedAmount} for booking ${booking.bookingNumber}. Contact support.`
+          ));
+        }
+        if (paymentAmount > expectedAmount + tolerance) {
+          this.logger.error("Payment amount exceeds outstanding balance — rejecting overpayment", {
+            paymentAmount, expectedAmount, bookingId, razorpayPaymentId,
+          });
+          return err(new ValidationError(
+            `Payment ₹${paymentAmount} exceeds outstanding balance ₹${expectedAmount} for booking ${booking.bookingNumber}.`
           ));
         }
 
@@ -317,6 +370,17 @@ export class PaymentService extends BaseService {
           throw error;
         }
 
+        await recordGatewayPaymentAudit({
+          eventType: AuditEventType.BOOKING_PAYMENT_RECORDED,
+          bookingId,
+          amount: paymentAmount,
+          method: "RAZORPAY",
+          reference: razorpayPaymentId,
+          status: PaymentStatus.PAID,
+          source: "razorpay",
+          actorUserId: null,
+        });
+
         const updatedBooking = await prisma.booking.findUnique({ where: { id: bookingId } });
 
         if (updatedBooking && updatedBooking.status !== previousStatus) {
@@ -327,33 +391,19 @@ export class PaymentService extends BaseService {
           }
         }
 
-        const travellers = await prisma.traveller.findMany({ where: { bookingId } });
+        const { enqueueBookingEmail, BookingEmailEvent } = await import("@/modules/email");
+        enqueueBookingEmail({
+          event: BookingEmailEvent.PAYMENT_RECEIVED,
+          bookingId,
+          actorUserId: null,
+          amount: paymentAmount,
+          currency: payment.currency?.toUpperCase() || "INR",
+          dedupeKey: `PAYMENT_RECEIVED:${bookingId}:${razorpayPaymentId}`,
+        });
 
         if (updatedBooking?.paymentStatus === "PAID") {
           const { getFulfillmentService } = await import("@/modules/booking/module");
-          const fulfillmentService = getFulfillmentService();
-          await fulfillmentService.fulfillBooking(bookingId);
-
-          const leadTraveller = travellers?.find((t: any) => t.isLeadTraveller);
-          if (leadTraveller?.email) {
-            const { EmailService } = await import("@/modules/email/email.service");
-            const { createLogger } = await import("@/shared/logger");
-            const emailService = new EmailService({ logger: createLogger("email.service") });
-
-            const emailResult = await emailService.sendBookingConfirmation(
-              leadTraveller.email,
-              updatedBooking.bookingNumber,
-              paymentAmount,
-              payment.currency?.toUpperCase() || "INR"
-            );
-            if (!emailResult.ok) {
-              this.logger.error("Failed to send booking confirmation email", {
-                to: leadTraveller.email,
-                bookingNumber: updatedBooking.bookingNumber,
-                error: emailResult.error.message,
-              });
-            }
-          }
+          await getFulfillmentService().fulfillBooking(bookingId);
         }
       } else if (payment.status === "failed") {
         await this.recordPaymentFailure(payment.notes?.bookingId as string | undefined, razorpayPaymentId);
@@ -382,15 +432,54 @@ export class PaymentService extends BaseService {
       this.logger.warn("Payment failed for unknown booking", { bookingId, razorpayPaymentId });
       return ok(undefined);
     }
-    if (booking.paymentStatus === PaymentStatus.PAID || booking.paymentStatus === PaymentStatus.PARTIAL) {
-      this.logger.info("Ignoring failed-payment event — booking already has a successful payment", { bookingId, razorpayPaymentId });
+
+    const existing = await prisma.bookingPayment.findFirst({ where: { reference: razorpayPaymentId } });
+    if (existing) {
+      this.logger.info("Failed payment already recorded — skipping duplicate", { bookingId, razorpayPaymentId });
       return ok(undefined);
     }
 
-    await prisma.booking.update({
-      where: { id: bookingId },
-      data: { paymentStatus: PaymentStatus.FAILED, updatedAt: new Date() },
+    try {
+      await prisma.bookingPayment.create({
+        data: {
+          bookingId,
+          amount: 0,
+          currency: booking.currency?.toUpperCase() || "INR",
+          method: "RAZORPAY",
+          status: PaymentStatus.FAILED,
+          reference: razorpayPaymentId,
+          notes: "Gateway payment failed",
+          paidAt: null,
+          createdAt: new Date(),
+        },
+      });
+    } catch (error: any) {
+      if (error?.code === "P2002") {
+        this.logger.info("Failed payment already recorded (DB constraint) — skipping duplicate", { razorpayPaymentId });
+        return ok(undefined);
+      }
+      throw error;
+    }
+
+    // Never clobber a booking that already has successful payment from another attempt
+    if (booking.paymentStatus !== PaymentStatus.PAID && booking.paymentStatus !== PaymentStatus.PARTIAL) {
+      await prisma.booking.update({
+        where: { id: bookingId },
+        data: { paymentStatus: PaymentStatus.FAILED, updatedAt: new Date() },
+      });
+    }
+
+    await recordGatewayPaymentAudit({
+      eventType: AuditEventType.BOOKING_PAYMENT_FAILED,
+      bookingId,
+      amount: 0,
+      method: "RAZORPAY",
+      reference: razorpayPaymentId,
+      status: PaymentStatus.FAILED,
+      source: "razorpay",
+      actorUserId: null,
     });
+
     this.logger.warn("Recorded failed payment attempt", { bookingId, razorpayPaymentId });
     return ok(undefined);
   }
@@ -421,35 +510,56 @@ export class PaymentService extends BaseService {
       orderBy: { createdAt: "desc" },
     });
     if (capturedPayments.length === 0) {
-      return err(new ValidationError(`No captured Razorpay payment found for booking "${bookingId}" to refund against`));
+      return err(new ValidationError(`No captured payment found for booking "${bookingId}" to refund against`));
     }
 
-    const refundedRows: { reference: string; amount: number; sourceReference: string }[] = [];
+    const refundedRows: { reference: string; amount: number; sourceReference: string; method: string }[] = [];
     let remaining = requestedAmount;
 
     try {
       for (const paymentRow of capturedPayments) {
         if (remaining <= 0) break;
-        if (!paymentRow.reference) continue;
 
         const alreadyRefunded = await prisma.bookingPayment.aggregate({
-          where: { bookingId, status: PaymentStatus.REFUNDED, notes: { contains: paymentRow.reference } },
+          where: {
+            bookingId,
+            status: PaymentStatus.REFUNDED,
+            notes: {
+              contains: paymentRow.reference ?? paymentRow.id,
+            },
+          },
           _sum: { amount: true },
         });
         const refundableOnThisPayment = paymentRow.amount - (alreadyRefunded._sum.amount ?? 0);
         if (refundableOnThisPayment <= 0) continue;
 
         const amountToRefund = Math.min(remaining, refundableOnThisPayment);
-        const { client } = await this.getRazorpayClient();
-        const razorpayRefund = await client.payments.refund(paymentRow.reference, {
-          amount: Math.round(amountToRefund * 100),
-        });
+        const method = (paymentRow.method ?? "MANUAL").toUpperCase();
 
-        refundedRows.push({ reference: razorpayRefund.id, amount: amountToRefund, sourceReference: paymentRow.reference });
+        if (method === "RAZORPAY" && paymentRow.reference) {
+          const { client } = await this.getRazorpayClient();
+          const razorpayRefund = await client.payments.refund(paymentRow.reference, {
+            amount: Math.round(amountToRefund * 100),
+          });
+          refundedRows.push({
+            reference: razorpayRefund.id,
+            amount: amountToRefund,
+            sourceReference: paymentRow.reference,
+            method: "RAZORPAY",
+          });
+        } else {
+          // Offline / manual / PhonePe (no Razorpay refund API) — record local refund row
+          refundedRows.push({
+            reference: `offline-refund-${paymentRow.id}-${Date.now()}`,
+            amount: amountToRefund,
+            sourceReference: paymentRow.reference ?? paymentRow.id,
+            method: method === "PHONEPE" ? "PHONEPE" : "MANUAL",
+          });
+        }
         remaining -= amountToRefund;
       }
     } catch (error) {
-      this.logger.error("Razorpay refund call failed", { bookingId, error });
+      this.logger.error("Refund call failed", { bookingId, error });
       return err(new InternalError("Failed to process refund with payment gateway"));
     }
 
@@ -467,7 +577,7 @@ export class PaymentService extends BaseService {
             bookingId,
             amount: r.amount,
             currency: booking.currency,
-            method: "RAZORPAY",
+            method: r.method,
             status: PaymentStatus.REFUNDED,
             reference: r.reference,
             notes: `Refund of payment ${r.sourceReference} — ${input.reason ?? "no reason given"}`,
@@ -481,6 +591,34 @@ export class PaymentService extends BaseService {
     });
 
     this.logger.info("Refund processed", { bookingId, totalRefunded, reason: input.reason ?? null });
+
+    await recordGatewayPaymentAudit({
+      eventType: AuditEventType.BOOKING_REFUND_RECORDED,
+      bookingId,
+      amount: totalRefunded,
+      method: refundedRows[0]?.method ?? "MANUAL",
+      reference: refundedRows.map((r) => r.reference).join(","),
+      status: PaymentStatus.REFUNDED,
+      source: refundedRows.some((r) => r.method === "RAZORPAY") ? "razorpay" : "manual",
+      actorUserId: input.actorUserId ?? null,
+      extra: {
+        refundedAmount: totalRefunded,
+        refundReferences: refundedRows.map((r) => r.reference),
+        reason: input.reason ?? null,
+        paymentStatus: finalPaymentStatus,
+      },
+    });
+
+    const { enqueueBookingEmail, BookingEmailEvent } = await import("@/modules/email");
+    enqueueBookingEmail({
+      event: BookingEmailEvent.REFUND_PROCESSED,
+      bookingId,
+      actorUserId: input.actorUserId ?? null,
+      amount: totalRefunded,
+      currency: booking.currency,
+      reason: input.reason ?? null,
+      dedupeKey: `REFUND_PROCESSED:${bookingId}:${refundedRows.map((r) => r.reference).join(",")}`,
+    });
 
     return ok({
       refundedAmount: totalRefunded,
@@ -598,7 +736,11 @@ export class PaymentService extends BaseService {
         return err(new ValidationError(`Payment amount ₹${paymentAmount} is below the minimum allowed`));
       }
 
-      const expectedAmount = booking.totalAmount - booking.amountPaid;
+      const expectedAmount = Math.max(0, booking.totalAmount - booking.amountPaid);
+      if (expectedAmount <= 0) {
+        return err(new ValidationError(`Booking ${booking.bookingNumber} is already fully paid — cannot accept further payment`));
+      }
+
       const tolerance = expectedAmount * AMOUNT_TOLERANCE_PERCENT;
       if (paymentAmount < expectedAmount - tolerance) {
         return err(
@@ -607,26 +749,64 @@ export class PaymentService extends BaseService {
           )
         );
       }
+      if (paymentAmount > expectedAmount + tolerance) {
+        return err(
+          new ValidationError(
+            `Payment ₹${paymentAmount} exceeds outstanding balance ₹${expectedAmount} for booking ${booking.bookingNumber}.`
+          )
+        );
+      }
 
       const previousStatus = booking.status;
 
-      await prisma.$transaction(async (tx) => {
-        await tx.bookingPayment.create({
-          data: {
-            bookingId: input.bookingId,
-            amount: paymentAmount,
-            currency: booking.currency?.toUpperCase() || "INR",
-            method: "PHONEPE",
-            status: PaymentStatus.PAID,
-            reference: input.transactionId,
-            notes: input.merchantTransactionId
-              ? `PhonePe merchantTransactionId=${input.merchantTransactionId}`
-              : null,
-            paidAt: new Date(),
-            createdAt: new Date(),
-          },
+      try {
+        await prisma.$transaction(async (tx) => {
+          await tx.bookingPayment.create({
+            data: {
+              bookingId: input.bookingId,
+              amount: paymentAmount,
+              currency: booking.currency?.toUpperCase() || "INR",
+              method: "PHONEPE",
+              status: PaymentStatus.PAID,
+              reference: input.transactionId,
+              notes: input.merchantTransactionId
+                ? `PhonePe merchantTransactionId=${input.merchantTransactionId}`
+                : null,
+              paidAt: new Date(),
+              createdAt: new Date(),
+            },
+          });
+          await recomputeBookingAggregate(tx, input.bookingId);
         });
-        await recomputeBookingAggregate(tx, input.bookingId);
+      } catch (error: any) {
+        if (error?.code === "P2002") {
+          this.logger.info("PhonePe payment already recorded (DB constraint) — skipping duplicate", {
+            transactionId: input.transactionId,
+          });
+          return ok(undefined);
+        }
+        throw error;
+      }
+
+      await recordGatewayPaymentAudit({
+        eventType: AuditEventType.BOOKING_PAYMENT_RECORDED,
+        bookingId: input.bookingId,
+        amount: paymentAmount,
+        method: "PHONEPE",
+        reference: input.transactionId,
+        status: PaymentStatus.PAID,
+        source: "phonepe",
+        actorUserId: null,
+      });
+
+      const { enqueueBookingEmail, BookingEmailEvent } = await import("@/modules/email");
+      enqueueBookingEmail({
+        event: BookingEmailEvent.PAYMENT_RECEIVED,
+        bookingId: input.bookingId,
+        actorUserId: null,
+        amount: paymentAmount,
+        currency: booking.currency?.toUpperCase() || "INR",
+        dedupeKey: `PAYMENT_RECEIVED:${input.bookingId}:${input.transactionId}`,
       });
 
       const updatedBooking = await prisma.booking.findUnique({ where: { id: input.bookingId } });

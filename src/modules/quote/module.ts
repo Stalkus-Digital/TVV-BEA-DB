@@ -24,7 +24,8 @@ export const QUOTE_VERSION_SERVICE_TOKEN = createToken<QuoteVersionService>("quo
  * approved direction as Package's own use of Inventory/Destination. No
  * import from src/modules/supplier or src/modules/website exists anywhere
  * in this module (grep-verified after build). No booking module exists yet
- * to import from — convertToBooking() returns a handoff payload instead of
+ * to import from — buildBookingHandoff() prepares payload; BookingService
+ * createFromQuote + completeConversion owns the CONVERTED transition.
  * calling one; see quote.service.ts and types/quote-conversion.ts. No
  * payments/TripJack/Ferry integration, per this sprint's explicit exclusions.
  */

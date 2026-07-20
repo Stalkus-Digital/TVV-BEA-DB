@@ -1,8 +1,10 @@
 import type { AppError } from "@/shared/errors";
 import type { PaginatedResult, Result } from "@/shared/types";
+import type { AuthContext } from "@/modules/auth";
+import type { Booking } from "@/modules/booking/types/booking";
+import { getBookingService } from "@/modules/booking";
 import { getQuoteService, getQuoteVersionService } from "../module";
 import type { Quote } from "../types/quote";
-import type { BookingHandoffPayload } from "../types/quote-conversion";
 import type { QuotePdfData } from "../types/quote-pdf";
 import type { QuotePriceResult } from "../types/quote-pricing";
 import type { QuoteVersion } from "../types/quote-version";
@@ -44,8 +46,12 @@ export async function duplicateQuoteHandler(id: string): Promise<Result<Quote, A
   return getQuoteService().duplicate(id);
 }
 
-export async function convertQuoteHandler(id: string): Promise<Result<BookingHandoffPayload, AppError>> {
-  return getQuoteService().convertToBooking(id);
+/** Creates the booking and links Quote.convertedBookingId (single conversion path). */
+export async function convertQuoteHandler(
+  id: string,
+  context: AuthContext | null = null
+): Promise<Result<Booking, AppError>> {
+  return getBookingService().createFromQuote({ quoteId: id }, context?.userId ?? null);
 }
 
 export async function getQuotePricingHandler(id: string): Promise<Result<QuotePriceResult, AppError>> {

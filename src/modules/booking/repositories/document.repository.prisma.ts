@@ -12,6 +12,7 @@ function toDomain(row: PrismaPassengerDocumentRow): PassengerDocument {
   return {
     ...row,
     kind: row.kind as PassengerDocument["kind"],
+    verificationStatus: (row.verificationStatus ?? "PENDING") as PassengerDocument["verificationStatus"],
     issuedAt: row.issuedAt?.toISOString() ?? null,
     expiresAt: row.expiresAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
@@ -39,14 +40,43 @@ export class PrismaDocumentRepository implements DocumentRepository {
     return ok({ items: rows.map(toDomain), page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) });
   }
 
-  async create(data: Omit<PassengerDocument, "id">): Promise<Result<PassengerDocument, AppError>> {
-    const row = await prisma.passengerDocument.create({ data });
+  async create(data: Omit<PassengerDocument, "id" | "uploadStatus" | "isExpired">): Promise<Result<PassengerDocument, AppError>> {
+    const row = await prisma.passengerDocument.create({
+      data: {
+        bookingId: data.bookingId,
+        travellerId: data.travellerId,
+        kind: data.kind,
+        fileUrl: data.fileUrl,
+        fileName: data.fileName,
+        issuedAt: data.issuedAt ? new Date(data.issuedAt) : null,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
+        notes: data.notes,
+        verificationStatus: data.verificationStatus ?? "PENDING",
+        createdAt: new Date(data.createdAt),
+      },
+    });
     return ok(toDomain(row));
   }
 
-  async update(id: string, data: Partial<Omit<PassengerDocument, "id">>): Promise<Result<PassengerDocument, AppError>> {
+  async update(
+    id: string,
+    data: Partial<Omit<PassengerDocument, "id" | "uploadStatus" | "isExpired">>
+  ): Promise<Result<PassengerDocument, AppError>> {
     try {
-      const row = await prisma.passengerDocument.update({ where: { id }, data });
+      const row = await prisma.passengerDocument.update({
+        where: { id },
+        data: {
+          ...(data.bookingId !== undefined ? { bookingId: data.bookingId } : {}),
+          ...(data.travellerId !== undefined ? { travellerId: data.travellerId } : {}),
+          ...(data.kind !== undefined ? { kind: data.kind } : {}),
+          ...(data.fileUrl !== undefined ? { fileUrl: data.fileUrl } : {}),
+          ...(data.fileName !== undefined ? { fileName: data.fileName } : {}),
+          ...(data.issuedAt !== undefined ? { issuedAt: data.issuedAt ? new Date(data.issuedAt) : null } : {}),
+          ...(data.expiresAt !== undefined ? { expiresAt: data.expiresAt ? new Date(data.expiresAt) : null } : {}),
+          ...(data.notes !== undefined ? { notes: data.notes } : {}),
+          ...(data.verificationStatus !== undefined ? { verificationStatus: data.verificationStatus } : {}),
+        },
+      });
       return ok(toDomain(row));
     } catch {
       return err(new NotFoundError(`Passenger document "${id}" not found`));

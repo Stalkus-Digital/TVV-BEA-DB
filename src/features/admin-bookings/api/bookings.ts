@@ -16,6 +16,8 @@ import type {
   PassengerDocument,
   RecordPaymentInput,
   Traveller,
+  UpdateDocumentInput,
+  UpdateTravellerInput,
 } from "../types";
 
 function bookingPath(id: string) {
@@ -26,7 +28,14 @@ export async function fetchBookings(filters: BookingListFilters = {}): Promise<P
   const result = await adminApiClient.get<PaginatedResult<Booking>>(adminEndpoints.bookings, {
     params: {
       status: filters.status,
+      paymentStatus: filters.paymentStatus,
       hasItemKind: filters.hasItemKind,
+      customerId: filters.customerId,
+      search: filters.search?.trim() || undefined,
+      dateFrom: filters.dateFrom,
+      dateTo: filters.dateTo,
+      sortBy: filters.sortBy,
+      sortDir: filters.sortDir,
       page: filters.page ?? 1,
       pageSize: filters.pageSize ?? 20,
     },
@@ -35,22 +44,6 @@ export async function fetchBookings(filters: BookingListFilters = {}): Promise<P
     return { items: [], page: 1, pageSize: filters.pageSize ?? 20, total: 0, totalPages: 1 };
   }
   return result;
-}
-
-export async function fetchAllBookings(filters: Pick<BookingListFilters, "status" | "hasItemKind"> = {}): Promise<Booking[]> {
-  const pageSize = 20;
-  let page = 1;
-  let totalPages = 1;
-  const items: Booking[] = [];
-
-  while (page <= totalPages) {
-    const result = await fetchBookings({ ...filters, page, pageSize });
-    items.push(...result.items);
-    totalPages = result.totalPages;
-    page += 1;
-  }
-
-  return items;
 }
 
 export async function fetchBooking(id: string): Promise<Booking> {
@@ -114,6 +107,19 @@ export async function removeTraveller(bookingId: string, travellerId: string): P
   await adminApiClient.delete(`${bookingPath(bookingId)}/travellers/${travellerId}`);
 }
 
+export async function updateTraveller(
+  bookingId: string,
+  travellerId: string,
+  input: UpdateTravellerInput
+): Promise<Traveller> {
+  const result = await adminApiClient.patch<Traveller>(
+    `${bookingPath(bookingId)}/travellers/${travellerId}`,
+    input
+  );
+  if (!result) throw new Error("Failed to update traveller");
+  return result;
+}
+
 export async function fetchPayments(bookingId: string): Promise<BookingPayment[]> {
   const result = await adminApiClient.get<BookingPayment[]>(`${bookingPath(bookingId)}/payments`);
   return result ?? [];
@@ -122,6 +128,30 @@ export async function fetchPayments(bookingId: string): Promise<BookingPayment[]
 export async function recordPayment(bookingId: string, input: RecordPaymentInput): Promise<BookingPayment> {
   const result = await adminApiClient.post<BookingPayment>(`${bookingPath(bookingId)}/payments`, input);
   if (!result) throw new Error("Failed to record payment");
+  return result;
+}
+
+export async function refundBooking(
+  bookingId: string,
+  input: { amount?: number; reason?: string } = {}
+): Promise<{ refundedAmount: number; refundReferences: string[]; paymentStatus: string }> {
+  const result = await adminApiClient.post<{
+    refundedAmount: number;
+    refundReferences: string[];
+    paymentStatus: string;
+  }>(`${bookingPath(bookingId)}/refund`, input);
+  if (!result) throw new Error("Failed to refund booking");
+  return result;
+}
+
+export async function reconcileBookingPayments(
+  bookingId: string
+): Promise<{ checked: number; corrected: number; details: string[] }> {
+  const result = await adminApiClient.post<{ checked: number; corrected: number; details: string[] }>(
+    `${bookingPath(bookingId)}/payments/reconcile`,
+    {}
+  );
+  if (!result) throw new Error("Failed to reconcile payments");
   return result;
 }
 
@@ -134,6 +164,33 @@ export async function addDocument(bookingId: string, input: AddDocumentInput): P
   const result = await adminApiClient.post<PassengerDocument>(`${bookingPath(bookingId)}/documents`, input);
   if (!result) throw new Error("Failed to add document");
   return result;
+}
+
+export async function updateDocument(
+  bookingId: string,
+  documentId: string,
+  input: UpdateDocumentInput
+): Promise<PassengerDocument> {
+  const result = await adminApiClient.patch<PassengerDocument>(
+    `${bookingPath(bookingId)}/documents/${documentId}`,
+    input
+  );
+  if (!result) throw new Error("Failed to update document");
+  return result;
+}
+
+export async function removeDocument(bookingId: string, documentId: string): Promise<void> {
+  await adminApiClient.delete(`${bookingPath(bookingId)}/documents/${documentId}`);
+}
+
+export async function fetchInvoices(bookingId: string): Promise<BookingInvoice[]> {
+  const result = await adminApiClient.get<BookingInvoice[]>(`${bookingPath(bookingId)}/invoice`);
+  return result ?? [];
+}
+
+export async function fetchVouchers(bookingId: string): Promise<BookingVoucher[]> {
+  const result = await adminApiClient.get<BookingVoucher[]>(`${bookingPath(bookingId)}/voucher`);
+  return result ?? [];
 }
 
 export async function fetchNotes(bookingId: string): Promise<BookingNote[]> {

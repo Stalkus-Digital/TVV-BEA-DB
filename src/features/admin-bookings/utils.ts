@@ -2,7 +2,6 @@ import type { PublicUser } from "@/features/admin-customers/types";
 import type { CustomerRelationshipBundle } from "@/features/admin-customers/types";
 import type {
   Booking,
-  BookingListFilters,
   BookingListRow,
   BookingNote,
   BookingPayment,
@@ -35,35 +34,52 @@ export function resolveCustomerLabel(
   return sourceQuoteNumber ? `Via ${sourceQuoteNumber}` : "—";
 }
 
-export function applyBookingSearch(items: Booking[], search?: string): Booking[] {
-  const query = search?.trim().toLowerCase();
-  if (!query) return items;
-
-  return items.filter(
-    (item) =>
-      item.bookingNumber.toLowerCase().includes(query) ||
-      item.sourceQuoteNumber.toLowerCase().includes(query) ||
-      item.id.toLowerCase().includes(query)
-  );
+/**
+ * Website / external bookings still persist product-specific fields in
+ * `internalNotes` JSON (see /api/external/bookings). Prefer structured
+ * Traveller / Booking fields when present; use this only for display fallbacks.
+ */
+export interface WebsiteBookingFields {
+  contactName?: string;
+  email?: string;
+  phone?: string;
+  guests?: string | number;
+  guestCount?: string | number;
+  rooms?: string | number;
+  checkIn?: string;
+  checkOut?: string;
+  hotelName?: string;
+  roomName?: string;
+  startDate?: string;
+  activityName?: string;
+  location?: string;
+  packageName?: string;
+  total?: number;
+  isExternalWebsiteBooking?: boolean;
+  externalBookingType?: string;
+  bookingType?: string;
 }
 
-export function applyPaymentStatusFilter(items: Booking[], paymentStatus?: string): Booking[] {
-  if (!paymentStatus) return items;
-  return items.filter((item) => item.paymentStatus === paymentStatus);
+export function parseWebsiteBookingFields(internalNotes: string | null | undefined): WebsiteBookingFields | null {
+  if (!internalNotes?.trim()) return null;
+  try {
+    const parsed = JSON.parse(internalNotes) as Record<string, unknown>;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    return parsed as WebsiteBookingFields;
+  } catch {
+    return null;
+  }
 }
 
-export function applyBookingDateFilter(items: Booking[], dateFrom?: string, dateTo?: string): Booking[] {
-  let result = items;
-  if (dateFrom) {
-    const from = new Date(dateFrom).getTime();
-    result = result.filter((item) => new Date(item.createdAt).getTime() >= from);
-  }
-  if (dateTo) {
-    const to = new Date(dateTo);
-    to.setHours(23, 59, 59, 999);
-    result = result.filter((item) => new Date(item.createdAt).getTime() <= to.getTime());
-  }
-  return result;
+export function resolveBookingContact(booking: Pick<Booking, "internalNotes" | "travellers">, customerLabel?: string) {
+  const website = parseWebsiteBookingFields(booking.internalNotes);
+  const lead = booking.travellers?.find((t) => t.isLeadTraveller) ?? booking.travellers?.[0];
+  return {
+    name: lead?.fullName || website?.contactName || customerLabel || "—",
+    email: lead?.email || website?.email || "—",
+    phone: lead?.phone || website?.phone || "—",
+    website,
+  };
 }
 
 export function enrichBookingRows(bookings: Booking[], usersById: Map<string, PublicUser>): BookingListRow[] {
@@ -73,68 +89,6 @@ export function enrichBookingRows(bookings: Booking[], usersById: Map<string, Pu
     packageLabel: booking.packageId ?? booking.sourceQuoteNumber,
     travelDate: null,
   }));
-}
-
-export function sortBookings(
-  items: BookingListRow[],
-  sortBy: BookingListFilters["sortBy"] = "createdAt",
-  sortDir: BookingListFilters["sortDir"] = "desc"
-): BookingListRow[] {
-  const dir = sortDir === "asc" ? 1 : -1;
-  return [...items].sort((a, b) => {
-    let left: string | number = 0;
-    let right: string | number = 0;
-    switch (sortBy) {
-      case "bookingNumber":
-        left = a.bookingNumber;
-        right = b.bookingNumber;
-        break;
-      case "status":
-        left = a.status;
-        right = b.status;
-        break;
-      case "paymentStatus":
-        left = a.paymentStatus;
-        right = b.paymentStatus;
-        break;
-      case "totalAmount":
-        left = a.totalAmount;
-        right = b.totalAmount;
-        break;
-      case "amountPaid":
-        left = a.amountPaid;
-        right = b.amountPaid;
-        break;
-      default:
-        left = new Date(a.createdAt).getTime();
-        right = new Date(b.createdAt).getTime();
-    }
-    if (left < right) return -1 * dir;
-    if (left > right) return 1 * dir;
-    return 0;
-  });
-}
-
-export function paginateBookings<T>(items: T[], page: number, pageSize: number) {
-  const start = (page - 1) * pageSize;
-  return {
-    items: items.slice(start, start + pageSize),
-    page,
-    pageSize,
-    total: items.length,
-    totalPages: Math.max(1, Math.ceil(items.length / pageSize)),
-  };
-}
-
-export function needsClientBookingFiltering(filters: BookingListFilters): boolean {
-  return Boolean(
-    filters.search?.trim() ||
-      filters.paymentStatus ||
-      filters.dateFrom ||
-      filters.dateTo ||
-      (filters.sortBy && filters.sortBy !== "createdAt") ||
-      filters.sortDir === "asc"
-  );
 }
 
 export function mergeBookingTimeline(
@@ -207,4 +161,20 @@ export function getRelatedRecordsForBooking(
     ) ?? [];
 
   return { enquiries, quotes, bookings, customerUserId: booking.customerId };
+}
+
+export type BookingProductTab = "ALL" | "HOTEL" | "PACKAGE" | "ACTIVITY";
+
+export function productTabToHasItemKind(tab: BookingProductTab): string | undefined {
+  if (tab === "HOTEL") return "HOTEL";
+  if (tab === "ACTIVITY") return "ACTIVITY";
+  if (tab === "PACKAGE") return "HOLIDAY_OR_PACKAGE";
+  return undefined;
+}
+
+export function hasItemKindToProductTab(hasItemKind?: string): BookingProductTab {
+  if (hasItemKind === "HOTEL") return "HOTEL";
+  if (hasItemKind === "ACTIVITY") return "ACTIVITY";
+  if (hasItemKind === "HOLIDAY_OR_PACKAGE") return "PACKAGE";
+  return "ALL";
 }

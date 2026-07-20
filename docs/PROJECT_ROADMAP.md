@@ -6,58 +6,51 @@
 
 ✔ PP-002A Product Catalog
 
-Destination
+- Destinations
+- Hotels
+- Activities
+- Holiday Packages
+- Ferries (operators / rates / routes catalogue)
 
-Hotels
+✔ PP-002B Sales CRM *(approved)*
 
-Activities
-
-Packages
-
-Transfers
-
-Ferries
+- Customers (CRUD, notes, payments history, timeline, audit)
+- Leads / Enquiries (status, source, follow-up, notes, audit; assignment deferred)
+- Quotes (data management for current workflow; Sembark handles quotation discussions)
 
 ## Current
 
-PP-002B Sales CRM
+PP-002C Booking Engine
 
-Customers
-
-Leads
-
-Quotes
+- Bookings
+- Payments (operational tracking + gateway hooks)
+- Invoices / Vouchers
+- Timeline / Audit
+- Travellers / Documents
 
 ## Upcoming
 
-PP-002C Booking Engine
-
-Bookings
-
-Payments
-
-Invoices
-
 PP-002D CMS
 
-CMS
-
-Media
+- CMS
+- Media
 
 PP-002E Admin
 
-Users
-
-Roles
-
-Notifications
-
-Settings
+- Users
+- Roles
+- Notifications
+- Settings
 
 ## Final
 
-QA
+- QA
+- Documentation
+- Launch
 
-Documentation
+## Notes
 
-Launch
+- Holiday Packages remain enquiry-based (Journey A). Hotels & Activities support direct booking (Journey B).
+- Payment is optional.
+- Single owner account; employee RBAC and lead assignment are future work.
+- Quote PDF generation inside Travel OS is not part of the current approved scope.

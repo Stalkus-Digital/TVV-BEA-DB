@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ChevronRight, ExternalLink, X } from "lucide-react";
+import { ChevronRight, ExternalLink, X, Copy, RotateCcw } from "lucide-react";
 import { WidgetError, WidgetLoading } from "@/features/admin-dashboard/components/WidgetState";
 import { ImageUploader } from "@/features/admin-hotels/components/ImageUploader";
 import { uploadFiles } from "@/lib/admin-api/upload";
@@ -15,6 +15,7 @@ import {
   useAddFaqMutation,
   useAddGalleryImageMutation,
   useArchiveDestinationMutation,
+  useDuplicateDestinationMutation,
   useRemoveFaqMutation,
   useRemoveGalleryImageMutation,
   useUpdateDestinationMutation,
@@ -176,12 +177,20 @@ function OverviewTab({
   const [featured, setFeatured] = useState(destination.isFeatured);
   const updateMutation = useUpdateDestinationMutation(destinationId);
   const archiveMutation = useArchiveDestinationMutation(destinationId);
+  const duplicateMutation = useDuplicateDestinationMutation();
+  const toast = useToast();
   const [isConfirmingArchive, setIsConfirmingArchive] = useState(false);
   const editable = EDITABLE_DESTINATION_STATUSES.includes(destination.status);
 
   const handleTogglePublish = () => {
     const newStatus = destination.status === DestinationStatus.ACTIVE ? DestinationStatus.DRAFT : DestinationStatus.ACTIVE;
     void updateMutation.mutateAsync({ status: newStatus });
+  };
+
+  const handleDuplicate = () => {
+    void duplicateMutation.mutateAsync(destinationId).then(() => {
+      toast.success("Destination duplicated", "The new destination is ready to edit.");
+    });
   };
 
   return (
@@ -267,26 +276,49 @@ function OverviewTab({
         </div>
       )}
 
-      {destination.status !== DestinationStatus.ARCHIVED && (
-        <div className="border-t border-border pt-4 flex gap-2">
-          <button
-            type="button"
-            disabled={updateMutation.isPending}
-            onClick={handleTogglePublish}
-            className="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted disabled:opacity-50"
-          >
-            {destination.status === DestinationStatus.ACTIVE ? "Unpublish destination" : "Publish destination"}
-          </button>
-          <button
-            type="button"
-            disabled={archiveMutation.isPending}
-            onClick={() => setIsConfirmingArchive(true)}
-            className="px-4 py-2 text-sm border border-red-300 text-red-800 rounded-md hover:bg-red-50 disabled:opacity-50"
-          >
-            Delete destination
-          </button>
-        </div>
-      )}
+      <div className="border-t border-border pt-4 flex flex-wrap gap-2">
+        {destination.status !== DestinationStatus.ARCHIVED && (
+          <>
+            <button
+              type="button"
+              disabled={updateMutation.isPending}
+              onClick={handleTogglePublish}
+              className="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted disabled:opacity-50"
+            >
+              {destination.status === DestinationStatus.ACTIVE ? "Unpublish" : "Publish"}
+            </button>
+            <button
+              type="button"
+              disabled={duplicateMutation.isPending}
+              onClick={handleDuplicate}
+              className="px-4 py-2 text-sm border border-blue-300 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 disabled:opacity-50 flex items-center gap-1"
+            >
+              <Copy className="w-3 h-3" /> Duplicate
+            </button>
+            <button
+              type="button"
+              disabled={archiveMutation.isPending}
+              onClick={() => setIsConfirmingArchive(true)}
+              className="px-4 py-2 text-sm border border-red-300 text-red-800 rounded-md hover:bg-red-50 disabled:opacity-50"
+            >
+              Delete
+            </button>
+          </>
+        )}
+
+        {destination.status === DestinationStatus.ARCHIVED && (
+          <>
+            <button
+              type="button"
+              disabled={updateMutation.isPending}
+              onClick={() => void updateMutation.mutateAsync({ status: DestinationStatus.DRAFT })}
+              className="px-4 py-2 text-sm border border-emerald-300 bg-emerald-50 text-emerald-700 rounded-md hover:bg-emerald-100 disabled:opacity-50 flex items-center gap-1"
+            >
+              <RotateCcw className="w-3 h-3" /> Restore
+            </button>
+          </>
+        )}
+      </div>
 
       {isConfirmingArchive && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">

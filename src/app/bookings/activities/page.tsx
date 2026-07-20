@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Search, Filter, IndianRupee, Plus, Eye, MoreVertical } from "lucide-react";
+import { Search, Filter, IndianRupee, Plus, Eye, MoreVertical } from "lucide-react";
 import { useBookingsQueryState } from "@/features/admin-bookings/hooks/useBookingsQuery";
 import { BookingCreateDialog } from "@/features/admin-bookings/components/BookingCreateDialog";
 import { BookingDetailDrawer } from "@/features/admin-bookings/components/BookingDetailDrawer";
@@ -12,31 +12,6 @@ export default function ActivityBookingsPage() {
   const { data, users, bundle, isLoading, refetch } = useBookingsQueryState({ search, hasItemKind: "ACTIVITY" });
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this booking?")) return;
-    const { deleteBooking } = require("@/features/admin-bookings/api/bookings");
-    setIsDeleting(id);
-    try {
-      await deleteBooking(id);
-      await refetch();
-    } catch (e: any) {
-      alert("Failed to delete booking: " + e.message);
-    } finally {
-      setIsDeleting(null);
-    }
-  };
-
-  const handleVoucher = async (id: string) => {
-    const { generateVoucher } = require("@/features/admin-bookings/api/bookings");
-    try {
-      const res = await generateVoucher(id);
-      alert(`Voucher ${res.voucherNumber} generated successfully!`);
-    } catch (e: any) {
-      alert("Failed to generate voucher: " + e.message);
-    }
-  };
 
   const activityBookings = data?.items ?? [];
 

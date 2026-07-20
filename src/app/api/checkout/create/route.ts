@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/shared/database/prisma-client";
 import { getRateLimiter, getClientIp } from "@/shared/lib/rate-limiter";
 import { getIntegrationConfigResolver } from "@/modules/integrations";
 

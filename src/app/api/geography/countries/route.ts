@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { jsonError, jsonSuccess } from "@/api";
-import { createCountryHandler, listCountriesHandler } from "@/modules/destination";
+import { createCountryHandler } from "@/modules/destination";
 import { isErr } from "@/shared/types";
 
 import { Country } from "country-state-city";

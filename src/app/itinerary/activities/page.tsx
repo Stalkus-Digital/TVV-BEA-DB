@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Compass, Plus, Search, MapPin, Clock, X, EyeOff, Edit, ImageIcon } from "lucide-react";
+import { useState } from "react";
+import { Compass, Plus, Search, MapPin, Clock, EyeOff, Edit } from "lucide-react";
 import { adminApiClient } from "@/lib/admin-api/client";
 import { adminEndpoints } from "@/lib/admin-api/endpoints";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -26,7 +26,6 @@ export default function ActivitiesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
@@ -160,52 +159,6 @@ export default function ActivitiesPage() {
     }
   };
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const activity: Activity = {
-      id: editingActivityId || "",
-      name: newActivity.name || "",
-      location: newActivity.location || "",
-      duration: newActivity.duration || "1 Hour",
-      adultPrice: Number(newActivity.adultPrice) || 0,
-      childPrice: Number(newActivity.childPrice) || 0,
-      status: newActivity.status as "ACTIVE" | "INACTIVE" || "ACTIVE",
-      destinationId: newActivity.destinationId || null,
-    };
-
-    if (editingActivityId) {
-      await updateMutation.mutateAsync(activity);
-    } else {
-      await createMutation.mutateAsync(activity);
-    }
-
-    setIsModalOpen(false);
-    setEditingActivityId(null);
-
-    setNewActivity({
-      name: "",
-      location: "Havelock Island",
-      duration: "2 Hours",
-      adultPrice: 1000,
-      childPrice: 500,
-      status: "ACTIVE",
-      destinationId: null,
-    });
-  };
-
-  const openAddModal = () => {
-    setEditingActivityId(null);
-    setNewActivity({
-      name: "",
-      location: "Havelock Island",
-      duration: "2 Hours",
-      adultPrice: 1000,
-      childPrice: 500,
-      status: "ACTIVE",
-      destinationId: null,
-    });
-    setIsModalOpen(true);
-  };
 
   const activeCatalogCount = activities.filter(a => a.status === "ACTIVE").length;
   const operatorsCount = new Set(activities.map(a => a.location)).size;

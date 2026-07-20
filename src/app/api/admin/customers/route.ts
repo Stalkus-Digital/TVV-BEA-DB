@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { getCustomerProfileService } from "@/modules/customer";
 import { getUserHandler } from "@/modules/auth";
 import { isErr } from "@/shared/types";

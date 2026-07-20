@@ -6,8 +6,11 @@ import {
   addDestinationFaq,
   addDestinationGalleryImage,
   archiveDestination,
+  bulkArchiveDestinations,
+  bulkUpdateDestinationStatus,
   createDestination,
   createDestinationCategory,
+  duplicateDestination,
   removeDestinationFaq,
   removeDestinationGalleryImage,
   updateDestination,
@@ -85,5 +88,30 @@ export function useCreateCategoryMutation() {
   return useMutation({
     mutationFn: (input: { name: string; slug: string; description?: string }) => createDestinationCategory(input),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["admin", "destinations", "categories"] }),
+  });
+}
+
+export function useDuplicateDestinationMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (destinationId: string) => duplicateDestination(destinationId),
+    onSuccess: () => invalidateDestinationQueries(queryClient),
+  });
+}
+
+export function useBulkUpdateStatusMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ids, status }: { ids: string[]; status: string }) =>
+      bulkUpdateDestinationStatus(ids, status),
+    onSuccess: () => invalidateDestinationQueries(queryClient),
+  });
+}
+
+export function useBulkArchiveMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) => bulkArchiveDestinations(ids),
+    onSuccess: () => invalidateDestinationQueries(queryClient),
   });
 }

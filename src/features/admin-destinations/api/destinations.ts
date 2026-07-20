@@ -162,3 +162,33 @@ export async function fetchCities(filter: { countryId?: string; stateId?: string
 export async function fetchAllCities(): Promise<City[]> {
   return fetchCities();
 }
+
+export async function duplicateDestination(id: string): Promise<Destination> {
+  const result = await adminApiClient.post<Destination>(
+    `${destinationPath(id)}/duplicate`,
+    {}
+  );
+  if (!result) throw new Error("Failed to duplicate destination");
+  return result;
+}
+
+export async function bulkUpdateDestinationStatus(
+  ids: string[],
+  status: string
+): Promise<{ updated: number }> {
+  const result = await adminApiClient.post<{ updated: number }>(
+    `${adminEndpoints.destinations}/bulk/status`,
+    { ids, status }
+  );
+  if (!result) throw new Error("Failed to update destinations");
+  return result;
+}
+
+export async function bulkArchiveDestinations(ids: string[]): Promise<{ archived: number }> {
+  const result = await adminApiClient.post<{ archived: number }>(
+    `${adminEndpoints.destinations}/bulk/archive`,
+    { ids }
+  );
+  if (!result) throw new Error("Failed to archive destinations");
+  return result;
+}

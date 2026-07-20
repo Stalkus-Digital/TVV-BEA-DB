@@ -6,6 +6,8 @@ import { ChevronRight, ExternalLink, X } from "lucide-react";
 import { WidgetError, WidgetLoading } from "@/features/admin-dashboard/components/WidgetState";
 import { ImageUploader } from "@/features/admin-hotels/components/ImageUploader";
 import { uploadFiles } from "@/lib/admin-api/upload";
+import { useToast } from "../hooks/useToast";
+import { DestinationDetailSkeleton } from "./DestinationDetailSkeleton";
 import { DestinationStatus, EDITABLE_DESTINATION_STATUSES } from "../constants";
 import {
   useAddFaqMutation,
@@ -53,12 +55,32 @@ export function DestinationDetailDrawer({
   onSelectDestination,
 }: DestinationDetailDrawerProps) {
   const [tab, setTab] = useState<TabId>("overview");
+  const toast = useToast();
   const destinationQuery = useDestinationQuery(destinationId);
   const breadcrumbsQuery = useDestinationBreadcrumbsQuery(destinationId);
   const childrenQuery = useDestinationChildrenQuery(destinationId);
   const nearbyQuery = useDestinationNearbyQuery(destinationId);
 
   if (!destinationId) return null;
+
+  if (destinationQuery.isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex justify-end">
+        <button type="button" className="absolute inset-0 bg-black/30" onClick={onClose} aria-label="Close" />
+        <div className="relative w-full max-w-2xl h-full bg-white border-l border-border shadow-xl flex flex-col">
+          <div className="sticky top-0 z-10 border-b border-border bg-card shrink-0 flex items-center justify-between px-6 py-4">
+            <h2 className="text-lg font-semibold">Loading destination…</h2>
+            <button type="button" onClick={onClose} className="p-2 rounded-md hover:bg-muted">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <DestinationDetailSkeleton />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">

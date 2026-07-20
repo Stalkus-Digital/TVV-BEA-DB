@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronRight, ExternalLink, X } from "lucide-react";
 import { WidgetError, WidgetLoading } from "@/features/admin-dashboard/components/WidgetState";
 import { ImageUploader } from "@/features/admin-hotels/components/ImageUploader";
 import { uploadFiles } from "@/lib/admin-api/upload";
 import { useToast } from "../hooks/useToast";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { DestinationDetailSkeleton } from "./DestinationDetailSkeleton";
 import { DestinationStatus, EDITABLE_DESTINATION_STATUSES } from "../constants";
 import {
@@ -60,6 +61,9 @@ export function DestinationDetailDrawer({
   const breadcrumbsQuery = useDestinationBreadcrumbsQuery(destinationId);
   const childrenQuery = useDestinationChildrenQuery(destinationId);
   const nearbyQuery = useDestinationNearbyQuery(destinationId);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({ onEscape: onClose });
 
   if (!destinationId) return null;
 

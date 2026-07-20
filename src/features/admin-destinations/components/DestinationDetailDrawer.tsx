@@ -29,11 +29,12 @@ import {
 import type { Destination, DestinationBreadcrumb } from "../types";
 import { formatDestinationDate, resolveCategoryLabel, resolveGeoName } from "../utils";
 import { DestinationStatusBadge } from "./DestinationStatusBadge";
+import { DestinationActivityTimeline } from "./DestinationActivityTimeline";
 import type { useGeographyReferenceQuery } from "../hooks/useDestinationsQuery";
 
 type GeoReference = NonNullable<ReturnType<typeof useGeographyReferenceQuery>["data"]>;
 
-type TabId = "overview" | "hierarchy" | "nearby" | "seo" | "gallery" | "faq";
+type TabId = "overview" | "hierarchy" | "nearby" | "seo" | "gallery" | "faq" | "activity";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -42,6 +43,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "seo", label: "SEO" },
   { id: "gallery", label: "Gallery" },
   { id: "faq", label: "FAQ" },
+  { id: "activity", label: "Activity" },
 ];
 
 interface DestinationDetailDrawerProps {
@@ -155,6 +157,7 @@ export function DestinationDetailDrawer({
               {tab === "seo" && <SeoTab destination={destinationQuery.data} destinationId={destinationId} />}
               {tab === "gallery" && <GalleryTab destination={destinationQuery.data} destinationId={destinationId} />}
               {tab === "faq" && <FaqTab destination={destinationQuery.data} destinationId={destinationId} />}
+              {tab === "activity" && <DestinationActivityTimeline destinationId={destinationId} />}
             </>
           )}
         </div>

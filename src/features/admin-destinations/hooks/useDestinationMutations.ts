@@ -11,8 +11,11 @@ import {
   createDestination,
   createDestinationCategory,
   duplicateDestination,
+  publishDestination,
   removeDestinationFaq,
   removeDestinationGalleryImage,
+  restoreDestination,
+  unpublishDestination,
   updateDestination,
 } from "../api/destinations";
 import type { CreateDestinationInput, CreateFaqInput, CreateGalleryImageInput, UpdateDestinationInput } from "../types";
@@ -96,6 +99,30 @@ export function useDuplicateDestinationMutation() {
   return useMutation({
     mutationFn: (destinationId: string) => duplicateDestination(destinationId),
     onSuccess: () => invalidateDestinationQueries(queryClient),
+  });
+}
+
+export function usePublishDestinationMutation(destinationId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => publishDestination(destinationId),
+    onSuccess: () => invalidateDestinationQueries(queryClient, destinationId),
+  });
+}
+
+export function useUnpublishDestinationMutation(destinationId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => unpublishDestination(destinationId),
+    onSuccess: () => invalidateDestinationQueries(queryClient, destinationId),
+  });
+}
+
+export function useRestoreDestinationMutation(destinationId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => restoreDestination(destinationId),
+    onSuccess: () => invalidateDestinationQueries(queryClient, destinationId),
   });
 }
 

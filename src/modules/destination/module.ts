@@ -17,6 +17,7 @@ import { DestinationCategoryService } from "./services/destination-category.serv
 import { ensureDestinationMarketRoots } from "./bootstrap/ensure-market-roots";
 import { DestinationService } from "./services/destination.service";
 import { GeographyService } from "./services/geography.service";
+import { getAuditLogService } from "@/modules/auth";
 
 export const COUNTRY_REPOSITORY_TOKEN = createToken<CountryRepository>("destination.repository.country");
 export const STATE_REPOSITORY_TOKEN = createToken<StateRepository>("destination.repository.state");
@@ -74,7 +75,11 @@ export const destinationModule: ModuleDefinition = {
     c.registerFactory(
       DESTINATION_SERVICE_TOKEN,
       () =>
-        new DestinationService({ logger: createLogger("destination.service") }, c.resolve(DESTINATION_REPOSITORY_TOKEN))
+        new DestinationService(
+          { logger: createLogger("destination.service") },
+          c.resolve(DESTINATION_REPOSITORY_TOKEN),
+          getAuditLogService()
+        )
     );
   },
 };

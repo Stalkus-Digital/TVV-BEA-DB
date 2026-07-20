@@ -11,15 +11,32 @@ import {
   validateCreateGalleryImage,
   validateUpdateDestination,
 } from "../validation/destination.validation";
+import type { AuditLogService } from "@/modules/auth/audit/audit-log.service";
 
 const MAX_HIERARCHY_DEPTH = 20;
 
 export class DestinationService extends BaseService {
   constructor(
     context: ServiceContext,
-    private readonly repository: DestinationRepository
+    private readonly repository: DestinationRepository,
+    private readonly auditLog?: AuditLogService
   ) {
     super(context);
+  }
+
+  private async recordAudit(eventType: string, destination: Destination, action: string, details?: Record<string, unknown>) {
+    if (!this.auditLog) return;
+    await this.auditLog.record({
+      eventType: eventType as any,
+      actorUserId: this.context.userId ?? null,
+      details: {
+        destinationId: destination.id,
+        destinationName: destination.name,
+        destinationSlug: destination.slug,
+        action,
+        ...details,
+      },
+    });
   }
 
   async list(filter: DestinationListFilter = {}): Promise<Result<PaginatedResult<Destination>, AppError>> {
@@ -87,7 +104,7 @@ export class DestinationService extends BaseService {
     // Destinations under a market root (Andaman/Domestic/International) go
     // live as ACTIVE so the public website tree/nav can show them immediately.
     const status = DestinationStatus.ACTIVE;
-    return this.repository.create({
+    const result = await this.repository.create({
       ...validated.value,
       isFeatured: false,
       gallery: [],
@@ -97,6 +114,16 @@ export class DestinationService extends BaseService {
       createdAt: now,
       updatedAt: now,
     });
+
+    if (!isErr(result)) {
+      await this.recordAudit("DESTINATION_CREATED", result.value, "Created destination", {
+        name: result.value.name,
+        slug: result.value.slug,
+        status: result.value.status,
+      });
+    }
+
+    return result;
   }
 
   async update(id: string, input: unknown): Promise<Result<Destination, AppError>> {
@@ -107,7 +134,23 @@ export class DestinationService extends BaseService {
     if (isErr(validated)) return validated;
 
     this.logger.info("Updating destination", { id });
-    return this.repository.update(id, validated.value);
+    const result = await this.repository.update(id, validated.value);
+
+    if (!isErr(result)) {
+      const oldValues = existing.value;
+      const newValues = result.value;
+      const changes: Record<string, { from: unknown; to: unknown }> = {};
+
+      if (oldValues.name !== newValues.name) changes.name = { from: oldValues.name, to: newValues.name };
+      if (oldValues.description !== newValues.description) changes.description = { from: oldValues.description, to: newValues.description };
+      if (oldValues.isFeatured !== newValues.isFeatured) changes.isFeatured = { from: oldValues.isFeatured, to: newValues.isFeatured };
+      if (oldValues.slug !== newValues.slug) changes.slug = { from: oldValues.slug, to: newValues.slug };
+      if (oldValues.status !== newValues.status) changes.status = { from: oldValues.status, to: newValues.status };
+
+      await this.recordAudit("DESTINATION_UPDATED", result.value, "Updated destination", { changes });
+    }
+
+    return result;
   }
 
   async delete(id: string): Promise<Result<void, AppError>> {
@@ -117,7 +160,13 @@ export class DestinationService extends BaseService {
       return err(new ConflictError("Market root destinations cannot be deleted"));
     }
     this.logger.info("Deleting destination", { id });
-    return this.repository.delete(id);
+    const result = await this.repository.delete(id);
+    if (!isErr(result)) {
+      await this.recordAudit("DESTINATION_ARCHIVED", existing.value, "Archived destination", {
+        status: "ARCHIVED",
+      });
+    }
+    return result;
   }
 
   async getChildren(id: string): Promise<Result<Destination[], AppError>> {
@@ -201,14 +250,27 @@ export class DestinationService extends BaseService {
         position: validated.value.position ?? existing.value.faqs.length,
       },
     ];
-    return this.repository.update(id, { faqs });
+    const result = await this.repository.update(id, { faqs });
+    if (!isErr(result)) {
+      await this.recordAudit("DESTINATION_UPDATED", result.value, "Added FAQ", {
+        faqCount: result.value.faqs.length,
+      });
+    }
+    return result;
   }
 
   async removeFaq(id: string, faqId: string): Promise<Result<Destination, AppError>> {
     const existing = await this.getById(id);
     if (isErr(existing)) return existing;
     const faqs = existing.value.faqs.filter((f) => f.id !== faqId);
-    return this.repository.update(id, { faqs });
+    const result = await this.repository.update(id, { faqs });
+    if (!isErr(result)) {
+      await this.recordAudit("DESTINATION_UPDATED", result.value, "Removed FAQ", {
+        faqId,
+        faqCount: result.value.faqs.length,
+      });
+    }
+    return result;
   }
 
   async updateFaq(id: string, faqId: string, input: unknown): Promise<Result<Destination, AppError>> {
@@ -222,7 +284,14 @@ export class DestinationService extends BaseService {
     if (!faqs.some((f) => f.id === faqId)) {
       return err(new NotFoundError(`FAQ ${faqId} not found`));
     }
-    return this.repository.update(id, { faqs });
+    const result = await this.repository.update(id, { faqs });
+    if (!isErr(result)) {
+      await this.recordAudit("DESTINATION_UPDATED", result.value, "Updated FAQ", {
+        faqId,
+        faqCount: result.value.faqs.length,
+      });
+    }
+    return result;
   }
 
   async addGalleryImage(id: string, input: unknown): Promise<Result<Destination, AppError>> {
@@ -240,14 +309,141 @@ export class DestinationService extends BaseService {
         position: validated.value.position ?? existing.value.gallery.length,
       },
     ];
-    return this.repository.update(id, { gallery });
+    const result = await this.repository.update(id, { gallery });
+    if (!isErr(result)) {
+      await this.recordAudit("DESTINATION_UPDATED", result.value, "Added gallery image", {
+        galleryCount: result.value.gallery.length,
+      });
+    }
+    return result;
   }
 
   async removeGalleryImage(id: string, imageId: string): Promise<Result<Destination, AppError>> {
     const existing = await this.getById(id);
     if (isErr(existing)) return existing;
     const gallery = existing.value.gallery.filter((g) => g.id !== imageId);
-    return this.repository.update(id, { gallery });
+    const result = await this.repository.update(id, { gallery });
+    if (!isErr(result)) {
+      await this.recordAudit("DESTINATION_UPDATED", result.value, "Removed gallery image", {
+        imageId,
+        galleryCount: result.value.gallery.length,
+      });
+    }
+    return result;
+  }
+
+  async publish(id: string): Promise<Result<Destination, AppError>> {
+    const existing = await this.getById(id);
+    if (isErr(existing)) return existing;
+    const result = await this.repository.update(id, { status: DestinationStatus.ACTIVE });
+    if (!isErr(result)) {
+      await this.recordAudit("DESTINATION_PUBLISHED", result.value, "Published destination", {
+        previousStatus: existing.value.status,
+        newStatus: DestinationStatus.ACTIVE,
+      });
+    }
+    return result;
+  }
+
+  async unpublish(id: string): Promise<Result<Destination, AppError>> {
+    const existing = await this.getById(id);
+    if (isErr(existing)) return existing;
+    const result = await this.repository.update(id, { status: DestinationStatus.DRAFT });
+    if (!isErr(result)) {
+      await this.recordAudit("DESTINATION_UNPUBLISHED", result.value, "Unpublished destination", {
+        previousStatus: existing.value.status,
+        newStatus: DestinationStatus.DRAFT,
+      });
+    }
+    return result;
+  }
+
+  async archive(id: string): Promise<Result<Destination, AppError>> {
+    const existing = await this.getById(id);
+    if (isErr(existing)) return existing;
+    const result = await this.repository.update(id, { status: DestinationStatus.ARCHIVED });
+    if (!isErr(result)) {
+      await this.recordAudit("DESTINATION_ARCHIVED", result.value, "Archived destination", {
+        previousStatus: existing.value.status,
+        newStatus: DestinationStatus.ARCHIVED,
+      });
+    }
+    return result;
+  }
+
+  async restore(id: string): Promise<Result<Destination, AppError>> {
+    const existing = await this.getById(id);
+    if (isErr(existing)) return existing;
+    const result = await this.repository.update(id, { status: DestinationStatus.DRAFT });
+    if (!isErr(result)) {
+      await this.recordAudit("DESTINATION_RESTORED", result.value, "Restored destination", {
+        previousStatus: existing.value.status,
+        newStatus: DestinationStatus.DRAFT,
+      });
+    }
+    return result;
+  }
+
+  async duplicate(id: string): Promise<Result<Destination, AppError>> {
+    const existing = await this.getById(id);
+    if (isErr(existing)) return existing;
+
+    const source = existing.value;
+    const newSlug = `${source.slug}-copy-${randomUUID().slice(0, 8)}`;
+
+    const result = await this.repository.create({
+      name: `${source.name} (Copy)`,
+      slug: newSlug,
+      description: source.description,
+      parentDestinationId: source.parentDestinationId,
+      countryId: source.countryId,
+      stateId: source.stateId,
+      regionId: source.regionId,
+      cityId: source.cityId,
+      categoryId: source.categoryId,
+      airportId: source.airportId,
+      isFeatured: false,
+      gallery: source.gallery,
+      faqs: source.faqs,
+      guideReferenceIds: source.guideReferenceIds,
+      seo: source.seo,
+      status: DestinationStatus.DRAFT,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    if (!isErr(result)) {
+      await this.recordAudit("DESTINATION_DUPLICATED", result.value, "Duplicated destination", {
+        sourceId: source.id,
+        sourceName: source.name,
+        newSlug,
+      });
+    }
+
+    return result;
+  }
+
+  async bulkUpdateStatus(ids: string[], status: string): Promise<Result<{ updated: number }, AppError>> {
+    let updated = 0;
+    for (const id of ids) {
+      const result = await this.repository.update(id, { status });
+      if (!isErr(result)) updated++;
+    }
+    return ok({ updated });
+  }
+
+  async bulkArchive(ids: string[]): Promise<Result<{ archived: number }, AppError>> {
+    let archived = 0;
+    for (const id of ids) {
+      const existing = await this.getById(id);
+      if (isErr(existing)) continue;
+      const result = await this.repository.update(id, { status: DestinationStatus.ARCHIVED });
+      if (!isErr(result)) {
+        archived++;
+        await this.recordAudit("DESTINATION_ARCHIVED", result.value, "Bulk archived destination", {});
+      }
+    }
+    return ok({ archived });
   }
 
   /** Prevents a destination becoming its own ancestor when parentDestinationId is set. */

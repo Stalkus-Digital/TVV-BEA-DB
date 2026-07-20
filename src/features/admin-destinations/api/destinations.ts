@@ -192,3 +192,30 @@ export async function bulkArchiveDestinations(ids: string[]): Promise<{ archived
   if (!result) throw new Error("Failed to archive destinations");
   return result;
 }
+
+export async function publishDestination(id: string): Promise<Destination> {
+  const result = await adminApiClient.post<Destination>(
+    `${destinationPath(id)}/publish`,
+    {}
+  );
+  if (!result) throw new Error("Failed to publish destination");
+  return result;
+}
+
+export async function unpublishDestination(id: string): Promise<Destination> {
+  const result = await adminApiClient.post<Destination>(
+    `${destinationPath(id)}/unpublish`,
+    {}
+  );
+  if (!result) throw new Error("Failed to unpublish destination");
+  return result;
+}
+
+export async function restoreDestination(id: string): Promise<Destination> {
+  const result = await adminApiClient.post<Destination>(
+    `${destinationPath(id)}/restore`,
+    {}
+  );
+  if (!result) throw new Error("Failed to restore destination");
+  return result;
+}

@@ -1,4 +1,5 @@
 import { container, createToken, moduleRegistry, type ModuleDefinition } from "@/shared/di";
+import { getAuditLogService } from "@/modules/auth";
 import { healthCheckRegistry, type HealthCheck, type HealthCheckResult } from "@/shared/health";
 import { createLogger } from "@/shared/logger";
 import {
@@ -130,7 +131,8 @@ export const packageModule: ModuleDefinition = {
           c.resolve(PACKAGE_ITEM_REPOSITORY_TOKEN),
           c.resolve(PACKAGE_PRICING_REPOSITORY_TOKEN),
           c.resolve(PACKAGE_RULE_REPOSITORY_TOKEN),
-          c.resolve(PACKAGE_VERSION_SERVICE_TOKEN)
+          c.resolve(PACKAGE_VERSION_SERVICE_TOKEN),
+          getAuditLogService()
         )
     );
 

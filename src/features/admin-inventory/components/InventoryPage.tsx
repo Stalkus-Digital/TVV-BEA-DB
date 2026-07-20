@@ -4,18 +4,24 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDebouncedValue } from "@/features/admin-enquiries/hooks/useDebouncedValue";
-import { archiveDestination } from "@/features/admin-destinations/api/destinations";
+import {
+  archiveDestination,
+  bulkArchiveDestinations,
+  bulkUpdateDestinationStatus,
+} from "@/features/admin-destinations/api/destinations";
 import { DestinationDetailDrawer } from "@/features/admin-destinations/components/DestinationDetailDrawer";
+import { ToastContainer } from "@/features/admin-destinations/components/ToastContainer";
+import { useToast } from "@/features/admin-destinations/hooks/useToast";
 import { useGeographyReferenceQuery } from "@/features/admin-destinations/hooks/useDestinationsQuery";
-import { archivePackage } from "@/features/admin-packages/api/packages";
+import { archivePackage, bulkUpdatePackageStatus } from "@/features/admin-packages/api/packages";
 import { PackageDetailDrawer } from "@/features/admin-packages/components/PackageDetailDrawer";
-import { archiveInventoryItem } from "../api/inventory";
+import { archiveInventoryItem, bulkUpdateInventoryStatus } from "../api/inventory";
 import type { CatalogListFilters, CatalogListRow } from "../catalog/types";
 import { isInventoryKind } from "../catalog/constants";
 import { useCatalogQuery } from "../hooks/useCatalogQuery";
 import { InventoryDetailDrawer } from "./InventoryDetailDrawer";
 import { InventoryFiltersBar } from "./InventoryFiltersBar";
-import { InventoryTable } from "./InventoryTable";
+import { InventoryTable, type BulkCatalogAction } from "./InventoryTable";
 
 type Selection =
   | { type: "inventory"; id: string }
@@ -60,6 +66,8 @@ export function InventoryPage() {
     queryClient.invalidateQueries({ queryKey: ["admin", "packages"] });
   };
 
+  const toast = useToast();
+
   const deleteMutation = useMutation({
     mutationFn: async (row: CatalogListRow) => {
       if (row.entityType === "DESTINATION") return archiveDestination(row.id);
@@ -76,15 +84,63 @@ export function InventoryPage() {
         : row.entityType === "PACKAGE"
           ? "holiday package"
           : "inventory item";
-    if (!window.confirm(`Are you sure you want to delete this ${label}?`)) return;
+    if (!window.confirm(`Archive this ${label}? It is removed from active listings and can be restored later.`)) return;
 
     setIsDeletingId(row.id);
     try {
       await deleteMutation.mutateAsync(row);
+      toast.success("Archived", `The ${label} was archived. Open it to restore.`);
+    } catch (error) {
+      toast.error("Archive failed", error instanceof Error ? error.message : undefined);
     } finally {
       setIsDeletingId(null);
     }
   };
+
+  const bulkMutation = useMutation({
+    mutationFn: async ({ rows, action }: { rows: CatalogListRow[]; action: BulkCatalogAction }) => {
+      const inventoryIds = rows.filter((r) => isInventoryKind(r.entityType)).map((r) => r.id);
+      const destinationIds = rows.filter((r) => r.entityType === "DESTINATION").map((r) => r.id);
+      const packageIds = rows.filter((r) => r.entityType === "PACKAGE").map((r) => r.id);
+
+      // Status vocabularies differ per entity: "published" is ACTIVE for
+      // inventory/destinations but PUBLISHED for packages.
+      const statusFor = (entity: "inventory" | "destination" | "package") => {
+        if (action === "ARCHIVE") return "ARCHIVED";
+        if (action === "UNPUBLISH") return "DRAFT";
+        return entity === "package" ? "PUBLISHED" : "ACTIVE";
+      };
+
+      let affected = 0;
+      if (inventoryIds.length > 0) {
+        const r = await bulkUpdateInventoryStatus(inventoryIds, statusFor("inventory"));
+        affected += r.updated;
+      }
+      if (destinationIds.length > 0) {
+        if (action === "ARCHIVE") {
+          const r = await bulkArchiveDestinations(destinationIds);
+          affected += r.archived;
+        } else {
+          const r = await bulkUpdateDestinationStatus(destinationIds, statusFor("destination"));
+          affected += r.updated;
+        }
+      }
+      if (packageIds.length > 0) {
+        const r = await bulkUpdatePackageStatus(packageIds, statusFor("package"));
+        affected += r.updated;
+      }
+      return { affected, action };
+    },
+    onSuccess: ({ affected, action }) => {
+      invalidateCatalog();
+      const verb = action === "PUBLISH" ? "published" : action === "UNPUBLISH" ? "unpublished" : "archived";
+      toast.success(`${affected} item${affected !== 1 ? "s" : ""} ${verb}`);
+    },
+    onError: (error) => {
+      toast.error("Bulk action failed", error instanceof Error ? error.message : undefined);
+      invalidateCatalog();
+    },
+  });
 
   const handleSelect = (row: CatalogListRow) => {
     if (row.entityType === "DESTINATION") {
@@ -144,8 +200,12 @@ export function InventoryPage() {
           isDeleting={isDeletingId}
           page={filters.page ?? 1}
           onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
+          onBulkAction={(rows, action) => bulkMutation.mutate({ rows, action })}
+          isBulkWorking={bulkMutation.isPending}
         />
       </div>
+
+      <ToastContainer />
 
       <InventoryDetailDrawer
         itemId={selection?.type === "inventory" ? selection.id : null}

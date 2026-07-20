@@ -3,6 +3,7 @@ import { createLogger } from "@/shared/logger";
 import type { InventoryRepository } from "./repositories/inventory.repository";
 import { PrismaInventoryRepository } from "./repositories/inventory.repository.prisma";
 import { InventoryService } from "./services/inventory.service";
+import { getAuditLogService } from "@/modules/auth";
 
 export const INVENTORY_REPOSITORY_TOKEN = createToken<InventoryRepository>("inventory.repository");
 export const INVENTORY_SERVICE_TOKEN = createToken<InventoryService>("inventory.service");
@@ -19,7 +20,12 @@ export const inventoryModule: ModuleDefinition = {
     c.registerFactory(INVENTORY_REPOSITORY_TOKEN, () => new PrismaInventoryRepository());
     c.registerFactory(
       INVENTORY_SERVICE_TOKEN,
-      () => new InventoryService({ logger: createLogger("inventory.service") }, c.resolve(INVENTORY_REPOSITORY_TOKEN))
+      () =>
+        new InventoryService(
+          { logger: createLogger("inventory.service") },
+          c.resolve(INVENTORY_REPOSITORY_TOKEN),
+          getAuditLogService()
+        )
     );
   },
 };

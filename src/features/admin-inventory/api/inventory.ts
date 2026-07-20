@@ -68,6 +68,45 @@ export async function archiveInventoryItem(id: string): Promise<InventoryItem> {
   return result;
 }
 
+export async function publishInventoryItem(id: string): Promise<InventoryItem> {
+  const result = await adminApiClient.post<InventoryItem>(`${inventoryPath(id)}/publish`, {});
+  if (!result) throw new Error("Failed to publish inventory item");
+  return result;
+}
+
+export async function unpublishInventoryItem(id: string): Promise<InventoryItem> {
+  const result = await adminApiClient.post<InventoryItem>(`${inventoryPath(id)}/unpublish`, {});
+  if (!result) throw new Error("Failed to unpublish inventory item");
+  return result;
+}
+
+export async function restoreInventoryItem(id: string): Promise<InventoryItem> {
+  const result = await adminApiClient.post<InventoryItem>(`${inventoryPath(id)}/restore`, {});
+  if (!result) throw new Error("Failed to restore inventory item");
+  return result;
+}
+
+export async function duplicateInventoryItem(id: string): Promise<InventoryItem> {
+  const result = await adminApiClient.post<InventoryItem>(`${inventoryPath(id)}/duplicate`, {});
+  if (!result) throw new Error("Failed to duplicate inventory item");
+  return result;
+}
+
+export async function bulkUpdateInventoryStatus(ids: string[], status: string): Promise<{ updated: number }> {
+  const result = await adminApiClient.post<{ updated: number }>(`${adminEndpoints.inventory}/bulk/status`, {
+    ids,
+    status,
+  });
+  if (!result) throw new Error("Failed to update inventory items");
+  return result;
+}
+
+export async function bulkArchiveInventory(ids: string[]): Promise<{ archived: number }> {
+  const result = await adminApiClient.post<{ archived: number }>(`${adminEndpoints.inventory}/bulk/archive`, { ids });
+  if (!result) throw new Error("Failed to archive inventory items");
+  return result;
+}
+
 export async function fetchSuppliers(): Promise<SupplierRecord[]> {
   const result = await adminApiClient.get<SupplierRecord[]>("/api/suppliers");
   return result ?? [];

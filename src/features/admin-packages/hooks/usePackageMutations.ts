@@ -7,11 +7,15 @@ import {
   addPackageDay,
   addPackageItem,
   archivePackage,
+  bulkUpdatePackageStatus,
   createPackage,
+  duplicatePackage,
   publishPackage,
   removePackageDay,
   removePackageItem,
+  restorePackage,
   rollbackPackageVersion,
+  unpublishPackage,
   updatePackage,
   updatePackageDay,
   upsertPackagePricing,
@@ -72,6 +76,38 @@ export function useArchivePackageMutation(packageId: string) {
   return useMutation({
     mutationFn: () => archivePackage(packageId),
     onSuccess: () => invalidatePackageQueries(queryClient, packageId),
+  });
+}
+
+export function useUnpublishPackageMutation(packageId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => unpublishPackage(packageId),
+    onSuccess: () => invalidatePackageQueries(queryClient, packageId),
+  });
+}
+
+export function useRestorePackageMutation(packageId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => restorePackage(packageId),
+    onSuccess: () => invalidatePackageQueries(queryClient, packageId),
+  });
+}
+
+export function useDuplicatePackageMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (packageId: string) => duplicatePackage(packageId),
+    onSuccess: () => invalidatePackageQueries(queryClient),
+  });
+}
+
+export function useBulkPackageStatusMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ids, status }: { ids: string[]; status: string }) => bulkUpdatePackageStatus(ids, status),
+    onSuccess: () => invalidatePackageQueries(queryClient),
   });
 }
 

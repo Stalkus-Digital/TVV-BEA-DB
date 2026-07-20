@@ -102,6 +102,33 @@ export async function publishPackage(id: string, changeNote?: string): Promise<P
   return result;
 }
 
+export async function unpublishPackage(id: string): Promise<Package> {
+  const result = await adminApiClient.post<Package>(`${packagePath(id)}/unpublish`, {});
+  if (!result) throw new Error("Failed to unpublish package");
+  return result;
+}
+
+export async function restorePackage(id: string): Promise<Package> {
+  const result = await adminApiClient.post<Package>(`${packagePath(id)}/restore`, {});
+  if (!result) throw new Error("Failed to restore package");
+  return result;
+}
+
+export async function duplicatePackage(id: string): Promise<Package> {
+  const result = await adminApiClient.post<Package>(`${packagePath(id)}/duplicate`, {});
+  if (!result) throw new Error("Failed to duplicate package");
+  return result;
+}
+
+export async function bulkUpdatePackageStatus(ids: string[], status: string): Promise<{ updated: number }> {
+  const result = await adminApiClient.post<{ updated: number }>(`${adminEndpoints.packages}/bulk/status`, {
+    ids,
+    status,
+  });
+  if (!result) throw new Error("Failed to update packages");
+  return result;
+}
+
 export async function fetchPackagePreview(id: string): Promise<PackagePreview> {
   const result = await adminApiClient.get<PackagePreview>(`${packagePath(id)}/preview`);
   if (!result) throw new Error("Failed to load package preview");

@@ -18,6 +18,8 @@ import {
   type CreatePackageInput,
 } from "../validation/package.validation";
 import type { PackageVersionService } from "./package-version.service";
+import type { AuditLogService } from "@/modules/auth/audit/audit-log.service";
+import type { AuditEventType } from "@/modules/auth/types/audit-log";
 
 export interface CloneOverrides {
   title?: string;
@@ -32,9 +34,30 @@ export class PackageService extends BaseService {
     private readonly items: PackageItemRepository,
     private readonly pricingRepo: PackagePricingRepository,
     private readonly rulesRepo: PackageRuleRepository,
-    private readonly versionService: PackageVersionService
+    private readonly versionService: PackageVersionService,
+    private readonly auditLog?: AuditLogService
   ) {
     super(context);
+  }
+
+  private async recordAudit(
+    eventType: AuditEventType,
+    pkg: Package,
+    action: string,
+    details?: Record<string, unknown>
+  ) {
+    if (!this.auditLog) return;
+    await this.auditLog.record({
+      eventType,
+      actorUserId: null,
+      details: {
+        packageId: pkg.id,
+        packageTitle: pkg.title,
+        packageCode: pkg.code,
+        action,
+        ...details,
+      },
+    });
   }
 
   async list(filter: PackageListFilter = {}): Promise<Result<PaginatedResult<Package>, AppError>> {
@@ -64,7 +87,14 @@ export class PackageService extends BaseService {
   async create(input: unknown): Promise<Result<Package, AppError>> {
     const validated = validateCreatePackage(input);
     if (isErr(validated)) return validated;
-    return this.persistNew(validated.value);
+    const result = await this.persistNew(validated.value);
+    if (!isErr(result)) {
+      await this.recordAudit("PACKAGE_CREATED", result.value, "Created package", {
+        status: result.value.status,
+        sourceType: result.value.sourceType,
+      });
+    }
+    return result;
   }
 
   private async persistNew(value: CreatePackageInput): Promise<Result<Package, AppError>> {
@@ -104,14 +134,94 @@ export class PackageService extends BaseService {
     const validated = validateUpdatePackage(input);
     if (isErr(validated)) return validated;
     this.logger.info("Updating package", { id });
-    return this.packages.update(id, { ...validated.value, updatedAt: new Date().toISOString() });
+    const result = await this.packages.update(id, { ...validated.value, updatedAt: new Date().toISOString() });
+    if (!isErr(result)) {
+      const changes: Record<string, { from: unknown; to: unknown }> = {};
+      if (existing.value.title !== result.value.title) {
+        changes.title = { from: existing.value.title, to: result.value.title };
+      }
+      if (existing.value.status !== result.value.status) {
+        changes.status = { from: existing.value.status, to: result.value.status };
+      }
+      if (existing.value.slug !== result.value.slug) {
+        changes.slug = { from: existing.value.slug, to: result.value.slug };
+      }
+      await this.recordAudit("PACKAGE_UPDATED", result.value, "Updated package", { changes });
+    }
+    return result;
   }
 
   async archive(id: string): Promise<Result<Package, AppError>> {
     const existing = await this.getById(id);
     if (isErr(existing)) return existing;
     this.logger.info("Archiving package", { id });
-    return this.packages.update(id, { status: PackageStatus.ARCHIVED, updatedAt: new Date().toISOString() });
+    const result = await this.packages.update(id, {
+      status: PackageStatus.ARCHIVED,
+      updatedAt: new Date().toISOString(),
+    });
+    if (!isErr(result)) {
+      await this.recordAudit("PACKAGE_ARCHIVED", result.value, "Archived package", {
+        previousStatus: existing.value.status,
+      });
+    }
+    return result;
+  }
+
+  async unpublish(id: string): Promise<Result<Package, AppError>> {
+    const existing = await this.getById(id);
+    if (isErr(existing)) return existing;
+    this.logger.info("Unpublishing package", { id });
+    const result = await this.packages.update(id, {
+      status: PackageStatus.DRAFT,
+      updatedAt: new Date().toISOString(),
+    });
+    if (!isErr(result)) {
+      await this.recordAudit("PACKAGE_UNPUBLISHED", result.value, "Unpublished package", {
+        previousStatus: existing.value.status,
+        newStatus: PackageStatus.DRAFT,
+      });
+    }
+    return result;
+  }
+
+  async restore(id: string): Promise<Result<Package, AppError>> {
+    const existing = await this.getById(id);
+    if (isErr(existing)) return existing;
+    this.logger.info("Restoring package", { id });
+    const result = await this.packages.update(id, {
+      status: PackageStatus.DRAFT,
+      updatedAt: new Date().toISOString(),
+    });
+    if (!isErr(result)) {
+      await this.recordAudit("PACKAGE_RESTORED", result.value, "Restored package", {
+        previousStatus: existing.value.status,
+        newStatus: PackageStatus.DRAFT,
+      });
+    }
+    return result;
+  }
+
+  async bulkUpdateStatus(ids: string[], status: PackageStatus): Promise<Result<{ updated: number }, AppError>> {
+    let updated = 0;
+    for (const id of ids) {
+      const existing = await this.getById(id);
+      if (isErr(existing)) continue;
+      const result = await this.packages.update(id, { status, updatedAt: new Date().toISOString() });
+      if (!isErr(result)) {
+        updated++;
+        const eventType: AuditEventType =
+          status === PackageStatus.PUBLISHED
+            ? "PACKAGE_PUBLISHED"
+            : status === PackageStatus.ARCHIVED
+              ? "PACKAGE_ARCHIVED"
+              : "PACKAGE_UNPUBLISHED";
+        await this.recordAudit(eventType, result.value, `Bulk status change to ${status}`, {
+          previousStatus: existing.value.status,
+          bulk: true,
+        });
+      }
+    }
+    return ok({ updated });
   }
 
   async markAsTemplate(id: string): Promise<Result<Package, AppError>> {
@@ -188,11 +298,18 @@ export class PackageService extends BaseService {
     if (isErr(version)) return version;
 
     this.logger.info("Publishing package", { id, versionNumber: version.value.versionNumber });
-    return this.packages.update(id, {
+    const result = await this.packages.update(id, {
       status: PackageStatus.PUBLISHED,
       currentVersionId: version.value.id,
       updatedAt: new Date().toISOString(),
     });
+    if (!isErr(result)) {
+      await this.recordAudit("PACKAGE_PUBLISHED", result.value, "Published package", {
+        versionNumber: version.value.versionNumber,
+        changeNote,
+      });
+    }
+    return result;
   }
 
   /**
@@ -260,7 +377,14 @@ export class PackageService extends BaseService {
     }
 
     this.logger.info("Cloned package", { sourceId: id, newId: created.value.id });
-    return this.getById(created.value.id);
+    const cloned = await this.getById(created.value.id);
+    if (!isErr(cloned)) {
+      await this.recordAudit("PACKAGE_DUPLICATED", cloned.value, "Duplicated package", {
+        sourceId: id,
+        sourceTitle: source.value.package.title,
+      });
+    }
+    return cloned;
   }
 
   async duplicate(id: string): Promise<Result<Package, AppError>> {

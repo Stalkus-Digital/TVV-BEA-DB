@@ -2,10 +2,20 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ExternalLink, X, ImageIcon } from "lucide-react";
+import { Copy, ExternalLink, RotateCcw, X, ImageIcon } from "lucide-react";
 import { WidgetError, WidgetLoading } from "@/features/admin-dashboard/components/WidgetState";
+import { EntityActivityTimeline } from "@/components/admin/EntityActivityTimeline";
+import { useToast } from "@/features/admin-destinations/hooks/useToast";
+import { useKeyboardShortcuts } from "@/features/admin-destinations/hooks/useKeyboardShortcuts";
 import { EDITABLE_INVENTORY_STATUSES, INVENTORY_KIND_LABELS, InventoryStatus } from "../constants";
-import { useArchiveInventoryMutation, useUpdateInventoryMutation } from "../hooks/useInventoryMutations";
+import {
+  useArchiveInventoryMutation,
+  useDuplicateInventoryMutation,
+  usePublishInventoryMutation,
+  useRestoreInventoryMutation,
+  useUnpublishInventoryMutation,
+  useUpdateInventoryMutation,
+} from "../hooks/useInventoryMutations";
 import { useInventoryItemQuery } from "../hooks/useInventoryItemQuery";
 import { useSuppliersWithHealthQuery } from "../hooks/useSuppliersQuery";
 import type { InventoryItem } from "../types";
@@ -13,7 +23,7 @@ import { formatDetailsSummary, formatInventoryDate, resolveDestinationName } fro
 import { InventoryStatusBadge } from "./InventoryStatusBadge";
 import { KindDetailsFields } from "./KindDetailsFields";
 
-type TabId = "overview" | "details" | "suppliers" | "pricing" | "availability" | "gallery" | "metadata";
+type TabId = "overview" | "details" | "suppliers" | "pricing" | "availability" | "gallery" | "activity" | "metadata";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -22,6 +32,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "pricing", label: "Pricing" },
   { id: "availability", label: "Availability" },
   { id: "gallery", label: "Gallery" },
+  { id: "activity", label: "Activity" },
   { id: "metadata", label: "Metadata" },
 ];
 
@@ -36,6 +47,8 @@ export function InventoryDetailDrawer({ itemId, destinations, onClose }: Invento
   const itemQuery = useInventoryItemQuery(itemId);
   const suppliersQuery = useSuppliersWithHealthQuery();
   const destinationsById = new Map(destinations.map((d) => [d.id, d]));
+
+  useKeyboardShortcuts({ onEscape: onClose });
 
   if (!itemId) return null;
 
@@ -100,6 +113,13 @@ export function InventoryDetailDrawer({ itemId, destinations, onClose }: Invento
               {tab === "pricing" && <PricingTab item={itemQuery.data} />}
               {tab === "availability" && <AvailabilityTab item={itemQuery.data} />}
               {tab === "gallery" && <GalleryTab item={itemQuery.data} />}
+              {tab === "activity" && (
+                <EntityActivityTimeline
+                  endpoint={`/api/inventory/${itemId}/audit-logs`}
+                  eventPrefix="INVENTORY_"
+                  queryKey={["inventory", itemId]}
+                />
+              )}
               {tab === "metadata" && <MetadataTab item={itemQuery.data} />}
             </>
           )}
@@ -122,7 +142,41 @@ function OverviewTab({
   const [isConfirmingArchive, setIsConfirmingArchive] = useState(false);
   const updateMutation = useUpdateInventoryMutation(itemId);
   const archiveMutation = useArchiveInventoryMutation(itemId);
+  const publishMutation = usePublishInventoryMutation(itemId);
+  const unpublishMutation = useUnpublishInventoryMutation(itemId);
+  const restoreMutation = useRestoreInventoryMutation(itemId);
+  const duplicateMutation = useDuplicateInventoryMutation();
+  const toast = useToast();
   const editable = EDITABLE_INVENTORY_STATUSES.includes(item.status);
+  const kindLabel = INVENTORY_KIND_LABELS[item.kind];
+
+  const handleTogglePublish = () => {
+    if (item.status === InventoryStatus.ACTIVE) {
+      void unpublishMutation
+        .mutateAsync()
+        .then(() => toast.success(`${kindLabel} unpublished`, "It is back in draft and hidden from the builder."))
+        .catch((error) => toast.error("Unpublish failed", error instanceof Error ? error.message : undefined));
+    } else {
+      void publishMutation
+        .mutateAsync()
+        .then(() => toast.success(`${kindLabel} published`, "It is now live and available in the package builder."))
+        .catch((error) => toast.error("Publish failed", error instanceof Error ? error.message : undefined));
+    }
+  };
+
+  const handleDuplicate = () => {
+    void duplicateMutation
+      .mutateAsync(itemId)
+      .then(() => toast.success(`${kindLabel} duplicated`, "The copy was created as a draft, ready to edit."))
+      .catch((error) => toast.error("Duplicate failed", error instanceof Error ? error.message : undefined));
+  };
+
+  const handleRestore = () => {
+    void restoreMutation
+      .mutateAsync()
+      .then(() => toast.success(`${kindLabel} restored`, "It is back in draft status."))
+      .catch((error) => toast.error("Restore failed", error instanceof Error ? error.message : undefined));
+  };
 
   return (
     <div className="space-y-6">
@@ -168,18 +222,49 @@ function OverviewTab({
         </div>
       )}
 
-      {item.status !== InventoryStatus.ARCHIVED && (
-        <div className="border-t border-border pt-4">
+      <div className="border-t border-border pt-4 flex flex-wrap gap-2">
+        {item.status !== InventoryStatus.ARCHIVED ? (
+          <>
+            <button
+              type="button"
+              disabled={publishMutation.isPending || unpublishMutation.isPending}
+              onClick={handleTogglePublish}
+              className="px-4 py-2 text-sm border border-emerald-300 bg-emerald-50 text-emerald-700 rounded-md hover:bg-emerald-100 disabled:opacity-50"
+            >
+              {publishMutation.isPending || unpublishMutation.isPending
+                ? "Working…"
+                : item.status === InventoryStatus.ACTIVE
+                  ? "Unpublish"
+                  : "Publish"}
+            </button>
+            <button
+              type="button"
+              disabled={duplicateMutation.isPending}
+              onClick={handleDuplicate}
+              className="px-4 py-2 text-sm border border-blue-300 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 disabled:opacity-50 inline-flex items-center gap-1"
+            >
+              <Copy className="w-3 h-3" /> {duplicateMutation.isPending ? "Duplicating…" : "Duplicate"}
+            </button>
+            <button
+              type="button"
+              disabled={archiveMutation.isPending}
+              onClick={() => setIsConfirmingArchive(true)}
+              className="px-4 py-2 text-sm border border-amber-300 text-amber-800 rounded-md hover:bg-amber-50 disabled:opacity-50"
+            >
+              Archive item
+            </button>
+          </>
+        ) : (
           <button
             type="button"
-            disabled={archiveMutation.isPending}
-            onClick={() => setIsConfirmingArchive(true)}
-            className="px-4 py-2 text-sm border border-amber-300 text-amber-800 rounded-md hover:bg-amber-50 disabled:opacity-50"
+            disabled={restoreMutation.isPending}
+            onClick={handleRestore}
+            className="px-4 py-2 text-sm border border-emerald-300 bg-emerald-50 text-emerald-700 rounded-md hover:bg-emerald-100 disabled:opacity-50 inline-flex items-center gap-1"
           >
-            Archive item
+            <RotateCcw className="w-3 h-3" /> {restoreMutation.isPending ? "Restoring…" : "Restore item"}
           </button>
-        </div>
-      )}
+        )}
+      </div>
       {isConfirmingArchive && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setIsConfirmingArchive(false)} aria-label="Cancel" />

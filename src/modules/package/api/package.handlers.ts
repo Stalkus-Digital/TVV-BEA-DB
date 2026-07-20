@@ -1,7 +1,7 @@
 import type { AppError } from "@/shared/errors";
 import type { PaginatedResult, Result } from "@/shared/types";
 import { getPackageService } from "../module";
-import type { Package } from "../types/package";
+import { PackageStatus, type Package } from "../types/package";
 import type { PackagePreview } from "../types/package-preview";
 import type { CloneOverridesBody, ListPackagesQuery } from "./dto";
 
@@ -31,6 +31,22 @@ export async function updatePackageHandler(id: string, body: unknown): Promise<R
 
 export async function archivePackageHandler(id: string): Promise<Result<Package, AppError>> {
   return getPackageService().archive(id);
+}
+
+export async function unpublishPackageHandler(id: string): Promise<Result<Package, AppError>> {
+  return getPackageService().unpublish(id);
+}
+
+export async function restorePackageHandler(id: string): Promise<Result<Package, AppError>> {
+  return getPackageService().restore(id);
+}
+
+export async function bulkUpdatePackageStatusHandler(
+  body: unknown
+): Promise<Result<{ updated: number }, AppError>> {
+  const data = body as { ids?: string[]; status?: PackageStatus } | null;
+  const ids = Array.isArray(data?.ids) ? data.ids : [];
+  return getPackageService().bulkUpdateStatus(ids, data?.status ?? PackageStatus.DRAFT);
 }
 
 export async function clonePackageHandler(id: string, overrides: CloneOverridesBody): Promise<Result<Package, AppError>> {

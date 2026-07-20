@@ -1,7 +1,7 @@
 import type { AppError } from "@/shared/errors";
 import type { PaginatedResult, Result } from "@/shared/types";
 import { getInventoryService } from "../module";
-import type { InventoryItem } from "../types";
+import { InventoryStatus, type InventoryItem } from "../types";
 import type { ListInventoryQuery } from "./dto";
 
 /**
@@ -33,6 +33,35 @@ export async function updateInventoryItemHandler(
 
 export async function archiveInventoryItemHandler(id: string): Promise<Result<InventoryItem, AppError>> {
   return getInventoryService().archive(id);
+}
+
+export async function publishInventoryItemHandler(id: string): Promise<Result<InventoryItem, AppError>> {
+  return getInventoryService().publish(id);
+}
+
+export async function unpublishInventoryItemHandler(id: string): Promise<Result<InventoryItem, AppError>> {
+  return getInventoryService().unpublish(id);
+}
+
+export async function restoreInventoryItemHandler(id: string): Promise<Result<InventoryItem, AppError>> {
+  return getInventoryService().restore(id);
+}
+
+export async function duplicateInventoryItemHandler(id: string): Promise<Result<InventoryItem, AppError>> {
+  return getInventoryService().duplicate(id);
+}
+
+export async function bulkUpdateInventoryStatusHandler(
+  body: unknown
+): Promise<Result<{ updated: number }, AppError>> {
+  const data = body as { ids?: string[]; status?: InventoryStatus } | null;
+  const ids = Array.isArray(data?.ids) ? data.ids : [];
+  return getInventoryService().bulkUpdateStatus(ids, data?.status ?? InventoryStatus.DRAFT);
+}
+
+export async function bulkArchiveInventoryHandler(body: unknown): Promise<Result<{ archived: number }, AppError>> {
+  const data = body as { ids?: string[] } | null;
+  return getInventoryService().bulkArchive(Array.isArray(data?.ids) ? data.ids : []);
 }
 
 export async function deleteInventoryItemHandler(id: string): Promise<Result<void, AppError>> {

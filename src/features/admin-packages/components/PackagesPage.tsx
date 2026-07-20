@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { archivePackage } from "../api/packages";
 import { useDebouncedValue } from "@/features/admin-enquiries/hooks/useDebouncedValue";
+import { ToastContainer } from "@/features/admin-destinations/components/ToastContainer";
+import { useToast } from "@/features/admin-destinations/hooks/useToast";
 import { PackageDetailDrawer } from "./PackageDetailDrawer";
 import { PackageFiltersBar } from "./PackageFiltersBar";
 import { PackagesGrid } from "./PackagesGrid";
@@ -25,6 +27,7 @@ export function PackagesPage() {
   const [selectedId, setSelectedId] = useState<string | null>(searchParams.get("selected"));
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
   const debouncedSearch = useDebouncedValue(searchInput);
+  const toast = useToast();
 
   const queryFilters: PackageListFilters = { ...filters, search: debouncedSearch };
   const packagesQuery = usePackagesQueryState(queryFilters);
@@ -46,10 +49,13 @@ export function PackagesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this package?")) {
+    if (window.confirm("Archive this package? It is hidden from the website and can be restored later.")) {
       setIsDeletingId(id);
       try {
         await deleteMutation.mutateAsync(id);
+        toast.success("Package archived", "Open it from the list to restore.");
+      } catch (error) {
+        toast.error("Archive failed", error instanceof Error ? error.message : undefined);
       } finally {
         setIsDeletingId(null);
       }
@@ -100,6 +106,8 @@ export function PackagesPage() {
         destinations={packagesQuery.destinations}
         onClose={() => setSelectedId(null)}
       />
+
+      <ToastContainer />
     </div>
   );
 }

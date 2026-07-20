@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ExternalLink, X } from "lucide-react";
+import { Copy, ExternalLink, RotateCcw, X } from "lucide-react";
 import { WidgetError, WidgetLoading } from "@/features/admin-dashboard/components/WidgetState";
+import { EntityActivityTimeline } from "@/components/admin/EntityActivityTimeline";
+import { useToast } from "@/features/admin-destinations/hooks/useToast";
+import { useKeyboardShortcuts } from "@/features/admin-destinations/hooks/useKeyboardShortcuts";
 import type { DestinationOption } from "@/features/admin-quotes/types";
 import {
   EDITABLE_PACKAGE_STATUSES,
@@ -12,8 +15,11 @@ import {
 } from "../constants";
 import {
   useArchivePackageMutation,
+  useDuplicatePackageMutation,
   usePublishPackageMutation,
+  useRestorePackageMutation,
   useRollbackVersionMutation,
+  useUnpublishPackageMutation,
   useUpdatePackageMutation,
 } from "../hooks/usePackageMutations";
 import { usePackageQuery } from "../hooks/usePackageQuery";
@@ -35,7 +41,7 @@ interface PackageDetailDrawerProps {
   onClose: () => void;
 }
 
-type TabId = "overview" | "pricing" | "rules" | "availability" | "days" | "preview" | "versions";
+type TabId = "overview" | "pricing" | "rules" | "availability" | "days" | "preview" | "versions" | "activity";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -45,6 +51,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "days", label: "Days & Items" },
   { id: "preview", label: "Preview" },
   { id: "versions", label: "Versions" },
+  { id: "activity", label: "Activity" },
 ];
 
 export function PackageDetailDrawer({ packageId, destinations, onClose }: PackageDetailDrawerProps) {
@@ -58,6 +65,8 @@ export function PackageDetailDrawer({ packageId, destinations, onClose }: Packag
   const versionsQuery = usePackageVersionsQuery(packageId);
 
   const destinationsById = useMemo(() => new Map(destinations.map((d) => [d.id, d])), [destinations]);
+
+  useKeyboardShortcuts({ onEscape: onClose });
 
   if (!packageId) return null;
 
@@ -133,6 +142,13 @@ export function PackageDetailDrawer({ packageId, destinations, onClose }: Packag
                   currentVersionId={packageQuery.data.currentVersionId}
                 />
               )}
+              {tab === "activity" && (
+                <EntityActivityTimeline
+                  endpoint={`/api/packages/${packageId}/audit-logs`}
+                  eventPrefix="PACKAGE_"
+                  queryKey={["package", packageId]}
+                />
+              )}
             </>
           )}
         </div>
@@ -155,8 +171,33 @@ function OverviewTab({
   const updateMutation = useUpdatePackageMutation(packageId);
   const publishMutation = usePublishPackageMutation(packageId);
   const archiveMutation = useArchivePackageMutation(packageId);
+  const unpublishMutation = useUnpublishPackageMutation(packageId);
+  const restoreMutation = useRestorePackageMutation(packageId);
+  const duplicateMutation = useDuplicatePackageMutation();
+  const toast = useToast();
   const [isConfirmingArchive, setIsConfirmingArchive] = useState(false);
   const editable = EDITABLE_PACKAGE_STATUSES.includes(pkg.status) && pkg.status !== PackageStatus.ARCHIVED;
+
+  const handleDuplicate = () => {
+    void duplicateMutation
+      .mutateAsync(packageId)
+      .then(() => toast.success("Package duplicated", "The copy was created as a draft with days and items."))
+      .catch((error) => toast.error("Duplicate failed", error instanceof Error ? error.message : undefined));
+  };
+
+  const handleUnpublish = () => {
+    void unpublishMutation
+      .mutateAsync()
+      .then(() => toast.success("Package unpublished", "It is back in draft and hidden from the website."))
+      .catch((error) => toast.error("Unpublish failed", error instanceof Error ? error.message : undefined));
+  };
+
+  const handleRestore = () => {
+    void restoreMutation
+      .mutateAsync()
+      .then(() => toast.success("Package restored", "It is back in draft status."))
+      .catch((error) => toast.error("Restore failed", error instanceof Error ? error.message : undefined));
+  };
 
   return (
     <div className="space-y-6">
@@ -231,16 +272,39 @@ function OverviewTab({
           <button
             type="button"
             disabled={publishMutation.isPending}
-            onClick={() => void publishMutation.mutateAsync(changeNote || undefined)}
+            onClick={() =>
+              void publishMutation
+                .mutateAsync(changeNote || undefined)
+                .then(() => toast.success("Package published", "A new version was frozen and it is live on the website."))
+                .catch((error) => toast.error("Publish failed", error instanceof Error ? error.message : undefined))
+            }
             className="px-4 py-2 text-sm bg-emerald-600 text-white rounded-md disabled:opacity-50"
           >
-            Publish package
+            {publishMutation.isPending ? "Publishing…" : "Publish package"}
           </button>
         </div>
       )}
 
-      {pkg.status !== PackageStatus.ARCHIVED && (
-        <div className="border-t border-border pt-4">
+      {pkg.status !== PackageStatus.ARCHIVED ? (
+        <div className="border-t border-border pt-4 flex flex-wrap gap-2">
+          {pkg.status === PackageStatus.PUBLISHED && (
+            <button
+              type="button"
+              disabled={unpublishMutation.isPending}
+              onClick={handleUnpublish}
+              className="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted disabled:opacity-50"
+            >
+              {unpublishMutation.isPending ? "Working…" : "Unpublish"}
+            </button>
+          )}
+          <button
+            type="button"
+            disabled={duplicateMutation.isPending}
+            onClick={handleDuplicate}
+            className="px-4 py-2 text-sm border border-blue-300 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 disabled:opacity-50 inline-flex items-center gap-1"
+          >
+            <Copy className="w-3 h-3" /> {duplicateMutation.isPending ? "Duplicating…" : "Duplicate"}
+          </button>
           <button
             type="button"
             disabled={archiveMutation.isPending}
@@ -249,7 +313,18 @@ function OverviewTab({
           >
             Archive package
           </button>
-          <p className="text-xs text-muted-foreground mt-2">Removes this package from the system.</p>
+        </div>
+      ) : (
+        <div className="border-t border-border pt-4">
+          <button
+            type="button"
+            disabled={restoreMutation.isPending}
+            onClick={handleRestore}
+            className="px-4 py-2 text-sm border border-emerald-300 bg-emerald-50 text-emerald-700 rounded-md hover:bg-emerald-100 disabled:opacity-50 inline-flex items-center gap-1"
+          >
+            <RotateCcw className="w-3 h-3" /> {restoreMutation.isPending ? "Restoring…" : "Restore package"}
+          </button>
+          <p className="text-xs text-muted-foreground mt-2">Brings the package back as a draft.</p>
         </div>
       )}
 

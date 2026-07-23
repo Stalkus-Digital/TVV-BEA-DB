@@ -69,10 +69,6 @@ export class EnquiryService extends BaseService {
     
     if (isErr(createdResult)) return createdResult;
     
-    // Push the lead to Sembark asynchronously so it doesn't block the request
-    this.sembark.pushLead(createdResult.value).catch(err => {
-      this.logger.error("Failed to push lead to Sembark asynchronously", { err });
-    });
     
     return createdResult;
   }
@@ -105,6 +101,13 @@ export class EnquiryService extends BaseService {
       await this.recordAudit(AuditEventType.ENQUIRY_STATUS_CHANGED, updated.value, actorUserId, {
         changes: { status: { from: previousStatus, to: validated.value.status } },
       });
+      
+      // Push the lead to Sembark when it is converted
+      if (validated.value.status === EnquiryStatus.CONVERTED) {
+        this.sembark.pushLead(updated.value).catch(err => {
+          this.logger.error("Failed to push lead to Sembark asynchronously", { err });
+        });
+      }
     }
     return updated;
   }
@@ -156,9 +159,6 @@ export class EnquiryService extends BaseService {
 
     if (isErr(createdResult)) return createdResult;
     await this.recordAudit(AuditEventType.ENQUIRY_CREATED, createdResult.value, actorUserId, { source: value.source });
-    this.sembark.pushLead(createdResult.value).catch((pushErr) => {
-      this.logger.error("Failed to push lead to Sembark asynchronously", { err: pushErr });
-    });
     return createdResult;
   }
 

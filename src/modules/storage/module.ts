@@ -1,7 +1,7 @@
 import { container, createToken, moduleRegistry, type ModuleDefinition } from "@/shared/di";
 import { healthCheckRegistry, type HealthCheck, type HealthCheckResult } from "@/shared/health";
 import { createLogger } from "@/shared/logger";
-import { CloudinaryProvider } from "./providers/cloudinary.provider";
+import { S3Provider } from "./providers/s3.provider";
 import type { StorageProvider } from "./providers/storage-provider";
 import { SignedUrlService } from "./signed-urls/signed-url.service";
 import { StorageService } from "./services/storage.service";
@@ -25,7 +25,7 @@ export const VIRUS_SCANNER_TOKEN = createToken<VirusScanner>("storage.virus-scan
 export const storageModule: ModuleDefinition = {
   name: "storage",
   register(c) {
-    c.registerFactory(STORAGE_PROVIDER_TOKEN, () => new CloudinaryProvider());
+    c.registerFactory(STORAGE_PROVIDER_TOKEN, () => new S3Provider());
     c.registerFactory(SIGNED_URL_SERVICE_TOKEN, () => SignedUrlService.fromConfig());
     // SECURITY-002C Task 10: no vendor wired up — swap for a real
     // implementation (ClamAV, VirusTotal, etc.) here when one is chosen.
@@ -46,12 +46,12 @@ export const storageModule: ModuleDefinition = {
 class StorageModuleHealthCheck implements HealthCheck {
   readonly name = "storage";
   async check(): Promise<HealthCheckResult> {
-    const configured = !!process.env.CLOUDINARY_API_KEY;
+    const configured = !!process.env.DO_SPACES_KEY;
     if (!configured) {
       return {
         name: this.name,
         status: "degraded",
-        details: { reason: "CLOUDINARY_API_KEY is not configured — uploads will fail until it is set" },
+        details: { reason: "DO_SPACES_KEY is not configured — uploads will fail until it is set" },
         checkedAt: new Date().toISOString(),
       };
     }

@@ -287,7 +287,7 @@ export class TripJackClient {
   async cancel(request: unknown, signal?: AbortSignal): Promise<Result<any, AppError>> {
     const isHotel = (request as any).hotelId !== undefined;
     // Hotels have a dedicated cancel endpoint; flights use the amendment API for cancellation
-    const path = isHotel ? "/hms/v1/cancel" : "/oms/v1/air/amendment/submit-amendment";
+    const path = isHotel ? "/hms/v3/hotel/cancel" : "/oms/v1/air/amendment/submit-amendment";
     const result = await this.request<any>("cancel", path, request, signal);
     if (isErr(result)) return result;
     return this.responseParser.parse<any>(result.value, ["cancellationId"]);

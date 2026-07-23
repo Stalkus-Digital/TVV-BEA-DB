@@ -43,7 +43,7 @@ function fromPrismaData(data: any): any {
  * Replaces the mock InMemoryStore.
  */
 export class PrismaStore<T extends { id: string }> {
-  constructor(protected delegate: any) {}
+  constructor(protected delegate: any) { }
 
   async findById(id: string): Promise<Result<T | null, AppError>> {
     try {
@@ -59,7 +59,7 @@ export class PrismaStore<T extends { id: string }> {
       const page = params?.page ?? DEFAULT_PAGINATION.page;
       const pageSize = params?.pageSize ?? DEFAULT_PAGINATION.pageSize;
       const skip = (page - 1) * pageSize;
-      
+
       const [items, total] = await Promise.all([
         this.delegate.findMany({ skip, take: pageSize }),
         this.delegate.count(),

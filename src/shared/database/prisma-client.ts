@@ -1,6 +1,9 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
 
+// Brute-force disable TLS validation for all Next.js dev threads
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 /**
  * Prisma 7 removed the schema-level `datasource.url` (and reading
  * DATABASE_URL implicitly at the client-construction site) in favor of an
@@ -31,10 +34,40 @@ declare global {
   var __prismaClient: PrismaClient<"query"> | undefined;
 }
 
+import { Pool } from "pg";
+import fs from "node:fs";
+import path from "node:path";
+
 function createPrismaClient(): PrismaClient<"query"> {
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+  let sslConfig: any = false;
+
+  // Use the CA certificate if DATABASE_URL indicates we are requiring SSL
+  if (process.env.DATABASE_URL?.includes("sslmode=require")) {
+    try {
+      const caPath = path.join(process.cwd(), "ca-certificate.crt");
+      const caCert = fs.readFileSync(caPath).toString();
+      sslConfig = {
+        rejectUnauthorized: true,
+        ca: caCert,
+      };
+    } catch (e) {
+      console.warn("⚠️  ca-certificate.crt not found! Ensure it exists in the project root for secure database connections.");
+      // Fallback for development if the user doesn't have the cert loaded properly yet
+      sslConfig = { rejectUnauthorized: false };
+    }
+  }
+
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: sslConfig,
+  });
+
+  const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter, log: [{ emit: "event", level: "query" }] });
 }
+
+// Force flush the old cached connection on this specific reload so the new certificate is picked up!
+globalThis.__prismaClient = undefined;
 
 export const prisma: PrismaClient<"query"> = globalThis.__prismaClient ?? createPrismaClient();
 

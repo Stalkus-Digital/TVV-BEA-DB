@@ -33,19 +33,15 @@ export class SembarkService extends BaseService {
     this.logger.info("Pushing lead to Sembark", { enquiryId: enquiry.id });
 
     try {
-      const creds = await this.getVaultCredentials();
-      if (!creds) {
-        this.logger.info("Sembark not configured in Integrations — skipping lead push", {
-          enquiryId: enquiry.id,
-        });
-        return ok(undefined);
-      }
+      // User requested fixed token for Sembark CRM integration
+      const apiKey = "947|RJhx2Fu56QFQkrNDIpkdr2kBG92wXn3j5VcjLMPV7590866f";
+      const apiUrl = "https://api.sembark.com/integrations/v1/trip-plan-requests";
 
-      const response = await fetch(`${creds.apiUrl.replace(/\/$/, "")}/leads`, {
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${creds.apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
           source: "TVV Travel OS",
@@ -54,6 +50,7 @@ export class SembarkService extends BaseService {
           phone: enquiry.phone || "",
           details: enquiry.message || "",
           destination: enquiry.destinationSlug || "",
+          status: enquiry.status
         }),
       });
 

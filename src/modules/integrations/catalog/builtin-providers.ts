@@ -102,14 +102,15 @@ export const BUILTIN_PROVIDERS: BuiltinProviderDefinition[] = [
     webhooks: [{ eventType: "inbound", path: "/api/webhooks/sembark" }],
   },
   {
-    key: "cloudinary",
+    key: "digitalocean_spaces",
     category: IntegrationCategory.SUPPLIERS,
-    name: "Cloudinary",
-    description: "Media uploads for packages, destinations, and gallery.",
+    name: "DigitalOcean Spaces",
+    description: "Media uploads for packages, destinations, and gallery via S3 API.",
     fields: [
-      { key: "cloudName", label: "Cloud Name", kind: "text", secret: false, required: true, envFallback: "CLOUDINARY_CLOUD_NAME" },
-      { key: "apiKey", label: "API Key", kind: "text", secret: false, required: true, envFallback: "CLOUDINARY_API_KEY" },
-      { key: "apiSecret", label: "API Secret", kind: "secret", secret: true, required: true, envFallback: "CLOUDINARY_API_SECRET" },
+      { key: "endpoint", label: "Endpoint", kind: "url", secret: false, required: true, envFallback: "DO_SPACES_ENDPOINT" },
+      { key: "bucket", label: "Bucket", kind: "text", secret: false, required: true, envFallback: "DO_SPACES_BUCKET" },
+      { key: "accessKey", label: "Access Key", kind: "text", secret: false, required: true, envFallback: "DO_SPACES_KEY" },
+      { key: "secretKey", label: "Secret Key", kind: "secret", secret: true, required: true, envFallback: "DO_SPACES_SECRET" },
     ],
   },
 ];

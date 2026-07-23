@@ -1,2 +1,2 @@
 export * from "./storage-provider";
-export * from "./cloudinary.provider";
+export * from "./s3.provider";

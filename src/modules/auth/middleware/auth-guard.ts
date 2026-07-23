@@ -2,6 +2,8 @@ import { err, isErr, ok, type Result } from "@/shared/types";
 import { UnauthorizedError, type AppError } from "@/shared/errors";
 import type { AuthContext } from "../types/auth-context";
 import { getApiKeyService, getJwtService, getPermissionService, getRoleService } from "../module";
+import { prisma } from "@/shared/database/prisma-client";
+import crypto from "crypto";
 
 function extractBearerToken(authorizationHeader: string | null): string | null {
   if (!authorizationHeader) return null;
@@ -65,6 +67,15 @@ export async function resolveAuthContext(
     const verified = getJwtService().verify(token);
     if (isErr(verified)) return verified;
     const payload = verified.value;
+
+    // SECURITY-003B: Check if JWT is revoked in the database.
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+    const revoked = await prisma.revokedJwt.findUnique({
+      where: { tokenHash },
+    });
+    if (revoked) {
+      return err(new UnauthorizedError("Token has been revoked"));
+    }
 
     return ok({
       userId: payload.sub,

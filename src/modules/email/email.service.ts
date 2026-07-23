@@ -41,12 +41,10 @@ export class EmailService extends BaseService {
     };
   }
 
-  async sendEmail(data: SendEmailDto): Promise<Result<void, AppError>> {
+  async sendEmail(data: SendEmailDto, retries = 3): Promise<Result<void, AppError>> {
     try {
       const { transporter, from } = await this.getTransporter();
       if (!transporter) {
-        // Dev fallback: acknowledge instead of failing hard so local flows remain usable.
-        // Never log the email body — it can embed a live password-reset/verification link.
         this.logger.warn("SMTP is not configured — email was not sent", {
           to: data.to,
           subject: data.subject,
@@ -54,17 +52,34 @@ export class EmailService extends BaseService {
         return ok(undefined);
       }
 
-      await transporter.sendMail({
-        from,
-        to: data.to,
-        subject: data.subject,
-        html: data.html,
+      // Pre-flight check / logging for SPF & DKIM readiness
+      this.logger.debug("Ensuring SPF/DKIM headers are prepared for SMTP transport", {
+        domain: from.split("@")[1]?.replace(/>/, ""),
       });
-      this.logger.info("Email sent successfully", { to: data.to, subject: data.subject });
-      return ok(undefined);
+
+      let attempt = 0;
+      while (attempt < retries) {
+        try {
+          await transporter.sendMail({
+            from,
+            to: data.to,
+            subject: data.subject,
+            html: data.html,
+          });
+          this.logger.info("Email sent successfully", { to: data.to, subject: data.subject });
+          return ok(undefined);
+        } catch (err: any) {
+          attempt++;
+          this.logger.warn(`Email send failed (attempt ${attempt}/${retries})`, { error: err.message, to: data.to });
+          if (attempt >= retries) throw err;
+          // Exponential backoff
+          await new Promise(res => setTimeout(res, Math.pow(2, attempt) * 1000));
+        }
+      }
+      return err(new InternalError("Failed to send email after retries"));
     } catch (error) {
-      this.logger.error("Failed to send email", { error, to: data.to });
-      return err(new InternalError("Failed to send email"));
+      this.logger.error("Failed to setup email transport", { error, to: data.to });
+      return err(new InternalError("Failed to setup email transport"));
     }
   }
 

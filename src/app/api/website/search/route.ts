@@ -2,12 +2,35 @@ import type { NextRequest } from "next/server";
 import { jsonError, jsonSuccess } from "@/api";
 import { searchWebsitePackagesHandler } from "@/modules/website";
 import { isErr } from "@/shared/types";
+import { getRateLimiter, getClientIp } from "@/shared/lib/rate-limiter";
+import { NextResponse } from "next/server";
 
 function numberOrUndefined(value: string | null): number | undefined {
   return value ? Number(value) : undefined;
 }
 
+const searchLimiter = getRateLimiter("search-api", { windowMs: 60_000, max: 30 });
+
 export async function GET(request: NextRequest) {
+  // Rate limit by IP
+  const ip = getClientIp(request);
+  const limit = await searchLimiter.check(ip);
+
+  if (!limit.allowed) {
+    const retryAfterSec = Math.ceil(limit.retryAfterMs / 1000);
+    return NextResponse.json(
+      { success: false, error: "Too many search requests. Please try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(retryAfterSec),
+          "X-RateLimit-Limit": "30",
+          "X-RateLimit-Remaining": "0",
+        },
+      }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const result = await searchWebsitePackagesHandler({
     keyword: searchParams.get("keyword") ?? undefined,

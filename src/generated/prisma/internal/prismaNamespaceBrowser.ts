@@ -86,6 +86,7 @@ export const ModelName = {
   UserRole: 'UserRole',
   Session: 'Session',
   RefreshToken: 'RefreshToken',
+  RevokedJwt: 'RevokedJwt',
   LoginHistory: 'LoginHistory',
   PasswordReset: 'PasswordReset',
   EmailVerification: 'EmailVerification',
@@ -114,7 +115,9 @@ export const ModelName = {
   Guide: 'Guide',
   FerryRoute: 'FerryRoute',
   FerrySchedule: 'FerrySchedule',
-  Review: 'Review'
+  Review: 'Review',
+  BackgroundJob: 'BackgroundJob',
+  RateLimit: 'RateLimit'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -686,6 +689,16 @@ export const RefreshTokenScalarFieldEnum = {
 export type RefreshTokenScalarFieldEnum = (typeof RefreshTokenScalarFieldEnum)[keyof typeof RefreshTokenScalarFieldEnum]
 
 
+export const RevokedJwtScalarFieldEnum = {
+  id: 'id',
+  tokenHash: 'tokenHash',
+  revokedAt: 'revokedAt',
+  expiresAt: 'expiresAt'
+} as const
+
+export type RevokedJwtScalarFieldEnum = (typeof RevokedJwtScalarFieldEnum)[keyof typeof RevokedJwtScalarFieldEnum]
+
+
 export const LoginHistoryScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -1091,6 +1104,31 @@ export const ReviewScalarFieldEnum = {
 } as const
 
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
+
+
+export const BackgroundJobScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  status: 'status',
+  payload: 'payload',
+  error: 'error',
+  attempts: 'attempts',
+  maxAttempts: 'maxAttempts',
+  nextRetryAt: 'nextRetryAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BackgroundJobScalarFieldEnum = (typeof BackgroundJobScalarFieldEnum)[keyof typeof BackgroundJobScalarFieldEnum]
+
+
+export const RateLimitScalarFieldEnum = {
+  key: 'key',
+  count: 'count',
+  windowStart: 'windowStart'
+} as const
+
+export type RateLimitScalarFieldEnum = (typeof RateLimitScalarFieldEnum)[keyof typeof RateLimitScalarFieldEnum]
 
 
 export const SortOrder = {

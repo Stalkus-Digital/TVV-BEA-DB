@@ -80,6 +80,15 @@ export class IntegrationConfigResolver {
     };
   }
 
+  async getMakruzzConfig(): Promise<{ apiUrl: string | null; username: string | null; password: string | null }> {
+    const v = await this.get("makruzz");
+    return {
+      apiUrl: v.apiUrl || process.env.MAKRUZZ_API_URL || null,
+      username: v.username || process.env.MAKRUZZ_USERNAME || null,
+      password: v.password || process.env.MAKRUZZ_PASSWORD || null,
+    };
+  }
+
   async getSmtpConfig(): Promise<{
     host?: string;
     port?: string;

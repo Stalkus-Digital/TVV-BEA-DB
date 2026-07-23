@@ -14,18 +14,7 @@ export const BUILTIN_PROVIDERS: BuiltinProviderDefinition[] = [
       { key: "apiKey", label: "OpenAI API Key", kind: "secret", secret: true, required: true, envFallback: "OPENAI_API_KEY", placeholder: "sk-..." },
     ],
   },
-  {
-    key: "razorpay",
-    category: IntegrationCategory.PAYMENTS,
-    name: "Razorpay",
-    description: "Primary payment gateway (orders, checkout, webhooks).",
-    fields: [
-      { key: "keyId", label: "Key ID", kind: "text", secret: false, required: true, envFallback: "RAZORPAY_KEY_ID", placeholder: "rzp_live_..." },
-      { key: "keySecret", label: "Key Secret", kind: "secret", secret: true, required: true, envFallback: "RAZORPAY_KEY_SECRET" },
-      { key: "webhookSecret", label: "Webhook Secret", kind: "secret", secret: true, required: false, envFallback: "RAZORPAY_WEBHOOK_SECRET" },
-    ],
-    webhooks: [{ eventType: "payment", path: "/api/webhooks/razorpay" }],
-  },
+
   {
     key: "phonepe",
     category: IntegrationCategory.PAYMENTS,
@@ -111,6 +100,17 @@ export const BUILTIN_PROVIDERS: BuiltinProviderDefinition[] = [
       { key: "bucket", label: "Bucket", kind: "text", secret: false, required: true, envFallback: "DO_SPACES_BUCKET" },
       { key: "accessKey", label: "Access Key", kind: "text", secret: false, required: true, envFallback: "DO_SPACES_KEY" },
       { key: "secretKey", label: "Secret Key", kind: "secret", secret: true, required: true, envFallback: "DO_SPACES_SECRET" },
+    ],
+  },
+  {
+    key: "makruzz",
+    category: IntegrationCategory.FERRY,
+    name: "Makruzz",
+    description: "Ferry API for Makruzz Andaman bookings.",
+    fields: [
+      { key: "username", label: "Username", kind: "text", secret: false, required: true, envFallback: "MAKRUZZ_USERNAME", placeholder: "Makruzz username" },
+      { key: "password", label: "Password", kind: "secret", secret: true, required: true, envFallback: "MAKRUZZ_PASSWORD" },
+      { key: "apiUrl", label: "API URL", kind: "url", secret: false, required: true, envFallback: "MAKRUZZ_API_URL", placeholder: "http://staging.makruzz.com/" },
     ],
   },
 ];

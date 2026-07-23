@@ -12,7 +12,7 @@ const loginLimiter = getRateLimiter("auth-login", { windowMs: 15 * 60_000, max: 
 export async function POST(request: NextRequest) {
   // Rate limit by IP
   const ip = getClientIp(request);
-  const limit = loginLimiter.check(ip);
+  const limit = await loginLimiter.check(ip);
 
   if (!limit.allowed) {
     const retryAfterSec = Math.ceil(limit.retryAfterMs / 1000);

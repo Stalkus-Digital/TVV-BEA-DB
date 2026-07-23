@@ -31,4 +31,6 @@ export interface StorageProvider {
   getMetadata(key: string): Promise<Result<ProviderObjectMetadata | null, AppError>>;
   /** Fetches the raw bytes of a private object — used only by the signed-URL download proxy, never exposed directly. */
   getPrivateObjectBytes(key: string): Promise<Result<{ body: Buffer; contentType: string }, AppError>>;
+  /** Generates a cloud-native presigned URL for direct secure download, bypassing the Node backend */
+  getPresignedUrl(key: string, ttlSeconds: number): Promise<Result<string, AppError>>;
 }

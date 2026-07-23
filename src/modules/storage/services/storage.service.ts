@@ -98,9 +98,11 @@ export class StorageService extends BaseService {
     const ownership = validateOwnership(category, key, callerId);
     if (isErr(ownership)) return ownership;
 
-    const signed = this.signedUrls.sign(key, ttlSeconds);
-    const url = `/api/storage/download?key=${encodeURIComponent(signed.key)}&expiresAt=${signed.expiresAt}&signature=${encodeURIComponent(signed.signature)}`;
-    return ok({ url, expiresAt: signed.expiresAt });
+    // Use native S3 presigned URLs instead of proxying through the Node backend.
+    const url = await this.provider.getPresignedUrl(key, ttlSeconds ?? 3600);
+    if (isErr(url)) return url;
+    
+    return ok({ url: url.value, expiresAt: Math.floor(Date.now() / 1000) + (ttlSeconds ?? 3600) });
   }
 
   /** Used only by the download-proxy route — verifies the HMAC signature, then streams the private bytes back. */

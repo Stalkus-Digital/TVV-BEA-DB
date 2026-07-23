@@ -607,6 +607,16 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
+model RevokedJwt {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  revokedAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([tokenHash])
+  @@map("revoked_jwts")
+}
+
 model LoginHistory {
   id         String   @id @default(uuid())
   userId     String?
@@ -1051,3 +1061,30 @@ model Review {
   @@map("reviews")
 }
 
+
+
+// -- System Background Jobs & Security --------------------------
+
+model BackgroundJob {
+  id           String   @id @default(uuid())
+  type         String
+  status       String   @default("PENDING")
+  payload      Json
+  error        String?
+  attempts     Int      @default(0)
+  maxAttempts  Int      @default(3)
+  nextRetryAt  DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([status, nextRetryAt])
+  @@map("background_jobs")
+}
+
+model RateLimit {
+  key          String   @id
+  count        Int      @default(0)
+  windowStart  DateTime @default(now())
+
+  @@map("rate_limits")
+}

@@ -13,7 +13,7 @@ const orderLimiter = getRateLimiter("phonepe-order", { windowMs: 60 * 60_000, ma
 export async function POST(req: Request) {
   try {
     const ip = getClientIp(req);
-    const limit = orderLimiter.check(ip);
+    const limit = await orderLimiter.check(ip);
     if (!limit.allowed) {
       return NextResponse.json(
         { error: "Too many payment requests. Please try again later." },

@@ -37,25 +37,39 @@ export class SembarkService extends BaseService {
       const apiKey = "947|RJhx2Fu56QFQkrNDIpkdr2kBG92wXn3j5VcjLMPV7590866f";
       const apiUrl = "https://api.sembark.com/integrations/v1/trip-plan-requests";
 
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          source: "TVV Travel OS",
-          name: enquiry.name || "Unknown",
-          email: enquiry.email || "",
-          phone: enquiry.phone || "",
-          details: enquiry.message || "",
-          destination: enquiry.destinationSlug || "",
-          status: enquiry.status
-        }),
-      });
+      const payload = {
+        source: "TVV Travel OS",
+        name: enquiry.name || "Unknown",
+        email: enquiry.email || "",
+        phone: enquiry.phone || "",
+        details: enquiry.message || "",
+        destination: enquiry.destinationSlug || "",
+        status: enquiry.status
+      };
 
-      if (!response.ok) {
-        throw new Error(`Sembark API returned ${response.status}`);
+      let attempt = 0;
+      let success = false;
+      while (attempt < 3 && !success) {
+        try {
+          const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify(payload),
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Sembark API returned ${response.status}`);
+          }
+          success = true;
+        } catch (err: any) {
+          attempt++;
+          this.logger.warn(`Sembark pushLead failed (attempt ${attempt}/3)`, { error: err.message, enquiryId: enquiry.id });
+          if (attempt >= 3) throw err;
+          await new Promise(res => setTimeout(res, Math.pow(2, attempt) * 1000));
+        }
       }
 
       this.logger.info("Successfully pushed lead to Sembark", { enquiryId: enquiry.id });
@@ -67,14 +81,55 @@ export class SembarkService extends BaseService {
   }
 
   /**
-   * Booking sync is not used for Sembark (lead management only).
+   * Pushes booking details and status to Sembark CRM.
    */
-  async pushBooking(booking: { id: string; bookingNumber?: string }): Promise<Result<void, AppError>> {
-    this.logger.info("Skipping Sembark booking push (lead management only)", {
-      bookingId: booking.id,
-      bookingNumber: booking.bookingNumber,
-    });
-    return ok(undefined);
+  async pushBooking(booking: any): Promise<Result<void, AppError>> {
+    this.logger.info("Pushing booking to Sembark CRM", { bookingId: booking.id });
+    try {
+      const apiKey = "947|RJhx2Fu56QFQkrNDIpkdr2kBG92wXn3j5VcjLMPV7590866f";
+      const apiUrl = "https://api.sembark.com/integrations/v1/bookings";
+
+      const payload = {
+        source: "TVV Travel OS",
+        bookingId: booking.id,
+        bookingNumber: booking.bookingNumber,
+        totalAmount: booking.totalAmount,
+        status: booking.status,
+        paymentStatus: booking.paymentStatus,
+        createdAt: booking.createdAt,
+      };
+
+      let attempt = 0;
+      let success = false;
+      while (attempt < 3 && !success) {
+        try {
+          const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify(payload),
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Sembark API returned ${response.status}`);
+          }
+          success = true;
+        } catch (err: any) {
+          attempt++;
+          this.logger.warn(`Sembark pushBooking failed (attempt ${attempt}/3)`, { error: err.message, bookingId: booking.id });
+          if (attempt >= 3) throw err;
+          await new Promise(res => setTimeout(res, Math.pow(2, attempt) * 1000));
+        }
+      }
+
+      this.logger.info("Successfully pushed booking to Sembark", { bookingId: booking.id });
+      return ok(undefined);
+    } catch (error) {
+      this.logger.error("Failed to push booking to Sembark", { error, bookingId: booking.id });
+      return err(new InternalError("Failed to synchronize booking with Sembark"));
+    }
   }
 
   /**

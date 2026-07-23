@@ -11,11 +11,11 @@ const orderLimiter = getRateLimiter("checkout-create", { windowMs: 60 * 60_000, 
 export async function POST(req: Request) {
   try {
     const ip = getClientIp(req);
-    const limit = orderLimiter.check(ip);
-    if (!limit.allowed) {
+    const result = await orderLimiter.check(ip);
+    if (!result.allowed) {
       return NextResponse.json(
-        { error: "Too many payment requests. Please try again later." },
-        { status: 429, headers: { "Retry-After": String(Math.ceil(limit.retryAfterMs / 1000)) } }
+        { error: "Too many checkout attempts", retryAfterMs: result.retryAfterMs },
+        { status: 429 }
       );
     }
 
@@ -25,9 +25,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing bookingId" }, { status: 400 });
     }
 
-    const provider = await getIntegrationConfigResolver().getActivePaymentProvider();
     const origin = new URL(req.url).origin;
-    const path = provider === "phonepe" ? "/api/checkout/phonepe" : "/api/checkout/razorpay";
+    const path = "/api/checkout/phonepe";
 
     const upstream = await fetch(`${origin}${path}`, {
       method: "POST",

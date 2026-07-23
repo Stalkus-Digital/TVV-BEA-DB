@@ -1,4 +1,5 @@
 import { S3Client, DeleteObjectCommand, HeadObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Upload } from "@aws-sdk/lib-storage";
 import { err, ok, type Result } from "@/shared/types";
 import { InternalError, type AppError } from "@/shared/errors";
@@ -115,6 +116,19 @@ export class S3Provider implements StorageProvider {
       });
     } catch (error: any) {
        return err(new InternalError(`S3/Spaces getPrivateObjectBytes failed: ${error?.message || error}`));
+    }
+  }
+
+  async getPresignedUrl(key: string, ttlSeconds: number): Promise<Result<string, AppError>> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+      });
+      const url = await getSignedUrl(this.client, command, { expiresIn: ttlSeconds });
+      return ok(url);
+    } catch (error: any) {
+      return err(new InternalError(`S3/Spaces getPresignedUrl failed: ${error?.message || error}`));
     }
   }
 }

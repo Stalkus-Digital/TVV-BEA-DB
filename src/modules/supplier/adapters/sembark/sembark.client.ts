@@ -18,29 +18,72 @@ export class SembarkClient extends BaseService {
   }
 
   async pushLead(lead: Lead): Promise<Result<void, AppError>> {
+    return this.postToSembark("/leads", {
+      sourceId: lead.id,
+      name: lead.name,
+      email: lead.email,
+      phone: lead.phone,
+      source: "TVV Website",
+      sourceUrl: lead.sourceUrl,
+      createdAt: lead.createdAt.toISOString(),
+    });
+  }
+
+  async syncCustomer(customer: any): Promise<Result<void, AppError>> {
+    return this.postToSembark("/customers", {
+      customerId: customer.id,
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+      email: customer.email,
+      phone: customer.phone,
+    });
+  }
+
+  async syncBooking(booking: any): Promise<Result<void, AppError>> {
+    return this.postToSembark("/bookings", {
+      bookingId: booking.id,
+      bookingNumber: booking.bookingNumber,
+      totalAmount: booking.totalAmount,
+      currency: booking.currency,
+      status: booking.status,
+      paymentStatus: booking.paymentStatus,
+      createdAt: booking.createdAt,
+    });
+  }
+
+  async syncBookingStatus(bookingId: string, status: string): Promise<Result<void, AppError>> {
+    return this.postToSembark(`/bookings/${bookingId}/status`, { status });
+  }
+
+  async syncPayment(bookingId: string, payment: any): Promise<Result<void, AppError>> {
+    return this.postToSembark(`/bookings/${bookingId}/payments`, {
+      paymentId: payment.id,
+      amount: payment.amount,
+      method: payment.method,
+      status: payment.status,
+      reference: payment.reference,
+    });
+  }
+
+  private async postToSembark(endpoint: string, payload: any): Promise<Result<void, AppError>> {
     try {
       const { webhookUrl, apiKey } = await this.getCredentials();
+      const baseUrl = webhookUrl.replace(/\/v1\/leads$/, "/v1").replace(/\/$/, "");
+      const fullUrl = `${baseUrl}${endpoint}`;
+
       if (apiKey === "MOCK_SEMBARK_KEY") {
-        this.logger.info("Mock Sembark: Pushing lead", { leadId: lead.id, name: lead.name });
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        this.logger.info(`Mock Sembark POST ${endpoint}`, { payload });
+        await new Promise((resolve) => setTimeout(resolve, 300));
         return ok(undefined);
       }
 
-      const response = await fetch(webhookUrl, {
+      const response = await fetch(fullUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify({
-          sourceId: lead.id,
-          name: lead.name,
-          email: lead.email,
-          phone: lead.phone,
-          source: "TVV Website",
-          sourceUrl: lead.sourceUrl,
-          createdAt: lead.createdAt.toISOString(),
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -49,8 +92,8 @@ export class SembarkClient extends BaseService {
 
       return ok(undefined);
     } catch (error) {
-      this.logger.error("Failed to push lead to Sembark", { error, leadId: lead.id });
-      return err(new InternalError("Failed to push lead to Sembark"));
+      this.logger.error(`Failed to push to Sembark ${endpoint}`, { error });
+      return err(new InternalError(`Failed to push to Sembark ${endpoint}`));
     }
   }
 

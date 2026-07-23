@@ -217,6 +217,11 @@ export type Session = Prisma.SessionModel
  */
 export type RefreshToken = Prisma.RefreshTokenModel
 /**
+ * Model RevokedJwt
+ * 
+ */
+export type RevokedJwt = Prisma.RevokedJwtModel
+/**
  * Model LoginHistory
  * 
  */
@@ -365,3 +370,13 @@ export type FerrySchedule = Prisma.FerryScheduleModel
  * 
  */
 export type Review = Prisma.ReviewModel
+/**
+ * Model BackgroundJob
+ * 
+ */
+export type BackgroundJob = Prisma.BackgroundJobModel
+/**
+ * Model RateLimit
+ * 
+ */
+export type RateLimit = Prisma.RateLimitModel

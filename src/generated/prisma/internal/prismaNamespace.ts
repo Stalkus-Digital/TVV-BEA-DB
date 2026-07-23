@@ -432,6 +432,7 @@ export const ModelName = {
   UserRole: 'UserRole',
   Session: 'Session',
   RefreshToken: 'RefreshToken',
+  RevokedJwt: 'RevokedJwt',
   LoginHistory: 'LoginHistory',
   PasswordReset: 'PasswordReset',
   EmailVerification: 'EmailVerification',
@@ -460,7 +461,9 @@ export const ModelName = {
   Guide: 'Guide',
   FerryRoute: 'FerryRoute',
   FerrySchedule: 'FerrySchedule',
-  Review: 'Review'
+  Review: 'Review',
+  BackgroundJob: 'BackgroundJob',
+  RateLimit: 'RateLimit'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -476,7 +479,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "loginHistory" | "passwordReset" | "emailVerification" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "customerNote" | "notification" | "emailDispatch" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent" | "integrationProvider" | "integrationSecret" | "integrationWebhook" | "guide" | "ferryRoute" | "ferrySchedule" | "review"
+    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "revokedJwt" | "loginHistory" | "passwordReset" | "emailVerification" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "customerNote" | "notification" | "emailDispatch" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent" | "integrationProvider" | "integrationSecret" | "integrationWebhook" | "guide" | "ferryRoute" | "ferrySchedule" | "review" | "backgroundJob" | "rateLimit"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3070,6 +3073,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    RevokedJwt: {
+      payload: Prisma.$RevokedJwtPayload<ExtArgs>
+      fields: Prisma.RevokedJwtFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RevokedJwtFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedJwtPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RevokedJwtFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedJwtPayload>
+        }
+        findFirst: {
+          args: Prisma.RevokedJwtFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedJwtPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RevokedJwtFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedJwtPayload>
+        }
+        findMany: {
+          args: Prisma.RevokedJwtFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedJwtPayload>[]
+        }
+        create: {
+          args: Prisma.RevokedJwtCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedJwtPayload>
+        }
+        createMany: {
+          args: Prisma.RevokedJwtCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RevokedJwtCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedJwtPayload>[]
+        }
+        delete: {
+          args: Prisma.RevokedJwtDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedJwtPayload>
+        }
+        update: {
+          args: Prisma.RevokedJwtUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedJwtPayload>
+        }
+        deleteMany: {
+          args: Prisma.RevokedJwtDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RevokedJwtUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RevokedJwtUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedJwtPayload>[]
+        }
+        upsert: {
+          args: Prisma.RevokedJwtUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedJwtPayload>
+        }
+        aggregate: {
+          args: Prisma.RevokedJwtAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRevokedJwt>
+        }
+        groupBy: {
+          args: Prisma.RevokedJwtGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RevokedJwtGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RevokedJwtCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RevokedJwtCountAggregateOutputType> | number
+        }
+      }
+    }
     LoginHistory: {
       payload: Prisma.$LoginHistoryPayload<ExtArgs>
       fields: Prisma.LoginHistoryFieldRefs
@@ -5216,6 +5293,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BackgroundJob: {
+      payload: Prisma.$BackgroundJobPayload<ExtArgs>
+      fields: Prisma.BackgroundJobFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BackgroundJobFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BackgroundJobPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BackgroundJobFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BackgroundJobPayload>
+        }
+        findFirst: {
+          args: Prisma.BackgroundJobFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BackgroundJobPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BackgroundJobFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BackgroundJobPayload>
+        }
+        findMany: {
+          args: Prisma.BackgroundJobFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BackgroundJobPayload>[]
+        }
+        create: {
+          args: Prisma.BackgroundJobCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BackgroundJobPayload>
+        }
+        createMany: {
+          args: Prisma.BackgroundJobCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BackgroundJobCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BackgroundJobPayload>[]
+        }
+        delete: {
+          args: Prisma.BackgroundJobDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BackgroundJobPayload>
+        }
+        update: {
+          args: Prisma.BackgroundJobUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BackgroundJobPayload>
+        }
+        deleteMany: {
+          args: Prisma.BackgroundJobDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BackgroundJobUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BackgroundJobUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BackgroundJobPayload>[]
+        }
+        upsert: {
+          args: Prisma.BackgroundJobUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BackgroundJobPayload>
+        }
+        aggregate: {
+          args: Prisma.BackgroundJobAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBackgroundJob>
+        }
+        groupBy: {
+          args: Prisma.BackgroundJobGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BackgroundJobGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BackgroundJobCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BackgroundJobCountAggregateOutputType> | number
+        }
+      }
+    }
+    RateLimit: {
+      payload: Prisma.$RateLimitPayload<ExtArgs>
+      fields: Prisma.RateLimitFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RateLimitFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RateLimitFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitPayload>
+        }
+        findFirst: {
+          args: Prisma.RateLimitFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RateLimitFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitPayload>
+        }
+        findMany: {
+          args: Prisma.RateLimitFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitPayload>[]
+        }
+        create: {
+          args: Prisma.RateLimitCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitPayload>
+        }
+        createMany: {
+          args: Prisma.RateLimitCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RateLimitCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitPayload>[]
+        }
+        delete: {
+          args: Prisma.RateLimitDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitPayload>
+        }
+        update: {
+          args: Prisma.RateLimitUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitPayload>
+        }
+        deleteMany: {
+          args: Prisma.RateLimitDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RateLimitUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RateLimitUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitPayload>[]
+        }
+        upsert: {
+          args: Prisma.RateLimitUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitPayload>
+        }
+        aggregate: {
+          args: Prisma.RateLimitAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRateLimit>
+        }
+        groupBy: {
+          args: Prisma.RateLimitGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RateLimitGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RateLimitCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RateLimitCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -5808,6 +6033,16 @@ export const RefreshTokenScalarFieldEnum = {
 export type RefreshTokenScalarFieldEnum = (typeof RefreshTokenScalarFieldEnum)[keyof typeof RefreshTokenScalarFieldEnum]
 
 
+export const RevokedJwtScalarFieldEnum = {
+  id: 'id',
+  tokenHash: 'tokenHash',
+  revokedAt: 'revokedAt',
+  expiresAt: 'expiresAt'
+} as const
+
+export type RevokedJwtScalarFieldEnum = (typeof RevokedJwtScalarFieldEnum)[keyof typeof RevokedJwtScalarFieldEnum]
+
+
 export const LoginHistoryScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -6215,6 +6450,31 @@ export const ReviewScalarFieldEnum = {
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
 
 
+export const BackgroundJobScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  status: 'status',
+  payload: 'payload',
+  error: 'error',
+  attempts: 'attempts',
+  maxAttempts: 'maxAttempts',
+  nextRetryAt: 'nextRetryAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BackgroundJobScalarFieldEnum = (typeof BackgroundJobScalarFieldEnum)[keyof typeof BackgroundJobScalarFieldEnum]
+
+
+export const RateLimitScalarFieldEnum = {
+  key: 'key',
+  count: 'count',
+  windowStart: 'windowStart'
+} as const
+
+export type RateLimitScalarFieldEnum = (typeof RateLimitScalarFieldEnum)[keyof typeof RateLimitScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -6531,6 +6791,7 @@ export type GlobalOmitConfig = {
   userRole?: Prisma.UserRoleOmit
   session?: Prisma.SessionOmit
   refreshToken?: Prisma.RefreshTokenOmit
+  revokedJwt?: Prisma.RevokedJwtOmit
   loginHistory?: Prisma.LoginHistoryOmit
   passwordReset?: Prisma.PasswordResetOmit
   emailVerification?: Prisma.EmailVerificationOmit
@@ -6560,6 +6821,8 @@ export type GlobalOmitConfig = {
   ferryRoute?: Prisma.FerryRouteOmit
   ferrySchedule?: Prisma.FerryScheduleOmit
   review?: Prisma.ReviewOmit
+  backgroundJob?: Prisma.BackgroundJobOmit
+  rateLimit?: Prisma.RateLimitOmit
 }
 
 /* Types for Logging */

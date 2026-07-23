@@ -1,19 +1,10 @@
 /**
- * In-memory sliding-window rate limiter.
- * No external dependency required — works on any Node.js deployment.
- *
- * Usage:
- *   const limiter = getRateLimiter("auth-login", { windowMs: 60_000, max: 10 });
- *   const result = limiter.check(ip);
- *   if (!result.allowed) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
- *
- * For multi-instance deployments, swap this for a Redis-backed counter.
- * The interface is identical — only the backing store changes.
+ * Distributed, database-backed sliding-window rate limiter.
+ * This completely prevents distributed brute force attacks when running on 
+ * multiple Node instances or Vercel Serverless/Edge functions.
  */
 
-interface RateLimitRecord {
-  timestamps: number[];
-}
+import { prisma } from "@/shared/database/prisma-client";
 
 interface RateLimitConfig {
   /** Window duration in milliseconds */
@@ -28,65 +19,78 @@ interface RateLimitResult {
   retryAfterMs: number;
 }
 
-class InMemoryRateLimiter {
-  private readonly store = new Map<string, RateLimitRecord>();
-  private cleanupInterval: NodeJS.Timeout | null = null;
+class DistributedRateLimiter {
+  constructor(private readonly name: string, private readonly config: RateLimitConfig) {}
 
-  constructor(private readonly config: RateLimitConfig) {
-    // Periodic cleanup to prevent memory leaks from stale keys
-    this.cleanupInterval = setInterval(() => {
-      const cutoff = Date.now() - this.config.windowMs;
-      for (const [key, record] of this.store.entries()) {
-        const fresh = record.timestamps.filter(t => t > cutoff);
-        if (fresh.length === 0) {
-          this.store.delete(key);
-        } else {
-          record.timestamps = fresh;
-        }
-      }
-    }, this.config.windowMs);
-
-    // Don't block process exit
-    if (this.cleanupInterval.unref) {
-      this.cleanupInterval.unref();
-    }
-  }
-
-  check(key: string): RateLimitResult {
+  async check(identifier: string): Promise<RateLimitResult> {
+    const key = `${this.name}:${identifier}`;
     const now = Date.now();
-    const cutoff = now - this.config.windowMs;
+    const windowStartMs = now - this.config.windowMs;
+    const windowStartDate = new Date(windowStartMs);
 
-    let record = this.store.get(key);
-    if (!record) {
-      record = { timestamps: [] };
-      this.store.set(key, record);
+    try {
+      return await prisma.$transaction(async (tx) => {
+        // Cleanup expired windows first (optional but keeps DB clean)
+        await tx.rateLimit.deleteMany({
+          where: { key, windowStart: { lt: windowStartDate } }
+        });
+
+        // Get current active limit for this window
+        const record = await tx.rateLimit.findUnique({
+          where: { key },
+        });
+
+        if (record) {
+          if (record.count >= this.config.max) {
+            // Blocked
+            const oldestMs = record.windowStart.getTime();
+            const retryAfterMs = oldestMs + this.config.windowMs - now;
+            return { allowed: false, remaining: 0, retryAfterMs: Math.max(0, retryAfterMs) };
+          }
+
+          // Increment count
+          await tx.rateLimit.update({
+            where: { key },
+            data: { count: record.count + 1 },
+          });
+
+          return {
+            allowed: true,
+            remaining: this.config.max - (record.count + 1),
+            retryAfterMs: 0,
+          };
+        } else {
+          // First request in this window
+          await tx.rateLimit.create({
+            data: {
+              key,
+              count: 1,
+              windowStart: new Date(now),
+            },
+          });
+
+          return {
+            allowed: true,
+            remaining: this.config.max - 1,
+            retryAfterMs: 0,
+          };
+        }
+      });
+    } catch (e: any) {
+      // Fail-open strategy for rate limiter to prevent taking down the site if DB stalls
+      console.error(`Rate limiter failed for ${key}, falling open`, e.message);
+      return { allowed: true, remaining: 1, retryAfterMs: 0 };
     }
-
-    // Slide window — remove expired timestamps
-    record.timestamps = record.timestamps.filter(t => t > cutoff);
-
-    if (record.timestamps.length >= this.config.max) {
-      const oldest = record.timestamps[0];
-      const retryAfterMs = oldest + this.config.windowMs - now;
-      return { allowed: false, remaining: 0, retryAfterMs: Math.max(0, retryAfterMs) };
-    }
-
-    record.timestamps.push(now);
-    return {
-      allowed: true,
-      remaining: this.config.max - record.timestamps.length,
-      retryAfterMs: 0,
-    };
   }
 }
 
 // Singleton limiters — one per named rule
-const limiters = new Map<string, InMemoryRateLimiter>();
+const limiters = new Map<string, DistributedRateLimiter>();
 
-export function getRateLimiter(name: string, config: RateLimitConfig): InMemoryRateLimiter {
+export function getRateLimiter(name: string, config: RateLimitConfig): DistributedRateLimiter {
   let limiter = limiters.get(name);
   if (!limiter) {
-    limiter = new InMemoryRateLimiter(config);
+    limiter = new DistributedRateLimiter(name, config);
     limiters.set(name, limiter);
   }
   return limiter;

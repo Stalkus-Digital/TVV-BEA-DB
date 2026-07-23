@@ -25,6 +25,7 @@ import type {
   TripJackSeatMapRequestDTO,
   TripJackSeatMapResponseDTO,
 } from "../dto";
+import CircuitBreaker from "opossum";
 
 /**
  * The raw HTTP boundary — the ONLY file in this connector that makes a
@@ -60,13 +61,33 @@ import type {
  * ⚠️  Endpoints must NOT have a trailing slash (TripJack returns an error).
  */
 export class TripJackClient {
+  private readonly circuitBreaker: CircuitBreaker<[string, RequestInit], Response>;
+
   constructor(
     private readonly config: TripJackConfig,
     private readonly auth: TripJackAuth,
     private readonly errorHandler: TripJackErrorHandler,
     private readonly responseParser: TripJackResponseParser,
     private readonly logger: Logger
-  ) {}
+  ) {
+    // SECURITY-003A: Circuit Breaker for TripJack APIs
+    // Protects Node.js threads from exhaustion if TripJack goes down
+    this.circuitBreaker = new CircuitBreaker(
+      async (url: string, init: RequestInit) => {
+        const response = await fetch(url, init);
+        // We only trigger circuit breaker opens on 5xx errors or timeouts.
+        if (response.status >= 500) {
+          throw new Error(`TripJack 5xx Error: ${response.status}`);
+        }
+        return response;
+      },
+      {
+        timeout: 15000, // 15s max per request
+        errorThresholdPercentage: 50, // Open if 50% fail
+        resetTimeout: 30000, // Try again after 30s
+      }
+    );
+  }
 
   /** Logs the outbound request — never logs the API key value itself. */
   private prepareRequestLog(operation: string, path: string, payload: unknown): void {
@@ -323,7 +344,8 @@ export class TripJackClient {
 
     while (attempt < maxRetries) {
       try {
-        const response = await fetch(`${this.config.get("apiUrl")}${path}`, {
+        const url = `${this.config.get("apiUrl")}${path}`;
+        const response = await this.circuitBreaker.fire(url, {
           method: "POST",
           // TripJack uses `apikey` header — NOT Authorization Bearer
           headers: { "Content-Type": "application/json", apikey: tokenResult.value },
@@ -342,9 +364,12 @@ export class TripJackClient {
           return err(this.errorHandler.toAppError({ statusCode: response.status, message: this.extractMessage(body) }));
         }
         return ok(body as T);
-      } catch (error) {
-        if (error instanceof Error && error.name === "AbortError") {
+      } catch (error: any) {
+        if (error instanceof Error && (error.name === "AbortError" || error.message.includes("Timed out"))) {
           return err(new TimeoutError(`TripJack ${operation} request timed out or was cancelled`));
+        }
+        if (error instanceof Error && error.message === "Breaker is open") {
+          return err(new InternalError(`TripJack circuit breaker is open. Service is currently degraded.`, { source: "tripjack", operation }));
         }
         if (attempt < maxRetries - 1) {
           attempt++;

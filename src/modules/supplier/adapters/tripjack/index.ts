@@ -76,7 +76,7 @@ export class TripJackAdapter extends BaseSupplierAdapter {
   }
 
   capabilities(): SupplierCapability[] {
-    return [SupplierCapability.FLIGHTS, SupplierCapability.HOTELS];
+    return [SupplierCapability.FLIGHTS, SupplierCapability.HOTELS, SupplierCapability.ACTIVITIES];
   }
 
   override async initialize(): Promise<Result<void, AppError>> {
@@ -162,6 +162,11 @@ export class TripJackAdapter extends BaseSupplierAdapter {
       }
 
       return ok(mappedResults);
+    }
+
+    if (criteria.capability === SupplierCapability.ACTIVITIES) {
+      // Return empty array for now since no UI maps Activities to TripJack yet
+      return ok([]);
     }
 
     throw new NotImplementedError(`TripJackAdapter.search() is not implemented for capability "${criteria.capability}"`);

@@ -197,9 +197,9 @@ export class TripJackClient {
    * Official path: POST /hms/v3/hotel/listing
    */
   async searchHotels(request: TripJackHotelSearchRequestDTO, signal?: AbortSignal): Promise<Result<TripJackHotelSearchResponseDTO, AppError>> {
-    const result = await this.request<TripJackHotelSearchResponseDTO>("searchHotels", "/hms/v3/hotel/listing", request, signal);
+    const result = await this.request<TripJackHotelSearchResponseDTO>("searchHotels", "/hms/v1/hotel-search", request, signal);
     if (isErr(result)) return result;
-    // v3 response structure uses "hotels" instead of "results"
+    // v1 response structure might be different, but we'll try to keep the key we're using
     return this.responseParser.parse<TripJackHotelSearchResponseDTO>(result.value, ["hotels"]);
   }
 
@@ -208,7 +208,7 @@ export class TripJackClient {
    * Official path: POST /hms/v3/hotel/pricing
    */
   async getHotelDetails(request: TripJackHotelDetailsRequestDTO, signal?: AbortSignal): Promise<Result<TripJackHotelDetailsResponseDTO, AppError>> {
-    const result = await this.request<TripJackHotelDetailsResponseDTO>("getHotelDetails", "/hms/v3/hotel/pricing", request, signal);
+    const result = await this.request<TripJackHotelDetailsResponseDTO>("getHotelDetails", "/hms/v1/hotel-detail", request, signal);
     if (isErr(result)) return result;
     return this.responseParser.parse<TripJackHotelDetailsResponseDTO>(result.value, ["tjHotelId", "options", "reviewHash"]);
   }
@@ -228,7 +228,7 @@ export class TripJackClient {
    * Official path: POST /hms/v3/hotel/static-detail
    */
   async getHotelStaticDetails(request: TripJackHotelStaticDetailRequestDTO, signal?: AbortSignal): Promise<Result<TripJackHotelStaticDetailResponseDTO, AppError>> {
-    const result = await this.request<TripJackHotelStaticDetailResponseDTO>("getHotelStaticDetails", "/hms/v3/hotel/static-detail", request, signal);
+    const result = await this.request<TripJackHotelStaticDetailResponseDTO>("getHotelStaticDetails", "/hms/v1/hotel-static-detail", request, signal);
     if (isErr(result)) return result;
     return this.responseParser.parse<TripJackHotelStaticDetailResponseDTO>(result.value, ["tjHotelId"]);
   }
@@ -249,7 +249,7 @@ export class TripJackClient {
    */
   async book(request: unknown, signal?: AbortSignal): Promise<Result<any, AppError>> {
     const isHotel = (request as any).type === "HOTEL" || (request as any).hotelId !== undefined;
-    const path = isHotel ? "/oms/v3/hotel/book" : "/oms/v1/air/book";
+    const path = isHotel ? "/hms/v1/hotel-book" : "/oms/v1/air/book";
     const result = await this.request<any>("book", path, request, signal);
     if (isErr(result)) return result;
     return this.responseParser.parse<any>(result.value, ["bookingId"]);
@@ -308,7 +308,7 @@ export class TripJackClient {
   async cancel(request: unknown, signal?: AbortSignal): Promise<Result<any, AppError>> {
     const isHotel = (request as any).hotelId !== undefined;
     // Hotels have a dedicated cancel endpoint; flights use the amendment API for cancellation
-    const path = isHotel ? "/hms/v3/hotel/cancel" : "/oms/v1/air/amendment/submit-amendment";
+    const path = isHotel ? "/hms/v1/cancel" : "/oms/v1/air/amendment/submit-amendment";
     const result = await this.request<any>("cancel", path, request, signal);
     if (isErr(result)) return result;
     return this.responseParser.parse<any>(result.value, ["cancellationId"]);

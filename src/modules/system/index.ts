@@ -1,2 +1,2 @@
 export * from "./services/job-queue.service";
-export { getJobQueueService } from "./module";
+export { getJobQueueService, getOpenAIService } from "./module";

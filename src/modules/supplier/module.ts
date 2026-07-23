@@ -59,8 +59,7 @@ if (!moduleRegistry.getModule(supplierModule.name)) {
     const service = container.resolve(SUPPLIER_SERVICE_TOKEN);
     const adapters: Supplier[] = [
       container.resolve(TRIPJACK_ADAPTER_TOKEN),
-      container.resolve(FERRY_ADAPTER_TOKEN),
-      container.resolve(MANUAL_ADAPTER_TOKEN),
+      container.resolve(FERRY_ADAPTER_TOKEN)
     ];
 
     for (const adapter of adapters) {

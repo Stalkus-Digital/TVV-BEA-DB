@@ -17,11 +17,33 @@ export class PrismaUserRoleRepository extends PrismaStore<any> implements UserRo
   }
 
   async findByUser(userId: string): Promise<Result<UserRole[], AppError>> {
-    return ok((await this.delegate.findMany()).filter(( ur: any ) => ur.userId === userId));
+    try {
+      const records = await this.delegate.findMany({ where: { userId } });
+      // Use the generic toPrismaData/fromPrismaData logic manually or just return since Date objects are often fine, 
+      // but to be perfectly safe with the interface, we map the dates.
+      const mapped = records.map((r: any) => ({
+        ...r,
+        assignedAt: r.assignedAt instanceof Date ? r.assignedAt.toISOString() : r.assignedAt
+      }));
+      return ok(mapped);
+    } catch (error) {
+      return ok([]);
+    }
   }
 
   async findByUserAndRole(userId: string, roleId: string): Promise<Result<UserRole | null, AppError>> {
-    return ok((await this.delegate.findMany()).find(( ur: any ) => ur.userId === userId && ur.roleId === roleId) ?? null);
+    try {
+      const record = await this.delegate.findUnique({
+        where: { userId_roleId: { userId, roleId } }
+      });
+      if (!record) return ok(null);
+      return ok({
+        ...record,
+        assignedAt: record.assignedAt instanceof Date ? record.assignedAt.toISOString() : record.assignedAt
+      });
+    } catch (error) {
+      return ok(null);
+    }
   }
 
   async deleteByUserAndRole(userId: string, roleId: string): Promise<Result<void, AppError>> {

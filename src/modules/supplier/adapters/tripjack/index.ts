@@ -325,43 +325,73 @@ export class TripJackAdapter extends BaseSupplierAdapter {
     });
   }
 
-  private toHotelSearchRequest(criteria: SupplierSearchCriteria): TripJackHotelSearchRequestDTO {
+  private toHotelSearchRequest(criteria: SupplierSearchCriteria): any {
+    const checkIn = this.normalizeDate(criteria.checkIn);
+    const checkOut = this.normalizeDate(criteria.checkOut);
+    const adults = this.normalizeNumber(criteria.guests) || this.normalizeNumber(criteria.adults) || 1;
+    
+    // Map to v3 roomInfo array
+    const roomInfo = Array.isArray(criteria.rooms)
+      ? criteria.rooms.map((r: any) => ({
+          numberOfAdults: r.adults || adults,
+          numberOfChild: r.children || 0,
+          childAge: r.childAge || [],
+        }))
+      : [{ numberOfAdults: Math.max(1, adults), numberOfChild: 0 }];
+
+    const hids = Array.isArray(criteria.hotelIds) 
+      ? criteria.hotelIds.map(id => String(id)) 
+      : undefined;
+
     return {
-      hids: Array.isArray(criteria.hotelIds) ? criteria.hotelIds.map(id => Number(id)) : (criteria.cityCode ? [] : []), // Ideally mapped from cityCode by UI
-      checkIn: typeof criteria.checkIn === "string" ? criteria.checkIn : "",
-      checkOut: typeof criteria.checkOut === "string" ? criteria.checkOut : "",
-      rooms: Array.isArray(criteria.rooms) ? (criteria.rooms as any) : [{ adults: 1 }],
-      currency: typeof criteria.currency === "string" ? criteria.currency : "INR",
-      nationality: typeof criteria.nationality === "string" ? criteria.nationality : "106",
-      correlationId: crypto.randomUUID(),
+      searchQuery: {
+        checkInDate: checkIn,
+        checkOutDate: checkOut,
+        roomInfo,
+        searchCriteria: {
+          city: criteria.cityCode || "BOM", // TripJack requires a city code if hotelIds are not provided
+          nationality: typeof criteria.nationality === "string" ? criteria.nationality : "106",
+          currency: typeof criteria.currency === "string" ? criteria.currency : "INR",
+          ...(hids && hids.length > 0 ? { hotelIds: hids } : {}),
+        },
+        searchPreferences: {
+          fsc: true
+        }
+      },
+      sync: true
     };
   }
 
   private toFlightSearchRequest(criteria: SupplierSearchCriteria): TripJackFlightSearchRequestDTO {
+    const origin = this.normalizeCode(criteria.origin);
+    const destination = this.normalizeCode(criteria.destination);
+    const departureDate = this.normalizeDate(criteria.departureDate);
+    const returnDate = this.normalizeDate(criteria.returnDate);
+
     const routeInfos: TripJackFlightSearchRequestDTO["searchQuery"]["routeInfos"] = [
       {
-        fromCityOrAirport: { code: typeof criteria.origin === "string" ? criteria.origin : "" },
-        toCityOrAirport: { code: typeof criteria.destination === "string" ? criteria.destination : "" },
-        travelDate: typeof criteria.departureDate === "string" ? criteria.departureDate : "",
+        fromCityOrAirport: { code: origin },
+        toCityOrAirport: { code: destination },
+        travelDate: departureDate,
       },
     ];
 
     // Return flights: add a second leg
-    if (typeof criteria.returnDate === "string" && criteria.returnDate) {
+    if (returnDate) {
       routeInfos.push({
-        fromCityOrAirport: { code: typeof criteria.destination === "string" ? criteria.destination : "" },
-        toCityOrAirport: { code: typeof criteria.origin === "string" ? criteria.origin : "" },
-        travelDate: criteria.returnDate,
+        fromCityOrAirport: { code: destination },
+        toCityOrAirport: { code: origin },
+        travelDate: returnDate,
       });
     }
 
     return {
       searchQuery: {
-        cabinClass: criteria.cabinClass as TripJackFlightSearchRequestDTO["searchQuery"]["cabinClass"] ?? "ECONOMY",
+        cabinClass: this.normalizeCabinClass(criteria.cabinClass),
         paxInfo: {
-          ADULT: typeof criteria.adults === "number" ? criteria.adults : 1,
-          ...(typeof criteria.children === "number" && criteria.children > 0 ? { CHILD: criteria.children } : {}),
-          ...(typeof criteria.infants === "number" && criteria.infants > 0 ? { INFANT: criteria.infants } : {}),
+          ADULT: this.normalizeNumber(criteria.adults) || 1,
+          ...(this.normalizeNumber(criteria.children) && this.normalizeNumber(criteria.children)! > 0 ? { CHILD: this.normalizeNumber(criteria.children)! } : {}),
+          ...(this.normalizeNumber(criteria.infants) && this.normalizeNumber(criteria.infants)! > 0 ? { INFANT: this.normalizeNumber(criteria.infants)! } : {}),
         },
         routeInfos,
         searchModifiers: {
@@ -369,5 +399,43 @@ export class TripJackAdapter extends BaseSupplierAdapter {
         },
       },
     };
+  }
+
+  private normalizeCode(value: unknown): string {
+    if (typeof value !== "string") return "";
+    return value.trim().toUpperCase();
+  }
+
+  private normalizeDate(value: unknown): string {
+    if (typeof value !== "string") return "";
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    const isoMatch = trimmed.match(/^\d{4}-\d{2}-\d{2}$/);
+    if (isoMatch) return trimmed;
+    const parsed = new Date(trimmed);
+    return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().split("T")[0];
+  }
+
+  private normalizeNumber(value: unknown): number | undefined {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string" && value.trim()) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : undefined;
+    }
+    return undefined;
+  }
+
+  private normalizeCabinClass(value: unknown): TripJackFlightSearchRequestDTO["searchQuery"]["cabinClass"] {
+    switch (typeof value === "string" ? value.trim().toUpperCase() : "") {
+      case "PREMIUM_ECONOMY":
+      case "PREMIUM":
+        return "PREMIUM_ECONOMY";
+      case "BUSINESS":
+        return "BUSINESS";
+      case "FIRST":
+        return "FIRST";
+      default:
+        return "ECONOMY";
+    }
   }
 }

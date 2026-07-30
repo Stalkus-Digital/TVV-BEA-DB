@@ -5,7 +5,7 @@ import { jsonSuccess, jsonError } from "@/api/http";
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const landingPage = await prisma.landingPage.findUnique({
-      where: { id: (await context.params).id }
+      where: { id: (await context.params).id },
     });
     if (!landingPage) {
       return NextResponse.json({ success: false, error: "Landing page not found" }, { status: 404 });
@@ -23,7 +23,14 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 
     const landingPage = await prisma.landingPage.update({
       where: { id: (await context.params).id },
-      data: { title, slug, heroSection, packages, faqSection, content }
+      data: {
+        title: title?.trim() ?? undefined,
+        slug: slug?.trim() || undefined,
+        heroSection: heroSection ?? undefined,
+        packages: packages ?? undefined,
+        faqSection: faqSection ?? undefined,
+        content: content ?? undefined,
+      },
     });
 
     return jsonSuccess(landingPage);
@@ -35,7 +42,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     await prisma.landingPage.delete({
-      where: { id: (await context.params).id }
+      where: { id: (await context.params).id },
     });
     return jsonSuccess({ success: true });
   } catch (error) {

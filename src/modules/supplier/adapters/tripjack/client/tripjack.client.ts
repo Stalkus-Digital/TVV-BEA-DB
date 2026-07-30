@@ -197,7 +197,7 @@ export class TripJackClient {
    * Official path: POST /hms/v3/hotel/listing
    */
   async searchHotels(request: TripJackHotelSearchRequestDTO, signal?: AbortSignal): Promise<Result<TripJackHotelSearchResponseDTO, AppError>> {
-    const result = await this.request<TripJackHotelSearchResponseDTO>("searchHotels", "/hms/v1/hotel-search", request, signal);
+    const result = await this.request<TripJackHotelSearchResponseDTO>("searchHotels", "/hms/v3/hotel/listing", request, signal);
     if (isErr(result)) return result;
     // v1 response structure might be different, but we'll try to keep the key we're using
     return this.responseParser.parse<TripJackHotelSearchResponseDTO>(result.value, ["hotels"]);
@@ -208,7 +208,7 @@ export class TripJackClient {
    * Official path: POST /hms/v3/hotel/pricing
    */
   async getHotelDetails(request: TripJackHotelDetailsRequestDTO, signal?: AbortSignal): Promise<Result<TripJackHotelDetailsResponseDTO, AppError>> {
-    const result = await this.request<TripJackHotelDetailsResponseDTO>("getHotelDetails", "/hms/v1/hotel-detail", request, signal);
+    const result = await this.request<TripJackHotelDetailsResponseDTO>("getHotelDetails", "/hms/v3/hotel/pricing", request, signal);
     if (isErr(result)) return result;
     return this.responseParser.parse<TripJackHotelDetailsResponseDTO>(result.value, ["tjHotelId", "options", "reviewHash"]);
   }
@@ -228,7 +228,7 @@ export class TripJackClient {
    * Official path: POST /hms/v3/hotel/static-detail
    */
   async getHotelStaticDetails(request: TripJackHotelStaticDetailRequestDTO, signal?: AbortSignal): Promise<Result<TripJackHotelStaticDetailResponseDTO, AppError>> {
-    const result = await this.request<TripJackHotelStaticDetailResponseDTO>("getHotelStaticDetails", "/hms/v1/hotel-static-detail", request, signal);
+    const result = await this.request<TripJackHotelStaticDetailResponseDTO>("getHotelStaticDetails", "/hms/v3/hotel/static-detail", request, signal);
     if (isErr(result)) return result;
     return this.responseParser.parse<TripJackHotelStaticDetailResponseDTO>(result.value, ["tjHotelId"]);
   }
@@ -249,7 +249,7 @@ export class TripJackClient {
    */
   async book(request: unknown, signal?: AbortSignal): Promise<Result<any, AppError>> {
     const isHotel = (request as any).type === "HOTEL" || (request as any).hotelId !== undefined;
-    const path = isHotel ? "/hms/v1/hotel-book" : "/oms/v1/air/book";
+    const path = isHotel ? "/hms/v3/hotel/book" : "/oms/v1/air/book";
     const result = await this.request<any>("book", path, request, signal);
     if (isErr(result)) return result;
     return this.responseParser.parse<any>(result.value, ["bookingId"]);
@@ -344,16 +344,18 @@ export class TripJackClient {
 
     while (attempt < maxRetries) {
       try {
-        const url = `${this.config.get("apiUrl")}${path}`;
+        const baseUrl = (this.config.get("apiUrl") || "").replace(/\/+$/, "");
+        const url = `${baseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
         const response = await this.circuitBreaker.fire(url, {
           method: "POST",
           // TripJack uses `apikey` header — NOT Authorization Bearer
-          headers: { "Content-Type": "application/json", apikey: tokenResult.value },
+          headers: { Accept: "application/json", "Content-Type": "application/json", apikey: tokenResult.value },
           body: JSON.stringify(payload),
           signal,
         });
 
-        const body: unknown = await response.json().catch(() => null);
+        const rawBody = await response.text();
+        const body: unknown = this.parseBody(rawBody);
 
         if (!response.ok) {
           if (response.status >= 500 && attempt < maxRetries - 1) {
@@ -361,7 +363,7 @@ export class TripJackClient {
             await new Promise(res => setTimeout(res, attempt * 1000));
             continue;
           }
-          return err(this.errorHandler.toAppError({ statusCode: response.status, message: this.extractMessage(body) }));
+          return err(this.errorHandler.toAppError({ statusCode: response.status, message: this.extractMessage(body), details: body }));
         }
         return ok(body as T);
       } catch (error: any) {
@@ -383,9 +385,32 @@ export class TripJackClient {
   }
 
   private extractMessage(body: unknown): string | undefined {
-    if (typeof body === "object" && body !== null && "message" in body && typeof (body as Record<string, unknown>).message === "string") {
-      return (body as Record<string, unknown>).message as string;
+    if (typeof body === "string" && body.trim()) return body.trim();
+    if (typeof body === "object" && body !== null) {
+      const record = body as Record<string, unknown>;
+      if (typeof record.message === "string" && record.message.trim()) return record.message.trim();
+      if (record.error && typeof record.error === "object") {
+        const errorRecord = record.error as Record<string, unknown>;
+        if (typeof errorRecord.message === "string" && errorRecord.message.trim()) return errorRecord.message.trim();
+      }
+      if (Array.isArray(record.errors)) {
+        for (const item of record.errors) {
+          if (item && typeof item === "object") {
+            const errorRecord = item as Record<string, unknown>;
+            if (typeof errorRecord.message === "string" && errorRecord.message.trim()) return errorRecord.message.trim();
+          }
+        }
+      }
     }
     return undefined;
+  }
+
+  private parseBody(rawBody: string): unknown {
+    if (!rawBody.trim()) return null;
+    try {
+      return JSON.parse(rawBody);
+    } catch {
+      return rawBody;
+    }
   }
 }

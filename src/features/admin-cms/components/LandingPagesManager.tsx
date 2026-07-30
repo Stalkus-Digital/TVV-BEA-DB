@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { CmsPageShell } from "./CmsPageShell";
 import { adminApiClient } from "@/lib/admin-api/client";
+import { getAccessToken } from "@/lib/admin-api/token";
 
 export function LandingPagesManager() {
   const [pages, setPages] = useState<any[]>([]);
@@ -64,6 +65,27 @@ export function LandingPagesManager() {
       fetchPages();
     } catch (err) {
       alert("Failed to delete landing page");
+    }
+  }
+
+  async function handleExport(pageId: string, format: string) {
+    try {
+      const token = getAccessToken();
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch(`/api/admin/landing-pages/${pageId}/export?format=${format}`, { headers });
+      if (!res.ok) throw new Error("Failed to export");
+      
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `landing-page-${pageId}.${format}`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Export failed");
     }
   }
 
@@ -230,8 +252,8 @@ export function LandingPagesManager() {
                 <p className="text-sm text-muted-foreground">/{page.slug}</p>
               </div>
               <div className="flex gap-2 items-center">
-                <button className="px-3 py-1 text-sm border rounded hover:bg-muted text-emerald-600" onClick={() => window.open(`/api/admin/landing-pages/${page.id}/export?format=html`, '_blank')}>Export HTML</button>
-                <button className="px-3 py-1 text-sm border rounded hover:bg-muted text-emerald-600" onClick={() => window.open(`/api/admin/landing-pages/${page.id}/export?format=php`, '_blank')}>Export PHP</button>
+                <button className="px-3 py-1 text-sm border rounded hover:bg-muted text-emerald-600" onClick={() => handleExport(page.id, "html")}>Export HTML</button>
+                <button className="px-3 py-1 text-sm border rounded hover:bg-muted text-emerald-600" onClick={() => handleExport(page.id, "php")}>Export PHP</button>
                 <button className="px-3 py-1 text-sm border rounded hover:bg-muted ml-4" onClick={() => { setForm(page); setIsEditing(true); }}>Edit</button>
                 <button className="px-3 py-1 text-sm border rounded text-destructive hover:bg-destructive/10" onClick={() => setPageToDelete(page.id)}>Delete</button>
               </div>

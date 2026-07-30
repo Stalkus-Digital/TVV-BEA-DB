@@ -2,6 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { type GeneratedPackage } from "@/modules/package/services/ai-generator.service";
+import { adminApiClient } from "@/lib/admin-api/client";
 
 interface AiGenerateInput {
   prompt: string;
@@ -19,16 +20,11 @@ export type AiGenerateResult = GeneratedPackage & {
 export function useAiGenerateMutation() {
   return useMutation({
     mutationFn: async (input: AiGenerateInput): Promise<AiGenerateResult> => {
-      const res = await fetch("/api/admin/ai/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(input),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(typeof body.error === "string" ? body.error : "Failed to generate package");
+      const result = await adminApiClient.post<AiGenerateResult>("/api/admin/ai/generate", input);
+      if (!result) {
+        throw new Error("Failed to generate package (No response)");
       }
-      return body as AiGenerateResult;
+      return result;
     },
   });
 }

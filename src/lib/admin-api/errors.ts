@@ -32,9 +32,20 @@ export class ApiError extends Error {
 }
 
 export function fromStatus(status: number, body?: unknown): ApiError {
+  let extractedMessage: string | undefined;
+
+  if (body && typeof body === "object" && "error" in body) {
+    const errorData = (body as { error: unknown }).error;
+    if (typeof errorData === "string") {
+      extractedMessage = errorData;
+    } else if (typeof errorData === "object" && errorData !== null && "message" in errorData && typeof (errorData as { message: unknown }).message === "string") {
+      extractedMessage = (errorData as { message: string }).message;
+    }
+  }
+
   const message =
-    body && typeof body === "object" && "error" in body && typeof (body as { error?: { message?: string } }).error?.message === "string"
-      ? (body as { error: { message: string } }).error.message
+    extractedMessage
+      ? extractedMessage
       : status === 401
         ? "Authentication required"
         : status === 403

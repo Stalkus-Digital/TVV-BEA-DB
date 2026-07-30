@@ -3,6 +3,7 @@ import { getAiGeneratorService, getAIPackageBuilder } from "@/modules/package";
 import { isErr } from "@/shared/types";
 import { createLogger } from "@/shared/logger";
 import { prisma } from "@/shared/database/prisma-client";
+import { jsonSuccess, jsonError } from "@/api/http";
 
 const logger = createLogger("api.admin.ai");
 
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
     const { prompt, destination, duration, budget } = payload;
 
     if (!prompt || !destination || !duration || !budget) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return jsonError(new Error("Missing required fields"), { status: 400 });
     }
 
     const aiService = getAiGeneratorService();
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
 
     if (isErr(result)) {
       const status = result.error.name === "ValidationError" ? 400 : 500;
-      return NextResponse.json({ error: result.error.message }, { status });
+      return jsonError(result.error, { status });
     }
 
     const pkgData = result.value;
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
     if (!destId) {
       logger.warn("No destinations exist in DB to anchor AI package. Returning without persistence.");
       warnings.push("Package generated but not saved — no destination in the database.");
-      return NextResponse.json({ ...pkgData, warnings });
+      return jsonSuccess({ ...pkgData, warnings });
     }
 
     const builder = getAIPackageBuilder();
@@ -67,14 +68,14 @@ export async function POST(req: Request) {
     if (isErr(buildResult)) {
       logger.error("Failed to persist AI package", { error: buildResult.error.message });
       warnings.push(`Package generated but not saved: ${buildResult.error.message}`);
-      return NextResponse.json({
+      return jsonSuccess({
         ...pkgData,
         warnings,
         persistError: buildResult.error.message,
       });
     }
 
-    return NextResponse.json({
+    return jsonSuccess({
       ...pkgData,
       warnings,
       persistedPackageId: buildResult.value.id,
@@ -82,6 +83,6 @@ export async function POST(req: Request) {
   } catch (error) {
     logger.error("Error in AI package generation route", { error });
     const message = error instanceof Error ? error.message : "Internal Server Error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return jsonError(new Error(message), { status: 500 });
   }
 }

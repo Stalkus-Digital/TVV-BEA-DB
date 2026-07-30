@@ -343,7 +343,17 @@ export class TripJackClient {
 
     while (attempt < maxRetries) {
       try {
-        const baseUrl = (this.config.get("apiUrl") || "").replace(/\/+$/, "");
+        let baseUrl = (this.config.get("apiUrl") || "").replace(/\/+$/, "");
+        
+        // Dynamically route Hotel endpoints to correct subdomains for UAT
+        if (baseUrl.includes("apitest.tripjack.com")) {
+          if (path.startsWith("/hms")) {
+            baseUrl = baseUrl.replace("apitest.tripjack.com", "apitest-hms.tripjack.com");
+          } else if (path.startsWith("/oms/v3/hotel")) {
+            baseUrl = baseUrl.replace("apitest.tripjack.com", "apitest-hotel-booker.tripjack.com");
+          }
+        }
+
         const url = `${baseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
         const response = await this.circuitBreaker.fire(url, {
           method: "POST",

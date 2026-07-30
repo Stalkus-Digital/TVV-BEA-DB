@@ -130,7 +130,7 @@ export class TripJackAdapter extends BaseSupplierAdapter {
       if (isErr(result)) return result;
       return ok(
         result.value.hotels.map((dto) => ({
-          referenceId: encodeReference(HOTEL_REFERENCE_PREFIX, dto.tjHotelId, result.value.correlationId ?? "none"),
+          referenceId: encodeReference(HOTEL_REFERENCE_PREFIX, dto.tjHotelId, result.value.searchId ?? "none"),
           ...this.hotelMapper.toInventoryHotel(dto),
         }))
       );
@@ -285,13 +285,8 @@ export class TripJackAdapter extends BaseSupplierAdapter {
     const rooms = context?.rooms ?? [{ adults: 1 }];
 
     const result = await this.client.getHotelDetails({
-      hid: hotelId,
-      correlationId,
-      checkIn,
-      checkOut,
-      currency,
-      nationality,
-      rooms,
+      searchId: correlationId,
+      hotelId: hotelId,
     });
     if (isErr(result)) return result;
 
@@ -330,35 +325,28 @@ export class TripJackAdapter extends BaseSupplierAdapter {
     const checkOut = this.normalizeDate(criteria.checkOut);
     const adults = this.normalizeNumber(criteria.guests) || this.normalizeNumber(criteria.adults) || 1;
     
-    // Map to v3 roomInfo array
+    // Map to v3 room array
     const roomInfo = Array.isArray(criteria.rooms)
       ? criteria.rooms.map((r: any) => ({
-          numberOfAdults: r.adults || adults,
-          numberOfChild: r.children || 0,
+          adults: r.adults || adults,
+          children: r.children || 0,
           childAge: r.childAge || [],
         }))
-      : [{ numberOfAdults: Math.max(1, adults), numberOfChild: 0 }];
+      : [{ adults: Math.max(1, adults), children: 0 }];
 
     const hids = Array.isArray(criteria.hotelIds) 
       ? criteria.hotelIds.map(id => String(id)) 
       : undefined;
 
     return {
-      searchQuery: {
-        checkInDate: checkIn,
-        checkOutDate: checkOut,
-        roomInfo,
-        searchCriteria: {
-          city: criteria.cityCode || "BOM", // TripJack requires a city code if hotelIds are not provided
-          nationality: typeof criteria.nationality === "string" ? criteria.nationality : "106",
-          currency: typeof criteria.currency === "string" ? criteria.currency : "INR",
-          ...(hids && hids.length > 0 ? { hotelIds: hids } : {}),
-        },
-        searchPreferences: {
-          fsc: true
-        }
-      },
-      sync: true
+      checkIn: checkIn,
+      checkOut: checkOut,
+      rooms: roomInfo,
+      currency: typeof criteria.currency === "string" ? criteria.currency : "INR",
+      nationality: typeof criteria.nationality === "string" ? criteria.nationality : "106",
+      ...(hids && hids.length > 0 ? { hids: hids.map(Number) } : { cityCode: criteria.cityCode || "BOM" }),
+      correlationId: `tj-${Date.now()}`,
+      timeoutMs: 13000
     };
   }
 
@@ -395,7 +383,7 @@ export class TripJackAdapter extends BaseSupplierAdapter {
         },
         routeInfos,
         searchModifiers: {
-          pfts: "REGULAR",
+          pfts: ["REGULAR"],
         },
       },
     };

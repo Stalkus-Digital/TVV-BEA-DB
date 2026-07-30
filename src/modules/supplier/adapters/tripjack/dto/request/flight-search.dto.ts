@@ -26,7 +26,7 @@ export interface TripJackPaxInfoDTO {
 export interface TripJackSearchModifiersDTO {
   isDirectFlight?: boolean;
   isConnectingFlight?: boolean;
-  pfts?: "REGULAR" | "STUDENT" | "SENIOR_CITIZEN"; // default: REGULAR
+  pfts?: ("REGULAR" | "STUDENT" | "SENIOR_CITIZEN")[]; // default: REGULAR
 }
 
 export interface TripJackFlightSearchRequestDTO {

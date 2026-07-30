@@ -4,16 +4,6 @@
  */
 
 export interface TripJackHotelDetailsRequestDTO {
-  correlationId?: string;
-  hid: string; // TripJack hotel identifier (tjHotelId)
-  checkIn: string; // YYYY-MM-DD
-  checkOut: string; // YYYY-MM-DD
-  rooms: {
-    adults: number;
-    children?: number;
-    childAge?: number[]; // Required if children > 0
-  }[];
-  currency: string;
-  nationality: string;
-  timeoutMs?: number;
+  searchId: string;
+  hotelId: string;
 }

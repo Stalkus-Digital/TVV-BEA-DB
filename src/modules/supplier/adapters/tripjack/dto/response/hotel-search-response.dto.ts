@@ -51,6 +51,7 @@ export interface TripJackHotelListingResultDTO {
 }
 
 export interface TripJackHotelSearchResponseDTO {
+  searchId?: string;
   correlationId?: string;
   nationality?: string;
   currency?: string;

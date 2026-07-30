@@ -199,7 +199,6 @@ export class TripJackClient {
   async searchHotels(request: TripJackHotelSearchRequestDTO, signal?: AbortSignal): Promise<Result<TripJackHotelSearchResponseDTO, AppError>> {
     const result = await this.request<TripJackHotelSearchResponseDTO>("searchHotels", "/hms/v3/hotel/listing", request, signal);
     if (isErr(result)) return result;
-    // v1 response structure might be different, but we'll try to keep the key we're using
     return this.responseParser.parse<TripJackHotelSearchResponseDTO>(result.value, ["hotels"]);
   }
 
@@ -344,7 +343,14 @@ export class TripJackClient {
 
     while (attempt < maxRetries) {
       try {
-        const baseUrl = (this.config.get("apiUrl") || "").replace(/\/+$/, "");
+        let baseUrl = (this.config.get("apiUrl") || "").replace(/\/+$/, "");
+        if (path.startsWith("/hms") && baseUrl.includes("apitest.tripjack.com")) {
+          baseUrl = baseUrl.replace("apitest.tripjack.com", "apitest-hms.tripjack.com");
+        }
+        if (path.startsWith("/hms") && baseUrl.includes("api.tripjack.com")) {
+          baseUrl = baseUrl.replace("api.tripjack.com", "api-hms.tripjack.com");
+        }
+        
         const url = `${baseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
         const response = await this.circuitBreaker.fire(url, {
           method: "POST",

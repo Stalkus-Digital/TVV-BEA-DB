@@ -366,10 +366,15 @@ export class TripJackAdapter extends BaseSupplierAdapter {
 
     // Return flights: add a second leg
     if (returnDate) {
+      // FIX: Ensure return date is not earlier than departure date (fixes TripJack error 1003)
+      const depTime = new Date(departureDate).getTime();
+      const retTime = new Date(returnDate).getTime();
+      const validReturnDate = (retTime >= depTime) ? returnDate : departureDate;
+
       routeInfos.push({
         fromCityOrAirport: { code: destination },
         toCityOrAirport: { code: origin },
-        travelDate: returnDate,
+        travelDate: validReturnDate,
       });
     }
 

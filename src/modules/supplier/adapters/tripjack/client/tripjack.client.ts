@@ -116,7 +116,7 @@ export class TripJackClient {
       const { redis } = await import("@/shared/lib/redis");
       const cached = await redis?.get(cacheKey);
       if (cached) return ok(JSON.parse(cached));
-    } catch(e) {}
+    } catch (e) { }
 
     const result = await this.request<TripJackFlightSearchResponseDTO>("searchFlights", "/fms/v1/air-search-all", request, signal);
     if (isErr(result)) return result;
@@ -127,7 +127,7 @@ export class TripJackClient {
       try {
         const { redis } = await import("@/shared/lib/redis");
         await redis?.setex(cacheKey, 300, JSON.stringify(parsed.value));
-      } catch(e) {}
+      } catch (e) { }
     }
     return parsed;
   }
@@ -350,7 +350,7 @@ export class TripJackClient {
         if (path.startsWith("/hms") && baseUrl.includes("api.tripjack.com")) {
           baseUrl = baseUrl.replace("api.tripjack.com", "api-hms.tripjack.com");
         }
-        
+
         const url = `${baseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
         const response = await this.circuitBreaker.fire(url, {
           method: "POST",

@@ -82,7 +82,7 @@ export class TripJackClient {
         return response;
       },
       {
-        timeout: 15000, // 15s max per request
+        timeout: 25000, // 25s max per request
         errorThresholdPercentage: 50, // Open if 50% fail
         resetTimeout: 30000, // Try again after 30s
       }
@@ -343,14 +343,7 @@ export class TripJackClient {
 
     while (attempt < maxRetries) {
       try {
-        let baseUrl = (this.config.get("apiUrl") || "").replace(/\/+$/, "");
-        if (path.startsWith("/hms") && baseUrl.includes("apitest.tripjack.com")) {
-          baseUrl = baseUrl.replace("apitest.tripjack.com", "apitest-hms.tripjack.com");
-        }
-        if (path.startsWith("/hms") && baseUrl.includes("api.tripjack.com")) {
-          baseUrl = baseUrl.replace("api.tripjack.com", "api-hms.tripjack.com");
-        }
-
+        const baseUrl = (this.config.get("apiUrl") || "").replace(/\/+$/, "");
         const url = `${baseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
         const response = await this.circuitBreaker.fire(url, {
           method: "POST",

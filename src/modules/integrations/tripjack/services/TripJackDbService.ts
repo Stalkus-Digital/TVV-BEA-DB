@@ -10,8 +10,8 @@ export class TripJackDbService {
           where: { name },
           update: {}, // No fields to update for now
           create: { name }
-        })
-      )
+      ),
+      { maxWait: 10000, timeout: 60000 }
     );
   }
 
@@ -36,7 +36,8 @@ export class TripJackDbService {
             fullRegionName: city.fullRegionName,
           }
         })
-      )
+      ),
+      { maxWait: 10000, timeout: 60000 }
     );
   }
 
@@ -53,7 +54,8 @@ export class TripJackDbService {
             unicaId: mapping.unicaId
           }
         })
-      )
+      ),
+      { maxWait: 10000, timeout: 60000 }
     );
   }
 
@@ -96,7 +98,8 @@ export class TripJackDbService {
             descriptions: hotel.descriptions ?? {},
           }
         })
-      )
+      ),
+      { maxWait: 10000, timeout: 60000 }
     );
   }
 }

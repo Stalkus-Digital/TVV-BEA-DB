@@ -5,8 +5,19 @@ export class TripJackApiClientService {
   private client: AxiosInstance;
 
   constructor() {
+    // Ensure the baseURL correctly targets the HMS specific subdomain and path
+    let baseUrl = process.env.TRIPJACK_API_URL || 'https://apitest.tripjack.com';
+    baseUrl = baseUrl.replace(/\/+$/, ''); // remove trailing slash
+    
+    // If the base URL is the standard TripJack one, inject '-hms'
+    if (baseUrl.includes('apitest.tripjack.com')) {
+      baseUrl = baseUrl.replace('apitest.tripjack.com', 'apitest-hms.tripjack.com');
+    } else if (baseUrl.includes('tripjack.com') && !baseUrl.includes('hms')) {
+      baseUrl = baseUrl.replace('tripjack.com', 'hms.tripjack.com');
+    }
+
     this.client = axios.create({
-      baseURL: process.env.TRIPJACK_API_URL || 'https://apitest-hms.tripjack.com/hms',
+      baseURL: `${baseUrl}/hms/v3/content`,
       headers: {
         'apikey': process.env.TRIPJACK_API_KEY || '',
         'Content-Type': 'application/json'
@@ -24,7 +35,7 @@ export class TripJackApiClientService {
   }
 
   async fetchCountries(): Promise<string[]> {
-    const response = await this.client.get('/v3/content/fetch-countries');
+    const response = await this.client.get('/fetch-countries');
     const data = response.data;
     
     if (!data.status?.success) {
@@ -35,7 +46,7 @@ export class TripJackApiClientService {
   }
 
   async fetchCityRegionIds(limit: number = 2000, cursor?: string): Promise<{ data: any[], nextCursor?: string, hasMore: boolean }> {
-    const response = await this.client.get('/v3/content/fetch-city-regionIds', {
+    const response = await this.client.get('/fetch-city-regionIds', {
       params: { limit, cursor }
     });
     const data = response.data;
@@ -56,7 +67,7 @@ export class TripJackApiClientService {
     if (countryName) payload.countryName = countryName;
     if (regionIds && regionIds.length > 0) payload.regionIds = regionIds;
 
-    const response = await this.client.post('/v3/content/fetch-hotel-mapping', payload);
+    const response = await this.client.post('/fetch-hotel-mapping', payload);
     const data = response.data;
 
     if (!data.status?.success) {
@@ -74,7 +85,7 @@ export class TripJackApiClientService {
       throw new Error('Maximum 100 hotel IDs allowed per request for fetch-hotel-content');
     }
 
-    const response = await this.client.post('/v3/content/fetch-hotel-content', { hotelIds });
+    const response = await this.client.post('/fetch-hotel-content', { hotelIds });
     const data = response.data;
 
     if (!data.status?.success) {

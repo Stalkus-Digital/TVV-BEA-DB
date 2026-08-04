@@ -1,8 +1,11 @@
 import axios, { AxiosInstance } from 'axios';
-import { z } from 'zod';
+import { TripJackConfig } from '@/modules/supplier/adapters/tripjack/config/tripjack.config';
+import { TripJackAuth } from '@/modules/supplier/adapters/tripjack/services/tripjack-auth.service';
+import { createLogger } from '@/shared/logger';
 
 export class TripJackApiClientService {
   private client: AxiosInstance;
+  private auth: TripJackAuth;
 
   constructor() {
     // Ensure the baseURL correctly targets the HMS specific subdomain and path
@@ -19,9 +22,23 @@ export class TripJackApiClientService {
     this.client = axios.create({
       baseURL: `${baseUrl}/hms/v3/content`,
       headers: {
-        'apikey': process.env.TRIPJACK_API_KEY || '',
         'Content-Type': 'application/json'
       }
+    });
+
+    // Dynamically resolve the auth token using the official TripJackAuth flow
+    // This supports both static TRIPJACK_TOKEN from .env, OR dynamic agencyId/password login
+    const config = TripJackConfig.getInstance();
+    this.auth = new TripJackAuth(config, createLogger('TripJackBackgroundWorker'));
+
+    this.client.interceptors.request.use(async (req) => {
+      // Must refresh config from DB before each run in case admin updated credentials
+      await config.refreshFromIntegrations();
+      const tokenResult = await this.auth.getToken();
+      if ('value' in tokenResult && typeof tokenResult.value === 'string') {
+        req.headers['apikey'] = tokenResult.value;
+      }
+      return req;
     });
 
     this.client.interceptors.response.use(

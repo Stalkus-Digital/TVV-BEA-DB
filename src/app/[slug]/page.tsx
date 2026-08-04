@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/shared/database/prisma-client";
 import { DestinationHero } from "@/features/destination-landing/components/DestinationHero";
 import { PackageShowcase } from "@/features/destination-landing/components/PackageShowcase";
+import { HotelShowcase } from "@/features/destination-landing/components/HotelShowcase";
 import { ValueProposition } from "@/features/destination-landing/components/ValueProposition";
 import { InclusionsExclusions } from "@/features/destination-landing/components/InclusionsExclusions";
 import { ItineraryTimeline } from "@/features/destination-landing/components/ItineraryTimeline";
@@ -76,6 +77,12 @@ export default async function DestinationLandingPage({ params }: PageProps) {
   const heroImage = heroSection.imageUrl || gallery?.images?.[0] || "/placeholder-destination.jpg";
   const displayDestName = destination?.name || customLandingPage?.title || slug;
 
+  // 5. Fetch Hotels from TripJack local sync
+  const tjHotels = await prisma.tjHotel.findMany({
+    where: { city: { cityName: { contains: displayDestName, mode: "insensitive" } } },
+    take: 8,
+  });
+
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900">
       <DestinationHero 
@@ -98,6 +105,14 @@ export default async function DestinationLandingPage({ params }: PageProps) {
           title="Romantic Escapes & Honeymoons" 
           subtitle="Make your special moments unforgettable with our curated couple packages." 
           packages={honeymoons} 
+        />
+      )}
+
+      {tjHotels.length > 0 && (
+        <HotelShowcase 
+          title={`Luxury Stays in ${displayDestName}`}
+          subtitle="Top Rated Hotels"
+          hotels={tjHotels}
         />
       )}
 

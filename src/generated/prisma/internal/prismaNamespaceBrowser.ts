@@ -117,7 +117,15 @@ export const ModelName = {
   FerrySchedule: 'FerrySchedule',
   Review: 'Review',
   BackgroundJob: 'BackgroundJob',
-  RateLimit: 'RateLimit'
+  RateLimit: 'RateLimit',
+  TjCountry: 'TjCountry',
+  TjCityRegion: 'TjCityRegion',
+  TjHotelMapping: 'TjHotelMapping',
+  TjHotel: 'TjHotel',
+  TjSyncProgress: 'TjSyncProgress',
+  TjSyncLog: 'TjSyncLog',
+  TjSyncExecution: 'TjSyncExecution',
+  TjSyncCheckpoint: 'TjSyncCheckpoint'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1129,6 +1137,126 @@ export const RateLimitScalarFieldEnum = {
 } as const
 
 export type RateLimitScalarFieldEnum = (typeof RateLimitScalarFieldEnum)[keyof typeof RateLimitScalarFieldEnum]
+
+
+export const TjCountryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TjCountryScalarFieldEnum = (typeof TjCountryScalarFieldEnum)[keyof typeof TjCountryScalarFieldEnum]
+
+
+export const TjCityRegionScalarFieldEnum = {
+  id: 'id',
+  cityRegionId: 'cityRegionId',
+  cityName: 'cityName',
+  regionName: 'regionName',
+  countryName: 'countryName',
+  regionType: 'regionType',
+  fullRegionName: 'fullRegionName',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TjCityRegionScalarFieldEnum = (typeof TjCityRegionScalarFieldEnum)[keyof typeof TjCityRegionScalarFieldEnum]
+
+
+export const TjHotelMappingScalarFieldEnum = {
+  id: 'id',
+  tjHotelId: 'tjHotelId',
+  unicaId: 'unicaId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TjHotelMappingScalarFieldEnum = (typeof TjHotelMappingScalarFieldEnum)[keyof typeof TjHotelMappingScalarFieldEnum]
+
+
+export const TjHotelScalarFieldEnum = {
+  id: 'id',
+  tjHotelId: 'tjHotelId',
+  unicaId: 'unicaId',
+  name: 'name',
+  isActive: 'isActive',
+  starRating: 'starRating',
+  propertyTypeId: 'propertyTypeId',
+  propertyTypeName: 'propertyTypeName',
+  countryName: 'countryName',
+  cityRegionId: 'cityRegionId',
+  address: 'address',
+  coordinates: 'coordinates',
+  policies: 'policies',
+  amenities: 'amenities',
+  images: 'images',
+  descriptions: 'descriptions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TjHotelScalarFieldEnum = (typeof TjHotelScalarFieldEnum)[keyof typeof TjHotelScalarFieldEnum]
+
+
+export const TjSyncProgressScalarFieldEnum = {
+  id: 'id',
+  jobType: 'jobType',
+  status: 'status',
+  nextCursor: 'nextCursor',
+  page: 'page',
+  totalRecords: 'totalRecords',
+  lastSuccessAt: 'lastSuccessAt',
+  error: 'error',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TjSyncProgressScalarFieldEnum = (typeof TjSyncProgressScalarFieldEnum)[keyof typeof TjSyncProgressScalarFieldEnum]
+
+
+export const TjSyncLogScalarFieldEnum = {
+  id: 'id',
+  jobType: 'jobType',
+  status: 'status',
+  recordsProcessed: 'recordsProcessed',
+  timeTakenMs: 'timeTakenMs',
+  errorDetails: 'errorDetails',
+  createdAt: 'createdAt'
+} as const
+
+export type TjSyncLogScalarFieldEnum = (typeof TjSyncLogScalarFieldEnum)[keyof typeof TjSyncLogScalarFieldEnum]
+
+
+export const TjSyncExecutionScalarFieldEnum = {
+  id: 'id',
+  executionId: 'executionId',
+  status: 'status',
+  currentStage: 'currentStage',
+  progress: 'progress',
+  processedCountries: 'processedCountries',
+  processedCities: 'processedCities',
+  processedHotels: 'processedHotels',
+  errorDetails: 'errorDetails',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt'
+} as const
+
+export type TjSyncExecutionScalarFieldEnum = (typeof TjSyncExecutionScalarFieldEnum)[keyof typeof TjSyncExecutionScalarFieldEnum]
+
+
+export const TjSyncCheckpointScalarFieldEnum = {
+  id: 'id',
+  executionId: 'executionId',
+  stage: 'stage',
+  page: 'page',
+  cursor: 'cursor',
+  processedCount: 'processedCount',
+  remainingCount: 'remainingCount',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TjSyncCheckpointScalarFieldEnum = (typeof TjSyncCheckpointScalarFieldEnum)[keyof typeof TjSyncCheckpointScalarFieldEnum]
 
 
 export const SortOrder = {

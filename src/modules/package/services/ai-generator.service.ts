@@ -7,6 +7,7 @@ import {
   buildAiPackageContext,
   type AiCatalogEntry,
   type AiHotelCatalogEntry,
+  type AiFlightCatalogEntry,
   type AiPackageContext,
 } from "./ai-package-context.service";
 
@@ -85,6 +86,25 @@ function formatHotelCatalog(hotels: AiHotelCatalogEntry[]): string {
         h.address ? `address="${h.address}"` : null,
         h.avgRate != null ? `avgRateINR=${h.avgRate}` : null,
         h.liveRateInr != null ? `liveTripJackRateINR=${h.liveRateInr}` : null,
+      ].filter(Boolean);
+      return `- ${parts.join(", ")}`;
+    })
+    .join("\n");
+}
+
+function formatFlightCatalog(flights: AiFlightCatalogEntry[]): string {
+  if (flights.length === 0) {
+    return "No flights in inventory. If you include FLIGHT, invent a descriptive title and leave inventoryItemId null.";
+  }
+  return flights
+    .map((f) => {
+      const parts = [
+        `id=${f.id}`,
+        `title="${f.title}"`,
+        f.airline ? `airline="${f.airline}"` : null,
+        f.departureTime ? `departs="${f.departureTime}"` : null,
+        f.arrivalTime ? `arrives="${f.arrivalTime}"` : null,
+        f.priceInr != null ? `priceINR=${f.priceInr}` : null,
       ].filter(Boolean);
       return `- ${parts.join(", ")}`;
     })
@@ -188,6 +208,9 @@ TripJack live rates included: ${context.tripjackUsed ? "yes" : "no"}
 Hotel catalog (HOTEL items MUST use an id from this list when non-empty):
 ${formatHotelCatalog(context.hotels)}
 
+Flight catalog (FLIGHT items MUST use an id from this list when non-empty):
+${formatFlightCatalog(context.flights)}
+
 Activity catalog (prefer ACTIVITY items from this list by id when non-empty):
 ${formatCatalog(context.activities, "No activities in inventory. Invent descriptive ACTIVITY titles and leave inventoryItemId null.")}
 
@@ -195,12 +218,12 @@ Ferry / transfer catalog (prefer TRANSFER ferry items from this list by id when 
 ${formatCatalog(context.ferries, "No ferry transfers in inventory. Invent descriptive TRANSFER titles and leave inventoryItemId null.")}
 
 Instructions:
-1. 'basePrice' MUST be a realistic estimated integer in INR (use liveTripJackRateINR / avgRateINR / priceINR when present).
+1. 'basePrice' MUST be a realistic estimated integer in INR (use liveTripJackRateINR / priceINR when present, sum them up).
 2. 'kind' for items MUST be one of: FLIGHT, HOTEL, ACTIVITY, TRANSFER, MEALS.
 3. For HOTEL when the hotel catalog is non-empty: set inventoryItemId to an exact catalog id and title to that hotel's title.
-4. For ACTIVITY when the activity catalog is non-empty: prefer exact catalog ids; otherwise leave inventoryItemId null.
-5. For TRANSFER ferry legs when the ferry catalog is non-empty: prefer exact catalog ids; otherwise leave inventoryItemId null.
-6. Do NOT invent inventory IDs. FLIGHT / MEALS: leave inventoryItemId null.
+4. For FLIGHT when the flight catalog is non-empty: set inventoryItemId to an exact catalog id.
+5. For ACTIVITY when the activity catalog is non-empty: prefer exact catalog ids; otherwise leave inventoryItemId null.
+6. For TRANSFER ferry legs when the ferry catalog is non-empty: prefer exact catalog ids; otherwise leave inventoryItemId null.
 7. Keep the package title premium and enticing.
 8. Ensure 'days' array length matches the days in the duration string.
 9. MUST RETURN VALID JSON matching this example shape exactly (values are illustrative):
@@ -223,6 +246,7 @@ ${JSON_EXAMPLE}`;
         ...day,
         items: day.items.map((item) => {
           if (item.kind === "HOTEL") return pinCatalogItem(item, context.hotels);
+          if (item.kind === "FLIGHT") return pinCatalogItem(item, context.flights);
           if (item.kind === "ACTIVITY") return pinCatalogItem(item, context.activities);
           if (item.kind === "TRANSFER") return pinCatalogItem(item, context.ferries);
           return { ...item, inventoryItemId: null };
@@ -264,9 +288,15 @@ ${JSON_EXAMPLE}`;
     destination: string,
     duration: string,
     budget: string,
+    options?: {
+      origin?: string;
+      flightDestination?: string;
+      departureDate?: string;
+      returnDate?: string;
+    },
     retries = 1
   ): Promise<Result<GeneratedPackage, AppError>> {
-    this.logger.info("Generating AI Package", { destination, duration, budget, retries });
+    this.logger.info("Generating AI Package", { destination, duration, budget, options, retries });
 
     const openai = await this.getOpenAiClientFromVault();
     if (!openai) {
@@ -279,7 +309,7 @@ ${JSON_EXAMPLE}`;
 
     let context: AiPackageContext;
     try {
-      context = await buildAiPackageContext(destination, duration);
+      context = await buildAiPackageContext(destination, duration, options);
     } catch (error) {
       this.logger.error("Failed to build AI package context", { error });
       return err(new InternalError("Failed to load inventory catalog for AI package builder"));

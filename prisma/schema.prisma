@@ -148,28 +148,28 @@ model Destination {
 // ── Package ────────────────────────────────────────────────────────────
 
 model Package {
-  id                String   @id @default(uuid())
+  id                String       @id @default(uuid())
   title             String
-  code              String   @unique
-  slug              String   @unique
+  code              String       @unique
+  slug              String       @unique
   destinationId     String
   sourceType        String
   tripType          String?
   durationDays      Int
   durationNights    Int
   durationText      String?
-  isTemplate        Boolean  @default(false)
+  isTemplate        Boolean      @default(false)
   sourceTemplateId  String?
   aiGeneratedFromId String?
   status            String
-  isStaffPick       Boolean  @default(false)
-  flightsIncluded   Boolean  @default(false)
+  isStaffPick       Boolean      @default(false)
+  flightsIncluded   Boolean      @default(false)
   currentVersionId  String?
   seo               Json?
   faqs              Json?
   content           Json?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
   days              PackageDay[]
 
   @@index([destinationId])
@@ -188,8 +188,8 @@ model PackageDay {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  package       Package  @relation(fields: [packageId], references: [id])
-  items         PackageItem[]
+  package Package       @relation(fields: [packageId], references: [id])
+  items   PackageItem[]
 
   @@index([packageId])
   @@map("package_days")
@@ -214,7 +214,7 @@ model PackageItem {
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 
-  packageDay             PackageDay @relation(fields: [packageDayId], references: [id])
+  packageDay PackageDay @relation(fields: [packageDayId], references: [id])
 
   @@index([packageDayId])
   @@index([inventoryItemId])
@@ -716,30 +716,30 @@ model CustomerProfile {
 /// same thing as a Quote: an Enquiry is raw, unqualified interest; a Quote
 /// is a priced itinerary a sales agent has already built.
 model Enquiry {
-  id              String   @id @default(uuid())
-  type            String
-  name            String
-  email           String
-  phone           String?
-  message         String?
-  destinationSlug String?
-  packageSlug     String?
-  hotelSlug       String?
-  activitySlug    String?
+  id               String    @id @default(uuid())
+  type             String
+  name             String
+  email            String
+  phone            String?
+  message          String?
+  destinationSlug  String?
+  packageSlug      String?
+  hotelSlug        String?
+  activitySlug     String?
   /// Set only when the submitter was an authenticated customer — derived
   /// server-side from the session, never accepted from the request body.
-  customerId      String?
-  source          String?
-  status          String   @default("NEW")
+  customerId       String?
+  source           String?
+  status           String    @default("NEW")
   /// Admin/agent this lead is assigned to — set via the admin Lead
   /// Management screen, never by the public submitter.
   assignedToUserId String?
   /// Next follow-up date set by sales team.
-  followUpDate      DateTime?
+  followUpDate     DateTime?
   /// Optional priority: LOW, MEDIUM, HIGH
-  priority          String?
-  createdAt       DateTime
-  updatedAt       DateTime
+  priority         String?
+  createdAt        DateTime
+  updatedAt        DateTime
 
   @@index([type])
   @@index([status])
@@ -750,11 +750,11 @@ model Enquiry {
 }
 
 model EnquiryNote {
-  id         String   @id @default(uuid())
-  enquiryId  String
+  id           String   @id @default(uuid())
+  enquiryId    String
   authorUserId String?
-  body       String
-  createdAt  DateTime
+  body         String
+  createdAt    DateTime
 
   @@index([enquiryId])
   @@map("enquiry_notes")
@@ -804,18 +804,17 @@ model EmailDispatch {
   @@map("email_dispatches")
 }
 
-
 // ── Sprint 14 & PRD Implementations ─────────────────────────────────────
 
 model Lead {
-  id          String    @id @default(uuid())
-  name        String
-  email       String
-  phone       String
-  sourceUrl   String      
-  status      String    @default("NEW")
-  assignedTo  String?     
-  createdAt   DateTime  @default(now())
+  id         String   @id @default(uuid())
+  name       String
+  email      String
+  phone      String
+  sourceUrl  String
+  status     String   @default("NEW")
+  assignedTo String?
+  createdAt  DateTime @default(now())
 
   @@index([status])
   @@index([assignedTo])
@@ -824,9 +823,9 @@ model Lead {
 
 model FerryRate {
   id          String   @id @default(uuid())
-  route       String   
-  provider    String   
-  class       String   
+  route       String
+  provider    String
+  class       String
   basePrice   Float
   markupPrice Float
   updatedAt   DateTime @updatedAt
@@ -836,11 +835,11 @@ model FerryRate {
 
 model LandingPage {
   id          String   @id @default(uuid())
-  slug        String   @unique 
+  slug        String   @unique
   title       String
-  heroSection Json     
-  packages    Json     
-  faqSection  Json     
+  heroSection Json
+  packages    Json
+  faqSection  Json
   content     Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -872,26 +871,26 @@ model CmsPage {
 }
 
 model CmsGuide {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
-  slug        String   @unique
+  slug        String    @unique
   content     Json
   authorId    String?
-  status      String   @default("DRAFT")
+  status      String    @default("DRAFT")
   publishedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@map("cms_guides")
 }
 
 model CmsRedirect {
-  id        String   @id @default(uuid())
-  source    String   @unique
-  target    String
-  isPermanent Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(uuid())
+  source      String   @unique
+  target      String
+  isPermanent Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("cms_redirects")
 }
@@ -953,20 +952,20 @@ model WebhookEvent {
 // Runtime prefers DB secrets, then falls back to process.env.
 
 model IntegrationProvider {
-  id          String   @id @default(uuid())
-  key         String   @unique
-  category    String
-  name        String
-  description String?
-  isBuiltin   Boolean  @default(true)
-  status      String   @default("DISCONNECTED")
+  id              String    @id @default(uuid())
+  key             String    @unique
+  category        String
+  name            String
+  description     String?
+  isBuiltin       Boolean   @default(true)
+  status          String    @default("DISCONNECTED")
   /// Non-secret settings (baseUrl, enabled flags, active payment marker, etc.)
-  config      Json?
-  lastTestedAt DateTime?
-  lastTestOk   Boolean?
+  config          Json?
+  lastTestedAt    DateTime?
+  lastTestOk      Boolean?
   lastTestMessage String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   secrets  IntegrationSecret[]
   webhooks IntegrationWebhook[]
@@ -1009,82 +1008,218 @@ model IntegrationWebhook {
 }
 
 model Guide {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
-  slug        String   @unique
-  status      String   @default("DRAFT")
+  slug        String    @unique
+  status      String    @default("DRAFT")
   content     String
   publishedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@map("guides")
 }
 
 model FerryRoute {
-  id          String   @id @default(uuid())
-  active      Boolean  @default(true)
-  fromId      String
-  toId        String
-  vesselId    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  active    Boolean  @default(true)
+  fromId    String
+  toId      String
+  vesselId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  schedules   FerrySchedule[]
+  schedules FerrySchedule[]
 
   @@map("ferry_routes")
 }
 
 model FerrySchedule {
-  id          String   @id @default(uuid())
-  routeId     String
-  active      Boolean  @default(true)
-  departure   String
-  arrival     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  routeId   String
+  active    Boolean  @default(true)
+  departure String
+  arrival   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  route       FerryRoute @relation(fields: [routeId], references: [id])
+  route FerryRoute @relation(fields: [routeId], references: [id])
 
   @@map("ferry_schedules")
 }
 
 model Review {
-  id          String   @id @default(uuid())
-  targetId    String
-  rating      Int
-  comment     String?
-  authorName  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(uuid())
+  targetId   String
+  rating     Int
+  comment    String?
+  authorName String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("reviews")
 }
 
-
-
 // -- System Background Jobs & Security --------------------------
 
 model BackgroundJob {
-  id           String   @id @default(uuid())
-  type         String
-  status       String   @default("PENDING")
-  payload      Json
-  error        String?
-  attempts     Int      @default(0)
-  maxAttempts  Int      @default(3)
-  nextRetryAt  DateTime @default(now())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(uuid())
+  type        String
+  status      String   @default("PENDING")
+  payload     Json
+  error       String?
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(3)
+  nextRetryAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([status, nextRetryAt])
   @@map("background_jobs")
 }
 
 model RateLimit {
-  key          String   @id
-  count        Int      @default(0)
-  windowStart  DateTime @default(now())
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime @default(now())
 
   @@map("rate_limits")
 }
+
+// -- TripJack Static Data Sync ----------------------------------
+
+model TjCountry {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cities TjCityRegion[]
+  hotels TjHotel[]
+
+  @@map("tj_countries")
+}
+
+model TjCityRegion {
+  id             String   @id @default(uuid())
+  cityRegionId   Int      @unique
+  cityName       String
+  regionName     String
+  countryName    String
+  regionType     String
+  fullRegionName String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  country TjCountry? @relation(fields: [countryName], references: [name])
+  hotels  TjHotel[]
+
+  @@index([countryName])
+  @@index([cityName])
+  @@map("tj_city_regions")
+}
+
+model TjHotelMapping {
+  id        String   @id @default(uuid())
+  tjHotelId String   @unique
+  unicaId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hotel TjHotel?
+
+  @@index([unicaId])
+  @@map("tj_hotel_mappings")
+}
+
+model TjHotel {
+  id               String  @id @default(uuid())
+  tjHotelId        String  @unique
+  unicaId          String?
+  name             String
+  isActive         Boolean @default(true)
+  starRating       String?
+  propertyTypeId   String?
+  propertyTypeName String?
+
+  countryName  String?
+  cityRegionId Int?
+
+  // Deeply nested JSON data mapping exactly to TripJack's responses
+  address      Json?
+  coordinates  Json?
+  policies     Json?
+  amenities    Json?
+  images       Json?
+  descriptions Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mapping TjHotelMapping @relation(fields: [tjHotelId], references: [tjHotelId])
+  country TjCountry?     @relation(fields: [countryName], references: [name])
+  city    TjCityRegion?  @relation(fields: [cityRegionId], references: [cityRegionId])
+
+  @@index([countryName])
+  @@index([cityRegionId])
+  @@map("tj_hotels")
+}
+
+model TjSyncProgress {
+  id            String    @id @default(uuid())
+  jobType       String    @unique // COUNTRIES, CITIES, MAPPING, CONTENT
+  status        String // IDLE, IN_PROGRESS, PAUSED, FAILED
+  nextCursor    String?
+  page          Int       @default(0)
+  totalRecords  Int       @default(0)
+  lastSuccessAt DateTime?
+  error         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("tj_sync_progress")
+}
+
+model TjSyncLog {
+  id               String   @id @default(uuid())
+  jobType          String
+  status           String // SUCCESS, FAILED
+  recordsProcessed Int
+  timeTakenMs      Int?
+  errorDetails     String?
+  createdAt        DateTime @default(now())
+
+  @@index([jobType])
+  @@map("tj_sync_logs")
+}
+
+model TjSyncExecution {
+  id                 String   @id @default(uuid())
+  executionId        String   @unique
+  status             String   // PENDING, RUNNING, PAUSED, COMPLETED, FAILED
+  currentStage       String   // COUNTRIES, CITIES, MAPPINGS, CONTENT
+  progress           Float    @default(0.0)
+  processedCountries Int      @default(0)
+  processedCities    Int      @default(0)
+  processedHotels    Int      @default(0)
+  errorDetails       String?
+  startedAt          DateTime @default(now())
+  completedAt        DateTime?
+  
+  @@map("tj_sync_executions")
+}
+
+model TjSyncCheckpoint {
+  id             String   @id @default(uuid())
+  executionId    String
+  stage          String   // COUNTRIES, CITIES, MAPPINGS, CONTENT
+  page           Int      @default(0)
+  cursor         String?
+  processedCount Int      @default(0)
+  remainingCount Int      @default(0)
+  updatedAt      DateTime @updatedAt
+  
+  @@unique([executionId, stage])
+  @@map("tj_sync_checkpoints")
+}
+

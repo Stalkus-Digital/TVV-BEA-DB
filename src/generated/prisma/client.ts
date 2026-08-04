@@ -380,3 +380,43 @@ export type BackgroundJob = Prisma.BackgroundJobModel
  * 
  */
 export type RateLimit = Prisma.RateLimitModel
+/**
+ * Model TjCountry
+ * 
+ */
+export type TjCountry = Prisma.TjCountryModel
+/**
+ * Model TjCityRegion
+ * 
+ */
+export type TjCityRegion = Prisma.TjCityRegionModel
+/**
+ * Model TjHotelMapping
+ * 
+ */
+export type TjHotelMapping = Prisma.TjHotelMappingModel
+/**
+ * Model TjHotel
+ * 
+ */
+export type TjHotel = Prisma.TjHotelModel
+/**
+ * Model TjSyncProgress
+ * 
+ */
+export type TjSyncProgress = Prisma.TjSyncProgressModel
+/**
+ * Model TjSyncLog
+ * 
+ */
+export type TjSyncLog = Prisma.TjSyncLogModel
+/**
+ * Model TjSyncExecution
+ * 
+ */
+export type TjSyncExecution = Prisma.TjSyncExecutionModel
+/**
+ * Model TjSyncCheckpoint
+ * 
+ */
+export type TjSyncCheckpoint = Prisma.TjSyncCheckpointModel

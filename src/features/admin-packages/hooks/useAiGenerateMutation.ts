@@ -9,6 +9,10 @@ interface AiGenerateInput {
   destination: string;
   duration: string;
   budget: string;
+  origin?: string;
+  flightDestination?: string;
+  departureDate?: string;
+  returnDate?: string;
 }
 
 export type AiGenerateResult = GeneratedPackage & {

@@ -463,7 +463,15 @@ export const ModelName = {
   FerrySchedule: 'FerrySchedule',
   Review: 'Review',
   BackgroundJob: 'BackgroundJob',
-  RateLimit: 'RateLimit'
+  RateLimit: 'RateLimit',
+  TjCountry: 'TjCountry',
+  TjCityRegion: 'TjCityRegion',
+  TjHotelMapping: 'TjHotelMapping',
+  TjHotel: 'TjHotel',
+  TjSyncProgress: 'TjSyncProgress',
+  TjSyncLog: 'TjSyncLog',
+  TjSyncExecution: 'TjSyncExecution',
+  TjSyncCheckpoint: 'TjSyncCheckpoint'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -479,7 +487,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "revokedJwt" | "loginHistory" | "passwordReset" | "emailVerification" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "customerNote" | "notification" | "emailDispatch" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent" | "integrationProvider" | "integrationSecret" | "integrationWebhook" | "guide" | "ferryRoute" | "ferrySchedule" | "review" | "backgroundJob" | "rateLimit"
+    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "revokedJwt" | "loginHistory" | "passwordReset" | "emailVerification" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "customerNote" | "notification" | "emailDispatch" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent" | "integrationProvider" | "integrationSecret" | "integrationWebhook" | "guide" | "ferryRoute" | "ferrySchedule" | "review" | "backgroundJob" | "rateLimit" | "tjCountry" | "tjCityRegion" | "tjHotelMapping" | "tjHotel" | "tjSyncProgress" | "tjSyncLog" | "tjSyncExecution" | "tjSyncCheckpoint"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -5441,6 +5449,598 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TjCountry: {
+      payload: Prisma.$TjCountryPayload<ExtArgs>
+      fields: Prisma.TjCountryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TjCountryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCountryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TjCountryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCountryPayload>
+        }
+        findFirst: {
+          args: Prisma.TjCountryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCountryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TjCountryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCountryPayload>
+        }
+        findMany: {
+          args: Prisma.TjCountryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCountryPayload>[]
+        }
+        create: {
+          args: Prisma.TjCountryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCountryPayload>
+        }
+        createMany: {
+          args: Prisma.TjCountryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TjCountryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCountryPayload>[]
+        }
+        delete: {
+          args: Prisma.TjCountryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCountryPayload>
+        }
+        update: {
+          args: Prisma.TjCountryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCountryPayload>
+        }
+        deleteMany: {
+          args: Prisma.TjCountryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TjCountryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TjCountryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCountryPayload>[]
+        }
+        upsert: {
+          args: Prisma.TjCountryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCountryPayload>
+        }
+        aggregate: {
+          args: Prisma.TjCountryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTjCountry>
+        }
+        groupBy: {
+          args: Prisma.TjCountryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjCountryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TjCountryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjCountryCountAggregateOutputType> | number
+        }
+      }
+    }
+    TjCityRegion: {
+      payload: Prisma.$TjCityRegionPayload<ExtArgs>
+      fields: Prisma.TjCityRegionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TjCityRegionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCityRegionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TjCityRegionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCityRegionPayload>
+        }
+        findFirst: {
+          args: Prisma.TjCityRegionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCityRegionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TjCityRegionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCityRegionPayload>
+        }
+        findMany: {
+          args: Prisma.TjCityRegionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCityRegionPayload>[]
+        }
+        create: {
+          args: Prisma.TjCityRegionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCityRegionPayload>
+        }
+        createMany: {
+          args: Prisma.TjCityRegionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TjCityRegionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCityRegionPayload>[]
+        }
+        delete: {
+          args: Prisma.TjCityRegionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCityRegionPayload>
+        }
+        update: {
+          args: Prisma.TjCityRegionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCityRegionPayload>
+        }
+        deleteMany: {
+          args: Prisma.TjCityRegionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TjCityRegionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TjCityRegionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCityRegionPayload>[]
+        }
+        upsert: {
+          args: Prisma.TjCityRegionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjCityRegionPayload>
+        }
+        aggregate: {
+          args: Prisma.TjCityRegionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTjCityRegion>
+        }
+        groupBy: {
+          args: Prisma.TjCityRegionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjCityRegionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TjCityRegionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjCityRegionCountAggregateOutputType> | number
+        }
+      }
+    }
+    TjHotelMapping: {
+      payload: Prisma.$TjHotelMappingPayload<ExtArgs>
+      fields: Prisma.TjHotelMappingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TjHotelMappingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelMappingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TjHotelMappingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelMappingPayload>
+        }
+        findFirst: {
+          args: Prisma.TjHotelMappingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelMappingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TjHotelMappingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelMappingPayload>
+        }
+        findMany: {
+          args: Prisma.TjHotelMappingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelMappingPayload>[]
+        }
+        create: {
+          args: Prisma.TjHotelMappingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelMappingPayload>
+        }
+        createMany: {
+          args: Prisma.TjHotelMappingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TjHotelMappingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelMappingPayload>[]
+        }
+        delete: {
+          args: Prisma.TjHotelMappingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelMappingPayload>
+        }
+        update: {
+          args: Prisma.TjHotelMappingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelMappingPayload>
+        }
+        deleteMany: {
+          args: Prisma.TjHotelMappingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TjHotelMappingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TjHotelMappingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelMappingPayload>[]
+        }
+        upsert: {
+          args: Prisma.TjHotelMappingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelMappingPayload>
+        }
+        aggregate: {
+          args: Prisma.TjHotelMappingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTjHotelMapping>
+        }
+        groupBy: {
+          args: Prisma.TjHotelMappingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjHotelMappingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TjHotelMappingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjHotelMappingCountAggregateOutputType> | number
+        }
+      }
+    }
+    TjHotel: {
+      payload: Prisma.$TjHotelPayload<ExtArgs>
+      fields: Prisma.TjHotelFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TjHotelFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TjHotelFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelPayload>
+        }
+        findFirst: {
+          args: Prisma.TjHotelFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TjHotelFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelPayload>
+        }
+        findMany: {
+          args: Prisma.TjHotelFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelPayload>[]
+        }
+        create: {
+          args: Prisma.TjHotelCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelPayload>
+        }
+        createMany: {
+          args: Prisma.TjHotelCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TjHotelCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelPayload>[]
+        }
+        delete: {
+          args: Prisma.TjHotelDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelPayload>
+        }
+        update: {
+          args: Prisma.TjHotelUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelPayload>
+        }
+        deleteMany: {
+          args: Prisma.TjHotelDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TjHotelUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TjHotelUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelPayload>[]
+        }
+        upsert: {
+          args: Prisma.TjHotelUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjHotelPayload>
+        }
+        aggregate: {
+          args: Prisma.TjHotelAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTjHotel>
+        }
+        groupBy: {
+          args: Prisma.TjHotelGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjHotelGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TjHotelCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjHotelCountAggregateOutputType> | number
+        }
+      }
+    }
+    TjSyncProgress: {
+      payload: Prisma.$TjSyncProgressPayload<ExtArgs>
+      fields: Prisma.TjSyncProgressFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TjSyncProgressFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncProgressPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TjSyncProgressFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncProgressPayload>
+        }
+        findFirst: {
+          args: Prisma.TjSyncProgressFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncProgressPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TjSyncProgressFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncProgressPayload>
+        }
+        findMany: {
+          args: Prisma.TjSyncProgressFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncProgressPayload>[]
+        }
+        create: {
+          args: Prisma.TjSyncProgressCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncProgressPayload>
+        }
+        createMany: {
+          args: Prisma.TjSyncProgressCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TjSyncProgressCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncProgressPayload>[]
+        }
+        delete: {
+          args: Prisma.TjSyncProgressDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncProgressPayload>
+        }
+        update: {
+          args: Prisma.TjSyncProgressUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncProgressPayload>
+        }
+        deleteMany: {
+          args: Prisma.TjSyncProgressDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TjSyncProgressUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TjSyncProgressUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncProgressPayload>[]
+        }
+        upsert: {
+          args: Prisma.TjSyncProgressUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncProgressPayload>
+        }
+        aggregate: {
+          args: Prisma.TjSyncProgressAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTjSyncProgress>
+        }
+        groupBy: {
+          args: Prisma.TjSyncProgressGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjSyncProgressGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TjSyncProgressCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjSyncProgressCountAggregateOutputType> | number
+        }
+      }
+    }
+    TjSyncLog: {
+      payload: Prisma.$TjSyncLogPayload<ExtArgs>
+      fields: Prisma.TjSyncLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TjSyncLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TjSyncLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncLogPayload>
+        }
+        findFirst: {
+          args: Prisma.TjSyncLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TjSyncLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncLogPayload>
+        }
+        findMany: {
+          args: Prisma.TjSyncLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncLogPayload>[]
+        }
+        create: {
+          args: Prisma.TjSyncLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncLogPayload>
+        }
+        createMany: {
+          args: Prisma.TjSyncLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TjSyncLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncLogPayload>[]
+        }
+        delete: {
+          args: Prisma.TjSyncLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncLogPayload>
+        }
+        update: {
+          args: Prisma.TjSyncLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.TjSyncLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TjSyncLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TjSyncLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.TjSyncLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncLogPayload>
+        }
+        aggregate: {
+          args: Prisma.TjSyncLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTjSyncLog>
+        }
+        groupBy: {
+          args: Prisma.TjSyncLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjSyncLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TjSyncLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjSyncLogCountAggregateOutputType> | number
+        }
+      }
+    }
+    TjSyncExecution: {
+      payload: Prisma.$TjSyncExecutionPayload<ExtArgs>
+      fields: Prisma.TjSyncExecutionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TjSyncExecutionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncExecutionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TjSyncExecutionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncExecutionPayload>
+        }
+        findFirst: {
+          args: Prisma.TjSyncExecutionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncExecutionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TjSyncExecutionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncExecutionPayload>
+        }
+        findMany: {
+          args: Prisma.TjSyncExecutionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncExecutionPayload>[]
+        }
+        create: {
+          args: Prisma.TjSyncExecutionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncExecutionPayload>
+        }
+        createMany: {
+          args: Prisma.TjSyncExecutionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TjSyncExecutionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncExecutionPayload>[]
+        }
+        delete: {
+          args: Prisma.TjSyncExecutionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncExecutionPayload>
+        }
+        update: {
+          args: Prisma.TjSyncExecutionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncExecutionPayload>
+        }
+        deleteMany: {
+          args: Prisma.TjSyncExecutionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TjSyncExecutionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TjSyncExecutionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncExecutionPayload>[]
+        }
+        upsert: {
+          args: Prisma.TjSyncExecutionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncExecutionPayload>
+        }
+        aggregate: {
+          args: Prisma.TjSyncExecutionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTjSyncExecution>
+        }
+        groupBy: {
+          args: Prisma.TjSyncExecutionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjSyncExecutionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TjSyncExecutionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjSyncExecutionCountAggregateOutputType> | number
+        }
+      }
+    }
+    TjSyncCheckpoint: {
+      payload: Prisma.$TjSyncCheckpointPayload<ExtArgs>
+      fields: Prisma.TjSyncCheckpointFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TjSyncCheckpointFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncCheckpointPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TjSyncCheckpointFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncCheckpointPayload>
+        }
+        findFirst: {
+          args: Prisma.TjSyncCheckpointFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncCheckpointPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TjSyncCheckpointFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncCheckpointPayload>
+        }
+        findMany: {
+          args: Prisma.TjSyncCheckpointFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncCheckpointPayload>[]
+        }
+        create: {
+          args: Prisma.TjSyncCheckpointCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncCheckpointPayload>
+        }
+        createMany: {
+          args: Prisma.TjSyncCheckpointCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TjSyncCheckpointCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncCheckpointPayload>[]
+        }
+        delete: {
+          args: Prisma.TjSyncCheckpointDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncCheckpointPayload>
+        }
+        update: {
+          args: Prisma.TjSyncCheckpointUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncCheckpointPayload>
+        }
+        deleteMany: {
+          args: Prisma.TjSyncCheckpointDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TjSyncCheckpointUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TjSyncCheckpointUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncCheckpointPayload>[]
+        }
+        upsert: {
+          args: Prisma.TjSyncCheckpointUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TjSyncCheckpointPayload>
+        }
+        aggregate: {
+          args: Prisma.TjSyncCheckpointAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTjSyncCheckpoint>
+        }
+        groupBy: {
+          args: Prisma.TjSyncCheckpointGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjSyncCheckpointGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TjSyncCheckpointCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TjSyncCheckpointCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -6475,6 +7075,126 @@ export const RateLimitScalarFieldEnum = {
 export type RateLimitScalarFieldEnum = (typeof RateLimitScalarFieldEnum)[keyof typeof RateLimitScalarFieldEnum]
 
 
+export const TjCountryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TjCountryScalarFieldEnum = (typeof TjCountryScalarFieldEnum)[keyof typeof TjCountryScalarFieldEnum]
+
+
+export const TjCityRegionScalarFieldEnum = {
+  id: 'id',
+  cityRegionId: 'cityRegionId',
+  cityName: 'cityName',
+  regionName: 'regionName',
+  countryName: 'countryName',
+  regionType: 'regionType',
+  fullRegionName: 'fullRegionName',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TjCityRegionScalarFieldEnum = (typeof TjCityRegionScalarFieldEnum)[keyof typeof TjCityRegionScalarFieldEnum]
+
+
+export const TjHotelMappingScalarFieldEnum = {
+  id: 'id',
+  tjHotelId: 'tjHotelId',
+  unicaId: 'unicaId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TjHotelMappingScalarFieldEnum = (typeof TjHotelMappingScalarFieldEnum)[keyof typeof TjHotelMappingScalarFieldEnum]
+
+
+export const TjHotelScalarFieldEnum = {
+  id: 'id',
+  tjHotelId: 'tjHotelId',
+  unicaId: 'unicaId',
+  name: 'name',
+  isActive: 'isActive',
+  starRating: 'starRating',
+  propertyTypeId: 'propertyTypeId',
+  propertyTypeName: 'propertyTypeName',
+  countryName: 'countryName',
+  cityRegionId: 'cityRegionId',
+  address: 'address',
+  coordinates: 'coordinates',
+  policies: 'policies',
+  amenities: 'amenities',
+  images: 'images',
+  descriptions: 'descriptions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TjHotelScalarFieldEnum = (typeof TjHotelScalarFieldEnum)[keyof typeof TjHotelScalarFieldEnum]
+
+
+export const TjSyncProgressScalarFieldEnum = {
+  id: 'id',
+  jobType: 'jobType',
+  status: 'status',
+  nextCursor: 'nextCursor',
+  page: 'page',
+  totalRecords: 'totalRecords',
+  lastSuccessAt: 'lastSuccessAt',
+  error: 'error',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TjSyncProgressScalarFieldEnum = (typeof TjSyncProgressScalarFieldEnum)[keyof typeof TjSyncProgressScalarFieldEnum]
+
+
+export const TjSyncLogScalarFieldEnum = {
+  id: 'id',
+  jobType: 'jobType',
+  status: 'status',
+  recordsProcessed: 'recordsProcessed',
+  timeTakenMs: 'timeTakenMs',
+  errorDetails: 'errorDetails',
+  createdAt: 'createdAt'
+} as const
+
+export type TjSyncLogScalarFieldEnum = (typeof TjSyncLogScalarFieldEnum)[keyof typeof TjSyncLogScalarFieldEnum]
+
+
+export const TjSyncExecutionScalarFieldEnum = {
+  id: 'id',
+  executionId: 'executionId',
+  status: 'status',
+  currentStage: 'currentStage',
+  progress: 'progress',
+  processedCountries: 'processedCountries',
+  processedCities: 'processedCities',
+  processedHotels: 'processedHotels',
+  errorDetails: 'errorDetails',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt'
+} as const
+
+export type TjSyncExecutionScalarFieldEnum = (typeof TjSyncExecutionScalarFieldEnum)[keyof typeof TjSyncExecutionScalarFieldEnum]
+
+
+export const TjSyncCheckpointScalarFieldEnum = {
+  id: 'id',
+  executionId: 'executionId',
+  stage: 'stage',
+  page: 'page',
+  cursor: 'cursor',
+  processedCount: 'processedCount',
+  remainingCount: 'remainingCount',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TjSyncCheckpointScalarFieldEnum = (typeof TjSyncCheckpointScalarFieldEnum)[keyof typeof TjSyncCheckpointScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -6823,6 +7543,14 @@ export type GlobalOmitConfig = {
   review?: Prisma.ReviewOmit
   backgroundJob?: Prisma.BackgroundJobOmit
   rateLimit?: Prisma.RateLimitOmit
+  tjCountry?: Prisma.TjCountryOmit
+  tjCityRegion?: Prisma.TjCityRegionOmit
+  tjHotelMapping?: Prisma.TjHotelMappingOmit
+  tjHotel?: Prisma.TjHotelOmit
+  tjSyncProgress?: Prisma.TjSyncProgressOmit
+  tjSyncLog?: Prisma.TjSyncLogOmit
+  tjSyncExecution?: Prisma.TjSyncExecutionOmit
+  tjSyncCheckpoint?: Prisma.TjSyncCheckpointOmit
 }
 
 /* Types for Logging */

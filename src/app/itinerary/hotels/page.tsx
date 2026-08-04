@@ -32,11 +32,8 @@ export default function HotelsPage() {
   const [alertState, setAlertState] = useState({ isOpen: false, message: "" });
   const [searchResults, setSearchResults] = useState<HotelProperty[] | null>(null);
   const [searchParams, setSearchParams] = useState({
-    city: "BOM",
-    checkIn: new Date().toISOString().split('T')[0],
-    checkOut: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-    rooms: 1,
-    guests: 2
+    city: "",
+    name: ""
   });
 
   const destinationsQuery = useDestinationsQuery();
@@ -136,30 +133,32 @@ export default function HotelsPage() {
     setIsLoading(true);
     setSearchResults(null);
     try {
-      const data = await adminApiClient.post<{ success: boolean; data?: any; error?: any }>('/api/supplier/search', {
-        capability: "HOTELS",
-        criteria: {
-          capability: "HOTELS",
-          cityCode: searchParams.city,
-          checkIn: searchParams.checkIn,
-          checkOut: searchParams.checkOut,
-          rooms: searchParams.rooms,
-          guests: searchParams.guests,
-        }
-      });
-      if (data && data.success && data.data?.results) {
-        const mapped: HotelProperty[] = data.data.results.map((res: any) => ({
-          id: res.referenceId || `HTL-${Date.now()}`,
-          name: res.hotelName || "Unknown Hotel",
-          location: res.location || searchParams.city,
-          stars: res.rating || 3,
-          rooms: res.availableRooms || searchParams.rooms,
-          avgRate: res.price || 0,
-          status: "ACTIVE"
-        }));
+      const res = await fetch(`/api/hotels?city=${searchParams.city}&search=${searchParams.name}&limit=50`);
+      const data = await res.json();
+      
+      if (data && data.success) {
+        const mapped: HotelProperty[] = data.data.map((res: any) => {
+          const address = typeof res.address === 'string' ? JSON.parse(res.address) : res.address;
+          const images = typeof res.images === 'string' ? JSON.parse(res.images) : res.images;
+          const heroImg = Array.isArray(images) ? images.find((img: any) => img.is_hero_image)?.links?.Standard?.href || images[0]?.links?.Standard?.href : null;
+          
+          return {
+            id: res.tjHotelId,
+            name: res.name,
+            location: address?.city || res.city?.cityName || searchParams.city || "Unknown Location",
+            stars: parseInt(res.starRating) || 3,
+            rooms: 0, // Static data doesn't have live availability rooms
+            avgRate: 0, // Static data doesn't have live pricing
+            status: "ACTIVE",
+            image: heroImg,
+            shortDescription: typeof res.descriptions === 'object' ? res.descriptions?.headline : "",
+            amenities: res.amenities,
+            addressFull: address?.fulladdr || ""
+          };
+        });
         setSearchResults(mapped);
       } else {
-        setAlertState({ isOpen: true, message: data?.error?.message || "Failed to search hotels" });
+        setAlertState({ isOpen: true, message: data?.error || "Failed to search hotels" });
       }
     } catch (err) {
       setAlertState({ isOpen: true, message: "Network error while searching hotels" });
@@ -199,7 +198,7 @@ export default function HotelsPage() {
             className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-800 font-semibold rounded-md shadow-sm hover:bg-slate-200 transition-colors"
           >
             <Search className="h-4 w-4" />
-            {isSearchMode ? "Back to Managed Hotels" : "Live API Search"}
+            {isSearchMode ? "Back to Managed Hotels" : "TripJack Static Database"}
           </button>
           <Link
             href="/inventory/hotels/new"
@@ -215,27 +214,19 @@ export default function HotelsPage() {
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
               <Hotel className="h-5 w-5 text-primary" />
-              TripJack Live Hotel Search
+              TripJack Static Database Search
             </h2>
             <form onSubmit={handleLiveSearch} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">City Code</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">City</label>
                 <div className="relative">
-                  <input required type="text" value={searchParams.city} onChange={e => setSearchParams({ ...searchParams, city: e.target.value.toUpperCase() })} className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm font-bold uppercase" />
+                  <input type="text" placeholder="e.g. DUBAI" value={searchParams.city} onChange={e => setSearchParams({ ...searchParams, city: e.target.value.toUpperCase() })} className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm font-bold uppercase" />
                   <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Check-in</label>
-                <input required type="date" value={searchParams.checkIn} onChange={e => setSearchParams({ ...searchParams, checkIn: e.target.value })} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Check-out</label>
-                <input required type="date" value={searchParams.checkOut} onChange={e => setSearchParams({ ...searchParams, checkOut: e.target.value })} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Rooms/Guests</label>
-                <input required type="text" value={`${searchParams.rooms}R / ${searchParams.guests}G`} readOnly className="w-full bg-slate-50 text-slate-600 border border-slate-300 rounded-lg px-3 py-2 text-sm cursor-not-allowed" />
+              <div className="md:col-span-3">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Hotel Name</label>
+                <input type="text" placeholder="Search by name..." value={searchParams.name} onChange={e => setSearchParams({ ...searchParams, name: e.target.value })} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm" />
               </div>
               <button type="submit" disabled={isLoading} className="w-full py-2 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-sm disabled:opacity-50">
                 {isLoading ? "Searching..." : "Search"}
@@ -251,33 +242,46 @@ export default function HotelsPage() {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {searchResults.map(hotel => {
                   const isSaved = hotels.some(h => h.id === hotel.id);
+                  const amList = (hotel as any).amenities ? Object.values((hotel as any).amenities).slice(0, 3) : [];
+                  
                   return (
                     <div key={hotel.id} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between gap-4">
                       <div>
+                        {hotel.image && (
+                           <div className="w-full h-32 mb-4 bg-slate-100 rounded-lg overflow-hidden">
+                             <img src={hotel.image} alt={hotel.name} className="w-full h-full object-cover" />
+                           </div>
+                        )}
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-bold text-foreground text-lg leading-tight">{hotel.name}</h4>
-                          <div className="flex">
-                            {Array.from({ length: 5 }).map((_, idx) => (
-                              <Star key={idx} className={`h-3 w-3 ${idx < hotel.stars ? "text-amber-400 fill-amber-400" : "text-slate-300"}`} />
+                        </div>
+                        <div className="flex mb-3">
+                           {Array.from({ length: 5 }).map((_, idx) => (
+                              <Star key={idx} className={`h-4 w-4 ${idx < hotel.stars ? "text-amber-400 fill-amber-400" : "text-slate-300"}`} />
+                           ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
+                          <MapPin className="h-3 w-3 shrink-0" /> <span className="line-clamp-2">{(hotel as any).addressFull || hotel.location}</span>
+                        </p>
+                        
+                        {amList.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {amList.map((am: any, idx: number) => (
+                              <span key={idx} className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded">
+                                {am.name}
+                              </span>
                             ))}
                           </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1 mb-3">
-                          <MapPin className="h-3 w-3" /> {hotel.location}
-                        </p>
+                        )}
                       </div>
-                      <div className="flex items-center justify-between border-t border-slate-200 pt-4">
-                        <div>
-                          <p className="text-xs text-muted-foreground">Nightly Rate from</p>
-                          <p className="text-xl font-black text-primary">₹{(hotel.avgRate || 0).toLocaleString()}</p>
-                        </div>
+                      <div className="flex flex-col gap-3 border-t border-slate-200 pt-4">
                         <button
                           onClick={() => saveLiveHotel(hotel)}
                           disabled={isSaved}
-                          className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${isSaved ? "bg-slate-100 text-slate-400 border border-slate-200" : "bg-emerald-500 hover:bg-emerald-600 text-white"
+                          className={`w-full py-2 rounded-lg text-sm font-bold transition-colors ${isSaved ? "bg-slate-100 text-slate-400 border border-slate-200" : "bg-emerald-500 hover:bg-emerald-600 text-white"
                             }`}
                         >
-                          {isSaved ? "Saved" : "Save to Inventory"}
+                          {isSaved ? "Saved to Managed Inventory" : "Import to Inventory"}
                         </button>
                       </div>
                     </div>

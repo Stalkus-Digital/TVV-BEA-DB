@@ -33,6 +33,10 @@ export function AiStudio() {
   const [destination, setDestination] = useState("Andaman & Nicobar");
   const [duration, setDuration] = useState("5 Days / 4 Nights");
   const [budget, setBudget] = useState("Premium");
+  const [origin, setOrigin] = useState("");
+  const [flightDestination, setFlightDestination] = useState("");
+  const [departureDate, setDepartureDate] = useState("");
+  const [returnDate, setReturnDate] = useState("");
 
   const [output, setOutput] = useState<AiGenerateResult | null>(null);
   const [generateError, setGenerateError] = useState<string | null>(null);
@@ -54,6 +58,10 @@ export function AiStudio() {
         destination,
         duration,
         budget,
+        origin: origin.trim() || undefined,
+        flightDestination: flightDestination.trim() || undefined,
+        departureDate: departureDate || undefined,
+        returnDate: returnDate || undefined,
       });
       setOutput(data);
       const nextWarnings = Array.isArray(data.warnings) ? data.warnings.filter(Boolean) : [];
@@ -255,6 +263,63 @@ export function AiStudio() {
                   <option>Premium</option>
                   <option>Luxury</option>
                 </select>
+              </div>
+            </div>
+            
+            <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wide border-b border-border pb-2 mt-4">
+              Live Flights (Optional)
+            </h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                   Origin Code (e.g. BOM)
+                </label>
+                <input
+                  type="text"
+                  maxLength={3}
+                  value={origin}
+                  onChange={(e) => setOrigin(e.target.value.toUpperCase())}
+                  className="w-full bg-background border border-border rounded p-2 text-sm focus:ring-1 focus:ring-ring uppercase"
+                  placeholder="BOM"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                   Dest Code (e.g. DXB)
+                </label>
+                <input
+                  type="text"
+                  maxLength={3}
+                  value={flightDestination}
+                  onChange={(e) => setFlightDestination(e.target.value.toUpperCase())}
+                  className="w-full bg-background border border-border rounded p-2 text-sm focus:ring-1 focus:ring-ring uppercase"
+                  placeholder="DXB"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                   Departure Date
+                </label>
+                <input
+                  type="date"
+                  value={departureDate}
+                  onChange={(e) => setDepartureDate(e.target.value)}
+                  className="w-full bg-background border border-border rounded p-2 text-sm focus:ring-1 focus:ring-ring"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                   Return Date
+                </label>
+                <input
+                  type="date"
+                  value={returnDate}
+                  onChange={(e) => setReturnDate(e.target.value)}
+                  className="w-full bg-background border border-border rounded p-2 text-sm focus:ring-1 focus:ring-ring"
+                />
               </div>
             </div>
           </div>

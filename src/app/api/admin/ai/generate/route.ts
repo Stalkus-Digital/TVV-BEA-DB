@@ -13,14 +13,16 @@ export const maxDuration = 60;
 export async function POST(req: Request) {
   try {
     const payload = await req.json();
-    const { prompt, destination, duration, budget } = payload;
+    const { prompt, destination, duration, budget, origin, flightDestination, departureDate, returnDate } = payload;
 
     if (!prompt || !destination || !duration || !budget) {
       return jsonError(new Error("Missing required fields"), { status: 400 });
     }
 
     const aiService = getAiGeneratorService();
-    const result = await aiService.generatePackage(prompt, destination, duration, budget);
+    const result = await aiService.generatePackage(prompt, destination, duration, budget, {
+      origin, flightDestination, departureDate, returnDate
+    });
 
     if (isErr(result)) {
       const status = result.error.name === "ValidationError" ? 400 : 500;

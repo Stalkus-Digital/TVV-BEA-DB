@@ -73,6 +73,7 @@ export const PUBLIC_PREFIXES = [
   "/api/v1/experiences",
   "/api/v1/reviews",
   "/api/v1/calculator",
+  "/api/hotels",
 ];
 
 /**

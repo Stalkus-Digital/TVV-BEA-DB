@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Play, Pause, Square, RefreshCcw, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { adminApiClient } from "@/lib/admin-api/client";
 
 export default function TripJackSyncSettings() {
   const [status, setStatus] = useState<any>(null);
@@ -11,15 +12,14 @@ export default function TripJackSyncSettings() {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch("/api/admin/integrations/tripjack/sync/status");
-      const data = await res.json();
-      if (data.success) {
-        setStatus(data.data);
-      } else {
-        setError(data.error || "Failed to load status");
-      }
+      const data = await adminApiClient.get<any>("/api/admin/integrations/tripjack/sync/status");
+      // adminApiClient automatically unwraps 'data' if the response was standard envelope format
+      // But the API route returns { success: true, data: status } manually. 
+      // adminApiClient strips `{ data }` envelope from `{ success: true, data: ... }` if standard, 
+      // let's safely check if data has a nested data property or is the object directly.
+      setStatus(data?.data || data);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Failed to load status");
     } finally {
       setLoading(false);
     }
@@ -34,18 +34,10 @@ export default function TripJackSyncSettings() {
   const handleAction = async (action: string, executionId?: string) => {
     setActionLoading(true);
     try {
-      const res = await fetch("/api/admin/integrations/tripjack/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, executionId })
-      });
-      const data = await res.json();
-      if (!data.success) {
-        alert("Action failed: " + data.error);
-      }
+      await adminApiClient.post("/api/admin/integrations/tripjack/sync", { action, executionId });
       await fetchStatus();
-    } catch (err) {
-      alert("Network error: Could not complete action");
+    } catch (err: any) {
+      alert("Action failed: " + (err.message || "Network error"));
     } finally {
       setActionLoading(false);
     }

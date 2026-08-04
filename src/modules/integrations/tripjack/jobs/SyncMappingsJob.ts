@@ -82,7 +82,7 @@ export async function SyncMappingsJob(job: Job): Promise<void> {
           where: { executionId },
           data: {
             processedHotels: totalProcessed,
-            progress: 20.0 + ((i / countries.length) * 40) // Scale 20% to 60%
+            progress: Math.min(60.0, 20.0 + ((i / countries.length) * 40)) // Scale 20% to 60%
           }
         });
 

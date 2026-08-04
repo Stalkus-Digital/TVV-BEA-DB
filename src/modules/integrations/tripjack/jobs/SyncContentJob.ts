@@ -68,7 +68,7 @@ export async function SyncContentJob(job: Job): Promise<void> {
         where: { executionId },
         data: { 
           processedHotels: totalProcessed,
-          progress: 60.0 + (currentPage / 1000) * 40 // Assuming max 100,000 hotels (1000 batches)
+          progress: Math.min(99.9, 60.0 + (currentPage / 3000) * 40) // Assuming max 300,000 hotels (3000 batches)
         }
       });
 

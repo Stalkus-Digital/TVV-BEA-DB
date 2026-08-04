@@ -58,7 +58,7 @@ export async function SyncCitiesJob(job: Job): Promise<void> {
         where: { executionId },
         data: { 
           processedCities: totalProcessed,
-          progress: 10.0 + (totalProcessed / 10000) * 10 // Mock progress calculation
+          progress: Math.min(20.0, 10.0 + (totalProcessed / 120000) * 10) // Scale to max 120,000 cities
         }
       });
 

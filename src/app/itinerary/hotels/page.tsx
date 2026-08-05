@@ -21,6 +21,9 @@ interface HotelProperty {
   status: "ACTIVE" | "MAINTENANCE";
   destinationId?: string | null;
   image?: string | null;
+  shortDescription?: string;
+  amenities?: any;
+  addressFull?: string;
 }
 
 export default function HotelsPage() {
@@ -74,6 +77,10 @@ export default function HotelsPage() {
           starRating: hotel.stars,
           rooms: hotel.rooms,
           avgRate: hotel.avgRate,
+          images: hotel.image ? [hotel.image] : [],
+          shortDescription: hotel.shortDescription,
+          amenities: hotel.amenities,
+          fullAddress: hotel.addressFull,
         }
       };
       return adminApiClient.post(adminEndpoints.inventory, payload);
@@ -142,8 +149,30 @@ export default function HotelsPage() {
         const mapped: HotelProperty[] = data.data.map((res: any) => {
           const address = typeof res.address === 'string' ? JSON.parse(res.address) : res.address;
           const images = typeof res.images === 'string' ? JSON.parse(res.images) : res.images;
-          const heroImg = Array.isArray(images) ? images.find((img: any) => img.is_hero_image)?.links?.Standard?.href || images[0]?.links?.Standard?.href : null;
           
+          let heroImg = null;
+          if (Array.isArray(images) && images.length > 0) {
+            const hero = images.find((img: any) => img.is_hero_image) || images[0];
+            const links = hero?.links || {};
+            // TripJack uses original, XL, or Standard. Grab the first one available.
+            heroImg = links.original?.href || links.XL?.href || links.Standard?.href || (Object.values(links)[0] as any)?.href || null;
+          }
+          
+          let shortDesc = "";
+          try {
+            if (typeof res.descriptions === 'object' && res.descriptions) {
+              const rawDesc = res.descriptions.default || res.descriptions.headline;
+              if (typeof rawDesc === 'string' && rawDesc.startsWith('{')) {
+                const parsed = JSON.parse(rawDesc);
+                shortDesc = parsed.Description || parsed.HeadLine || "";
+              } else if (typeof rawDesc === 'string') {
+                shortDesc = rawDesc;
+              }
+            }
+          } catch (e) {
+            // ignore parse errors
+          }
+
           return {
             id: res.tjHotelId,
             name: res.name,
@@ -153,7 +182,7 @@ export default function HotelsPage() {
             avgRate: 0, // Static data doesn't have live pricing
             status: "ACTIVE",
             image: heroImg,
-            shortDescription: typeof res.descriptions === 'object' ? res.descriptions?.headline : "",
+            shortDescription: shortDesc,
             amenities: res.amenities,
             addressFull: address?.fulladdr || ""
           };

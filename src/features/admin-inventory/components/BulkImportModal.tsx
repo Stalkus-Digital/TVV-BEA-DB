@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { Upload, Download, X, FileSpreadsheet, Loader2, CheckCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { getAccessToken } from "@/lib/admin-api/token";
 
 interface BulkImportModalProps {
   isOpen: boolean;
@@ -20,8 +21,27 @@ export function BulkImportModal({ isOpen, onClose, type }: BulkImportModalProps)
 
   if (!isOpen) return null;
 
-  const handleDownloadTemplate = () => {
-    window.location.href = `/api/admin/inventory/template?type=${type}`;
+  const handleDownloadTemplate = async () => {
+    try {
+      const res = await fetch(`/api/admin/inventory/template?type=${type}`, {
+        headers: {
+          authorization: `Bearer ${getAccessToken()}`
+        }
+      });
+      if (!res.ok) throw new Error("Failed to download");
+      
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${type.toLowerCase()}_import_template.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (e) {
+      setErrorMsg("Failed to download template. Please try again.");
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,6 +69,9 @@ export function BulkImportModal({ isOpen, onClose, type }: BulkImportModalProps)
     try {
       const res = await fetch("/api/admin/inventory/import", {
         method: "POST",
+        headers: {
+          authorization: `Bearer ${getAccessToken()}`
+        },
         body: formData,
       });
 

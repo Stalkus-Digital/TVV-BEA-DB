@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { prisma } from '../src/shared/database/prisma-client';
 
 async function main() {

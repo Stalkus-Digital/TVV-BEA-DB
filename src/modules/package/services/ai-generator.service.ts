@@ -185,14 +185,11 @@ export class AiGeneratorService extends BaseService {
     super(context);
   }
 
-  /** OpenAI key must be saved in Integrations vault (not .env alone). */
   private async getOpenAiClientFromVault(): Promise<OpenAI | null> {
-    const { getIntegrationService } = await import("@/modules/integrations");
-    const vault = await getIntegrationService().resolveVaultValues("openai");
-    if (!vault.ok) return null;
-    const apiKey = vault.value.apiKey?.trim();
-    if (!apiKey) return null;
-    return new OpenAI({ apiKey });
+    const { getIntegrationConfigResolver } = await import("@/modules/integrations");
+    const apiKey = await getIntegrationConfigResolver().getOpenAiApiKey();
+    if (!apiKey?.trim()) return null;
+    return new OpenAI({ apiKey: apiKey.trim() });
   }
 
   private buildSystemPrompt(context: AiPackageContext, destination: string, duration: string, budget: string): string {

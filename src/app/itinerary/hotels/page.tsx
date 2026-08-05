@@ -200,7 +200,12 @@ export default function HotelsPage() {
 
   const saveLiveHotel = async (hotel: HotelProperty) => {
     if (!hotels.find(h => h.name === hotel.name)) {
-      await createMutation.mutateAsync(hotel);
+      try {
+        await createMutation.mutateAsync(hotel);
+        setAlertState({ isOpen: true, message: `Successfully imported "${hotel.name}" to your Managed Inventory! 🚀` });
+      } catch (error) {
+        setAlertState({ isOpen: true, message: `Failed to import "${hotel.name}". Please try again.` });
+      }
     }
   };
 

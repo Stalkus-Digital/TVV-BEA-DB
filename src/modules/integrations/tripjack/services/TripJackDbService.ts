@@ -73,8 +73,8 @@ export class TripJackDbService {
             propertyTypeId: hotel.property_type?.id,
             propertyTypeName: hotel.property_type?.name,
             countryName: hotel.locale?.address?.countryname?.toUpperCase(),
-            // cityRegionId comes from mapping or city endpoint. We can try linking it if available, 
-            // but hotel response contains regioncode/citycode.
+            // Extract the numeric citycode from TripJack's JSON and link it to the cityRegion relation!
+            cityRegionId: hotel.locale?.address?.citycode ? parseInt(hotel.locale.address.citycode, 10) : null,
             address: hotel.locale?.address ?? {},
             coordinates: hotel.locale?.coordinates ?? {},
             policies: hotel.policies ?? {},
@@ -91,6 +91,7 @@ export class TripJackDbService {
             propertyTypeId: hotel.property_type?.id,
             propertyTypeName: hotel.property_type?.name,
             countryName: hotel.locale?.address?.countryname?.toUpperCase(),
+            cityRegionId: hotel.locale?.address?.citycode ? parseInt(hotel.locale.address.citycode, 10) : null,
             address: hotel.locale?.address ?? {},
             coordinates: hotel.locale?.coordinates ?? {},
             policies: hotel.policies ?? {},

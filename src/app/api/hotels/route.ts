@@ -13,6 +13,8 @@ export async function GET(request: Request) {
   if (search) {
     where.name = { contains: search, mode: 'insensitive' };
   }
+  
+  // This highly-optimized relation will now work perfectly since we linked cityRegionId!
   if (city) {
     where.city = { cityName: { contains: city, mode: 'insensitive' } };
   }
@@ -25,7 +27,7 @@ export async function GET(request: Request) {
         take: limit,
         include: {
           country: true,
-          city: true,
+          city: true, // Now correctly populates the linked City Data!
         },
         orderBy: {
           name: 'asc',

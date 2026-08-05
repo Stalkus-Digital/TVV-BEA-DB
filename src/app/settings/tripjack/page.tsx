@@ -60,7 +60,7 @@ export default function TripJackSyncSettings() {
           </div>
           
           <div className="flex items-center gap-3">
-            {!status?.execution || status.execution.status === "COMPLETED" || status.execution.status === "FAILED" ? (
+            {!status?.execution || status.execution.status === "COMPLETED" ? (
               <button 
                 onClick={() => handleAction("START")}
                 disabled={actionLoading}
@@ -80,13 +80,13 @@ export default function TripJackSyncSettings() {
               </button>
             )}
 
-            {status?.execution?.status === "PAUSED" && (
+            {(status?.execution?.status === "PAUSED" || status?.execution?.status === "FAILED") && (
               <button 
                 onClick={() => handleAction("RESUME", status.execution.executionId)}
                 disabled={actionLoading}
                 className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
               >
-                <RefreshCcw className="w-4 h-4" /> Resume Sync
+                <RefreshCcw className="w-4 h-4" /> Resume Failed Sync
               </button>
             )}
 

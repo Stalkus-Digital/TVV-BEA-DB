@@ -6,16 +6,14 @@ async function main() {
   console.log('Linking TripJack JSON citycode to Postgres Relations...');
 
   try {
-    const result = await prisma.$executeRaw`
-      UPDATE tj_hotels 
-      SET "cityRegionId" = CAST(address->>'citycode' AS INTEGER) 
-      WHERE address->>'citycode' IS NOT NULL 
-        AND address->>'citycode' != ''
-        AND "cityRegionId" IS NULL;
-    `;
+    const sampleHotel = await prisma.tjHotel.findFirst({
+      select: { tjHotelId: true, name: true, address: true, cityRegionId: true }
+    });
     
-    console.log(`Successfully linked ${result} hotels to their cities!`);
-    console.log('Search by City Name (e.g. "DUBAI") will now work perfectly.');
+    console.log('--- TRIPJACK HOTEL RAW DATA DEBUG ---');
+    console.log(JSON.stringify(sampleHotel, null, 2));
+    console.log('-------------------------------------');
+    
   } catch (error) {
     console.error('Error linking cities:', error);
   } finally {

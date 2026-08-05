@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertModal } from "@/components/layout/AlertModal";
 import { useDestinationsQuery } from "@/features/admin-quotes/hooks/useDestinationsQuery";
 import { InventoryDetailDrawer } from "@/features/admin-inventory/components/InventoryDetailDrawer";
+import { BulkImportModal } from "@/features/admin-inventory/components/BulkImportModal";
 import Link from "next/link";
 
 interface HotelProperty {
@@ -35,6 +36,7 @@ export default function HotelsPage() {
     city: "",
     name: ""
   });
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
 
   const destinationsQuery = useDestinationsQuery();
 
@@ -200,6 +202,16 @@ export default function HotelsPage() {
             <Search className="h-4 w-4" />
             {isSearchMode ? "Back to Managed Hotels" : "TripJack Static Database"}
           </button>
+          
+          {!isSearchMode && (
+            <button
+              onClick={() => setIsBulkImportOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-800 font-semibold rounded-md shadow-sm hover:bg-slate-200 transition-colors"
+            >
+              <Plus className="h-4 w-4" /> Bulk Import
+            </button>
+          )}
+
           <Link
             href="/inventory/hotels/new"
             className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-md shadow-sm hover:bg-primary-hover transition-colors"
@@ -450,6 +462,12 @@ export default function HotelsPage() {
         itemId={selectedId}
         destinations={destinationsQuery.data || []}
         onClose={() => setSelectedId(null)}
+      />
+
+      <BulkImportModal 
+        isOpen={isBulkImportOpen}
+        onClose={() => setIsBulkImportOpen(false)}
+        type="HOTEL"
       />
 
       {/* Confirm delete dialog */}

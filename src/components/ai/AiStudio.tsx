@@ -347,9 +347,10 @@ export function AiStudio() {
       {/* Right Panel: Output Preview */}
       <div className="flex-1 bg-slate-50/50 flex flex-col relative">
         {generateMutation.isPending ? (
-          <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-sm flex flex-col items-center justify-center text-primary">
-            <Loader2 className="h-10 w-10 animate-spin mb-4" />
-            <p className="font-medium animate-pulse">Structuring itinerary with OpenAI...</p>
+          <div className="absolute inset-0 z-50 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center text-slate-900">
+            <Loader2 className="h-12 w-12 animate-spin mb-4 text-emerald-600" />
+            <p className="font-bold text-lg animate-pulse text-slate-900">Structuring luxury itinerary with AI...</p>
+            <p className="text-sm text-slate-500 mt-2 font-medium">This may take 15-30 seconds depending on inventory size.</p>
           </div>
         ) : !output ? (
           <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8 text-center">
@@ -371,8 +372,8 @@ export function AiStudio() {
                     <MapPin className="h-32 w-32" />
                   </div>
                   <div className="relative z-10">
-                    <span className="inline-block px-3 py-1 bg-primary text-xs font-bold rounded-full mb-4">
-                      AI Generated
+                    <span className="inline-block px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full mb-4 shadow-sm">
+                      ✨ AI Generated
                     </span>
                     <h1 className="text-3xl font-bold mb-2">{output.title}</h1>
                     <div className="flex items-center gap-6 text-sm text-slate-300">
@@ -413,11 +414,11 @@ export function AiStudio() {
                           key={idx}
                           className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active"
                         >
-                          <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-card bg-primary text-white font-bold text-sm shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                          <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-emerald-600 text-white font-bold text-sm shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
                             {day.dayNumber}
                           </div>
-                          <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded border border-border bg-card shadow-sm">
-                            <h4 className="font-bold text-sm mb-1 text-primary">{day.title}</h4>
+                          <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-slate-200 bg-white shadow-sm">
+                            <h4 className="font-bold text-base mb-1 text-slate-900">{day.title}</h4>
                             <div className="space-y-2 mt-2">
                               {day.items.map((item, i) => (
                                 <div key={i} className="text-sm">

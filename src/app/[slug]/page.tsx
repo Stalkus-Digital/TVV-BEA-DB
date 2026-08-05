@@ -72,6 +72,20 @@ export default async function DestinationLandingPage({ params }: PageProps) {
     honeymoons = packages.slice(6, 12);
   }
 
+  // Fetch pricing for the packages
+  const packageIds = [...bestDeals, ...honeymoons].map(p => p.id);
+  const pricings = await prisma.packagePricing.findMany({
+    where: { packageId: { in: packageIds } }
+  });
+  
+  const attachPricing = (pkg: any) => {
+    const pricing = pricings.find((p: any) => p.packageId === pkg.id);
+    return { ...pkg, pricing };
+  };
+
+  bestDeals = bestDeals.map(attachPricing);
+  honeymoons = honeymoons.map(attachPricing);
+
   // Parse gallery to get a background image
   const gallery = destination?.gallery as any;
   const heroImage = heroSection.imageUrl || gallery?.images?.[0] || "/placeholder-destination.jpg";

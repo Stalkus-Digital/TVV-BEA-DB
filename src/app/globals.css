@@ -8,6 +8,17 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-500: #0066cc;
+  --color-brand-600: #0055aa;
+  --color-brand-700: #004d99;
+  --color-brand-800: #003d80;
+  --color-brand-900: #002d5c;
+  --color-brand: #0066cc;
+  --color-wa: #25d366;
+  
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   

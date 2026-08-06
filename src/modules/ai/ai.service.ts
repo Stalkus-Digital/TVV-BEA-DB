@@ -2,7 +2,7 @@ import { BaseService, type ServiceContext } from "@/shared/services";
 import { ok, err, type Result } from "@/shared/types";
 import { InternalError, type AppError } from "@/shared/errors";
 import { prisma } from "@/shared/database/prisma-client";
-import type { Package as HolidayPackage } from "@/generated/prisma/client";
+import type { Package as HolidayPackage, Prisma } from "@/generated/prisma/client";
 
 export interface GeneratePackageDto {
   destination: string;
@@ -25,15 +25,72 @@ export class AIService extends BaseService {
 
       this.logger.info("Generating AI package", { destination: data.destination });
 
+      // 1. Fetch Destination and its children to get the location context
+      const allDestinations = await prisma.destination.findMany({
+        select: { id: true, parentDestinationId: true, name: true }
+      });
+      const targetDestination = allDestinations.find(d => d.id === data.destination);
+      if (!targetDestination) {
+        return err(new InternalError(`Destination not found: ${data.destination}`));
+      }
+
+      // Build set of valid IDs (self + all direct children/descendants in this small tree)
+      const validDestinationIds = new Set<string>([data.destination]);
+      let added = true;
+      while (added) {
+        added = false;
+        for (const dest of allDestinations) {
+          if (dest.parentDestinationId && validDestinationIds.has(dest.parentDestinationId) && !validDestinationIds.has(dest.id)) {
+            validDestinationIds.add(dest.id);
+            added = true;
+          }
+        }
+      }
+
+      // 2. Fetch real inventory for these locations
+      const inventoryItems = await prisma.inventoryItem.findMany({
+        where: {
+          destinationId: { in: Array.from(validDestinationIds) },
+          status: "ACTIVE"
+        },
+        select: { id: true, kind: true, title: true, destinationId: true }
+      });
+
+      const hotels = inventoryItems.filter(i => i.kind === "HOTEL").map(i => ({ id: i.id, name: i.title }));
+      const activities = inventoryItems.filter(i => i.kind === "ACTIVITY").map(i => ({ id: i.id, name: i.title }));
+
       const prompt = `
-      You are an expert travel agent. Generate a detailed, enticing holiday package for ${data.destination} for ${data.durationDays} days.
+      You are an expert travel agent. Generate a detailed, enticing holiday package for ${targetDestination.name} for ${data.durationDays} days.
       The theme is ${data.theme || "general leisure"}.
+      
+      IMPORTANT: You must build the itinerary using ONLY the following real hotels and activities from our inventory. Do not invent fake hotels or activities.
+      
+      Available Hotels:
+      ${JSON.stringify(hotels)}
+      
+      Available Activities:
+      ${JSON.stringify(activities)}
       
       Respond strictly in JSON format matching this schema:
       {
         "title": "String (catchy title)",
         "description": "String (enticing description)",
-        "price": number (estimated price in INR)
+        "price": number (estimated price in INR),
+        "days": [
+          {
+            "dayNumber": number,
+            "title": "String (day title)",
+            "description": "String (what happens on this day)",
+            "items": [
+              {
+                "kind": "HOTEL" | "ACTIVITY" | "TRANSFER",
+                "inventoryItemId": "String (Must match one of the provided IDs, null if TRANSFER)",
+                "title": "String (name of the hotel/activity/transfer)",
+                "description": "String (short description)"
+              }
+            ]
+          }
+        ]
       }
       `;
 
@@ -68,6 +125,25 @@ export class AIService extends BaseService {
       const endDate = new Date(startDate);
       endDate.setDate(endDate.getDate() + data.durationDays);
 
+      const daysData = parsed.days || [];
+      const packageDays: Prisma.PackageDayCreateWithoutPackageInput[] = daysData.map((day: any, dIdx: number) => ({
+        dayNumber: day.dayNumber || dIdx + 1,
+        title: day.title || `Day ${dIdx + 1}`,
+        description: day.description || "",
+        items: {
+          create: (day.items || []).map((item: any, idx: number) => ({
+            kind: item.kind || "ACTIVITY",
+            resolutionMode: item.inventoryItemId ? "INVENTORY" : "MANUAL",
+            inventoryItemId: item.inventoryItemId || null,
+            title: item.title || "Activity",
+            description: item.description || null,
+            pricingMode: "INCLUDED",
+            position: idx,
+            images: [],
+          }))
+        }
+      }));
+
       const newPackage = await prisma.package.create({
         data: {
           title: parsed.title,
@@ -82,6 +158,9 @@ export class AIService extends BaseService {
           faqs: [],
           createdAt: new Date(),
           updatedAt: new Date(),
+          days: {
+            create: packageDays
+          }
         }
       });
 

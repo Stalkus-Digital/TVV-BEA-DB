@@ -22,8 +22,7 @@ export function ActivityForm() {
   const [offerPrice, setOfferPrice] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
-  const [images, setImages] = useState<File[]>([]);
-  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [images, setImages] = useState<(File | string)[]>([]);
 
   const [isLoading, setIsLoading] = useState(!!editId);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,7 +37,7 @@ export function ActivityForm() {
             setStarterPrice(data.details?.starterPrice?.toString() || data.details?.adultPrice?.toString() || "");
             setOfferPrice(data.details?.offerPrice?.toString() || "");
             setDescription(data.details?.description || "");
-            setExistingImageUrls(data.details?.images || []);
+            setImages(data.details?.images || []);
           }
         })
         .catch(console.error)
@@ -52,10 +51,15 @@ export function ActivityForm() {
 
     try {
       let uploadedImageUrls: string[] = [];
-      if (images.length > 0) {
-        const results = await uploadFiles(images, "GALLERY_IMAGE");
+      const newFiles = images.filter((img): img is File => img instanceof File);
+      const existingUrls = images.filter((img): img is string => typeof img === "string");
+      
+      if (newFiles.length > 0) {
+        const results = await uploadFiles(newFiles, "GALLERY_IMAGE");
         uploadedImageUrls = results.map(r => r.url);
       }
+
+      const allImages = [...existingUrls, ...uploadedImageUrls];
 
       const payload = {
         kind: "ACTIVITY",
@@ -66,7 +70,7 @@ export function ActivityForm() {
           starterPrice: Number(starterPrice) || 0,
           offerPrice: Number(offerPrice) || 0,
           description,
-          images: images.length > 0 ? uploadedImageUrls : existingImageUrls,
+          images: allImages,
         }
       };
 

@@ -14,6 +14,7 @@ import {
   useCreateDestinationMutation,
   useUpdateDestinationMutation,
   useCreateCategoryMutation,
+  useRemoveGalleryImageMutation,
 } from "../hooks/useDestinationMutations";
 import { useDestinationQuery } from "../hooks/useDestinationQuery";
 import {
@@ -113,6 +114,12 @@ export function DestinationBuilderPage() {
     if (!destinationId) return;
     await updateMutation.mutateAsync({
       name,
+      slug: slug || undefined,
+      countryId,
+      stateId: stateId || null,
+      cityId: cityId || null,
+      regionId: regionId || null,
+      parentDestinationId: parentDestinationId || null,
       categoryIds,
       description: description || null,
     });
@@ -215,7 +222,6 @@ export function DestinationBuilderPage() {
                   regions: regionsQuery.isLoading,
                   cities: citiesQuery.isLoading,
                 }}
-                locked={Boolean(destinationId)}
                 parentDestinationId={parentDestinationId}
                 onParentChange={setParentDestinationId}
                 parentOptions={parentOptions}
@@ -346,12 +352,11 @@ function BasicStep({
           <input
             value={slug}
             onChange={(e) => onSlugChange(e.target.value)}
-            disabled={Boolean(destinationId)}
-            className="flex-1 bg-transparent border-none p-0 text-sm font-mono disabled:opacity-60"
+            className="flex-1 bg-transparent border-none p-0 text-sm font-mono"
             placeholder="havelock-island"
           />
         </div>
-        {destinationId && <p className="text-xs text-muted-foreground mt-1">Slug is fixed after creation.</p>}
+        {destinationId && <p className="text-xs text-muted-foreground mt-1">Changing slug may affect SEO and existing links.</p>}
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Description</label>
@@ -445,7 +450,6 @@ function GeographyStep({
   regions,
   cities,
   isLoading,
-  locked,
   parentDestinationId,
   onParentChange,
   parentOptions,
@@ -463,7 +467,6 @@ function GeographyStep({
   regions: { id: string; name: string }[];
   cities: { id: string; name: string }[];
   isLoading: { countries: boolean; states: boolean; regions: boolean; cities: boolean };
-  locked: boolean;
   parentDestinationId: string;
   onParentChange: (id: string) => void;
   parentOptions: { id: string; name: string }[];
@@ -478,7 +481,7 @@ function GeographyStep({
         <select
           value={countryId}
           onChange={(e) => onCountryChange(e.target.value)}
-          disabled={locked || isLoading.countries}
+          disabled={isLoading.countries}
           className="w-full px-3 py-2 border border-border rounded-md text-sm disabled:opacity-60"
         >
           <option value="">Select country</option>
@@ -498,7 +501,7 @@ function GeographyStep({
           <select
             value={stateId}
             onChange={(e) => onStateChange(e.target.value)}
-            disabled={locked || isLoading.states || !countryId}
+            disabled={isLoading.states || !countryId}
             className="w-full px-3 py-2 border border-border rounded-md text-sm disabled:opacity-60"
           >
             <option value="">Select state</option>
@@ -517,7 +520,7 @@ function GeographyStep({
           <select
             value={regionId}
             onChange={(e) => onRegionChange(e.target.value)}
-            disabled={locked || isLoading.regions || !countryId}
+            disabled={isLoading.regions || !countryId}
             className="w-full px-3 py-2 border border-border rounded-md text-sm disabled:opacity-60"
           >
             <option value="">Select region</option>
@@ -537,7 +540,7 @@ function GeographyStep({
         <select
           value={cityId}
           onChange={(e) => onCityChange(e.target.value)}
-          disabled={locked || isLoading.cities || (!countryId && !stateId)}
+          disabled={isLoading.cities || (!countryId && !stateId)}
           className="w-full px-3 py-2 border border-border rounded-md text-sm disabled:opacity-60"
         >
           <option value="">Select city</option>
@@ -548,9 +551,8 @@ function GeographyStep({
           ))}
         </select>
       </div>
-      {!locked && (
-        <div>
-          <label className="block text-sm font-medium mb-1">Parent destination *</label>
+      <div>
+        <label className="block text-sm font-medium mb-1">Parent destination *</label>
           <select
             value={parentDestinationId}
             onChange={(e) => onParentChange(e.target.value)}
@@ -566,10 +568,6 @@ function GeographyStep({
           </select>
           <p className="text-xs text-muted-foreground mt-1">Required — choose which market this destination belongs under.</p>
         </div>
-      )}
-      {locked && (
-        <p className="text-xs text-muted-foreground">Geography fields are fixed after creation — no PATCH support.</p>
-      )}
     </div>
   );
 }
@@ -661,29 +659,39 @@ function SeoBuilderStep({ destinationId }: { destinationId: string }) {
 function GalleryBuilderStep({ destinationId }: { destinationId: string }) {
   const destinationQuery = useDestinationQuery(destinationId);
   const addMutation = useAddGalleryImageMutation(destinationId);
+  const removeMutation = useRemoveGalleryImageMutation(destinationId);
   const [isUploading, setIsUploading] = useState(false);
 
   if (destinationQuery.isLoading) return <WidgetLoading label="Loading…" />;
+
+  const existingImages = destinationQuery.data?.gallery || [];
+  const existingUrls = existingImages.map((img) => img.url);
 
   return (
     <div className="space-y-4 bg-card border border-border rounded-lg p-6">
       <p className="text-xs text-muted-foreground">Upload images to gallery.</p>
       <ImageUploader 
         label=""
-        multiple={false}
-        value={[]}
-        onChange={async (urls) => {
-          if (urls && urls.length > 0) {
+        multiple={true}
+        value={existingUrls}
+        onChange={async (newUrls) => {
+          // Handle deletions
+          const deletedUrls = existingUrls.filter(url => !newUrls.includes(url));
+          for (const deletedUrl of deletedUrls) {
+            const imgToDel = existingImages.find(img => img.url === deletedUrl);
+            if (imgToDel) {
+              await removeMutation.mutateAsync(imgToDel.id);
+            }
+          }
+
+          // Handle additions (files)
+          const newFiles = newUrls.filter((item): item is File => item instanceof File);
+          if (newFiles.length > 0) {
             try {
               setIsUploading(true);
-              const file = urls[0];
-              if (typeof file === "string") {
-                 await addMutation.mutateAsync({ url: file });
-              } else {
-                 const results = await uploadFiles([file], "GALLERY_IMAGE");
-                 if (results.length > 0) {
-                    await addMutation.mutateAsync({ url: results[0].url });
-                 }
+              const results = await uploadFiles(newFiles, "GALLERY_IMAGE");
+              for (const res of results) {
+                await addMutation.mutateAsync({ url: res.url });
               }
             } catch (err) {
               console.error("Failed to upload image", err);
@@ -695,18 +703,7 @@ function GalleryBuilderStep({ destinationId }: { destinationId: string }) {
         }}
       />
       {isUploading && <p className="text-sm text-muted-foreground animate-pulse">Uploading...</p>}
-
-      {destinationQuery.data?.gallery && destinationQuery.data.gallery.length > 0 && (
-        <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {destinationQuery.data.gallery.map((img) => (
-            <div key={img.id} className="relative aspect-video bg-muted rounded-md overflow-hidden border border-border">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={img.url} alt="Gallery image" className="object-cover w-full h-full" />
-            </div>
-          ))}
-        </div>
-      )}
-      <p className="text-sm text-muted-foreground mt-4">{destinationQuery.data?.gallery.length ?? 0} images in gallery.</p>
+      <p className="text-sm text-muted-foreground mt-4">{existingImages.length} images in gallery.</p>
     </div>
   );
 }

@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import { LandingPagesManager } from "@/features/admin-cms/components/LandingPagesManager";
+import { LandingPagesPage } from "@/features/admin-marketing/components/LandingPagesPage";
 
 export default function LandingPagesRoute() {
   return (
     <Suspense fallback={<div>Loading Landing Pages Builder...</div>}>
-      <LandingPagesManager />
+      <LandingPagesPage />
     </Suspense>
   );
 }

@@ -143,6 +143,12 @@ export interface CreateDestinationInput {
 
 export interface UpdateDestinationInput {
   name?: string;
+  slug?: string;
+  countryId?: string | null;
+  stateId?: string | null;
+  cityId?: string | null;
+  regionId?: string | null;
+  parentDestinationId?: string | null;
   description?: string | null;
   categoryIds?: string[];
   isFeatured?: boolean;

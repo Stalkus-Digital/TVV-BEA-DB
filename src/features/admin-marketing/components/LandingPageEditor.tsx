@@ -211,13 +211,43 @@ export function LandingPageEditor({ onCancel }: LandingPageEditorProps) {
                       </div>
                     )}
                     {block.type === 'PACKAGES' && (
-                      <div>
-                        <label className="block text-xs font-medium mb-1">Select Packages (Comma separated IDs for now)</label>
-                        <input className="w-full border-input bg-transparent border rounded-md px-3 py-1.5 text-sm" placeholder="pkg_123, pkg_456" value={(block.config.packageIds || []).join(', ')} onChange={e => updateBlockConfig(block.id, 'packageIds', e.target.value.split(',').map((s:string) => s.trim()).filter(Boolean))} />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Eyebrow (e.g. Itineraries)</label>
+                          <input className="w-full border-input bg-transparent border rounded-md px-3 py-1.5 text-sm" value={block.config.eyebrow || ''} onChange={e => updateBlockConfig(block.id, 'eyebrow', e.target.value)} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Headline</label>
+                          <input className="w-full border-input bg-transparent border rounded-md px-3 py-1.5 text-sm" value={block.config.headline || ''} onChange={e => updateBlockConfig(block.id, 'headline', e.target.value)} />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="block text-xs font-medium mb-1">Description</label>
+                          <input className="w-full border-input bg-transparent border rounded-md px-3 py-1.5 text-sm" value={block.config.description || ''} onChange={e => updateBlockConfig(block.id, 'description', e.target.value)} />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="block text-xs font-medium mb-1">Select Packages (Comma separated IDs for now)</label>
+                          <input className="w-full border-input bg-transparent border rounded-md px-3 py-1.5 text-sm" placeholder="pkg_123, pkg_456" value={(block.config.packageIds || []).join(', ')} onChange={e => updateBlockConfig(block.id, 'packageIds', e.target.value.split(',').map((s:string) => s.trim()).filter(Boolean))} />
+                        </div>
                       </div>
                     )}
                     {block.type === 'FAQS' && (
-                      <div className="text-sm text-muted-foreground">FAQ editor coming soon...</div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Eyebrow (e.g. FAQs)</label>
+                          <input className="w-full border-input bg-transparent border rounded-md px-3 py-1.5 text-sm" value={block.config.eyebrow || ''} onChange={e => updateBlockConfig(block.id, 'eyebrow', e.target.value)} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Headline</label>
+                          <input className="w-full border-input bg-transparent border rounded-md px-3 py-1.5 text-sm" value={block.config.headline || ''} onChange={e => updateBlockConfig(block.id, 'headline', e.target.value)} />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="block text-xs font-medium mb-1">Description</label>
+                          <input className="w-full border-input bg-transparent border rounded-md px-3 py-1.5 text-sm" value={block.config.description || ''} onChange={e => updateBlockConfig(block.id, 'description', e.target.value)} />
+                        </div>
+                        <div className="col-span-2 text-sm text-muted-foreground mt-4 border-t border-border pt-4">
+                          FAQ item editor coming soon... (manage questions globally)
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>

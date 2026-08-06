@@ -133,6 +133,27 @@ export class DestinationService extends BaseService {
     const validated = validateUpdateDestination(input);
     if (isErr(validated)) return validated;
 
+    if (validated.value.slug && validated.value.slug !== existing.value.slug) {
+      const slugCheck = await this.repository.findBySlug(validated.value.slug);
+      if (isErr(slugCheck)) return slugCheck;
+      if (slugCheck.value) return err(new ConflictError(`Destination slug "${validated.value.slug}" is already in use`));
+      if (isMarketRootSlug(validated.value.slug)) {
+        return err(new ConflictError(`Slug "${validated.value.slug}" is reserved for a market root destination`));
+      }
+    }
+
+    if (validated.value.parentDestinationId !== undefined && validated.value.parentDestinationId !== existing.value.parentDestinationId) {
+      if (validated.value.parentDestinationId) {
+        const parentCheck = await this.repository.findById(validated.value.parentDestinationId);
+        if (isErr(parentCheck)) return parentCheck;
+        if (!parentCheck.value) {
+          return err(new NotFoundError(`parentDestinationId "${validated.value.parentDestinationId}" not found`));
+        }
+        const cycleCheck = await this.assertNoCycle(validated.value.parentDestinationId, id);
+        if (isErr(cycleCheck)) return cycleCheck;
+      }
+    }
+
     this.logger.info("Updating destination", { id });
     const result = await this.repository.update(id, validated.value);
 
@@ -146,6 +167,11 @@ export class DestinationService extends BaseService {
       if (oldValues.isFeatured !== newValues.isFeatured) changes.isFeatured = { from: oldValues.isFeatured, to: newValues.isFeatured };
       if (oldValues.slug !== newValues.slug) changes.slug = { from: oldValues.slug, to: newValues.slug };
       if (oldValues.status !== newValues.status) changes.status = { from: oldValues.status, to: newValues.status };
+      if (oldValues.countryId !== newValues.countryId) changes.countryId = { from: oldValues.countryId, to: newValues.countryId };
+      if (oldValues.stateId !== newValues.stateId) changes.stateId = { from: oldValues.stateId, to: newValues.stateId };
+      if (oldValues.cityId !== newValues.cityId) changes.cityId = { from: oldValues.cityId, to: newValues.cityId };
+      if (oldValues.regionId !== newValues.regionId) changes.regionId = { from: oldValues.regionId, to: newValues.regionId };
+      if (oldValues.parentDestinationId !== newValues.parentDestinationId) changes.parentDestinationId = { from: oldValues.parentDestinationId, to: newValues.parentDestinationId };
 
       await this.recordAudit("DESTINATION_UPDATED", result.value, "Updated destination", { changes });
     }

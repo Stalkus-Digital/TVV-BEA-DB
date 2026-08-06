@@ -111,6 +111,12 @@ export function validateCreateDestination(input: unknown): Result<CreateDestinat
 
 export interface UpdateDestinationInput {
   name?: string;
+  slug?: string;
+  countryId?: string | null;
+  stateId?: string | null;
+  cityId?: string | null;
+  regionId?: string | null;
+  parentDestinationId?: string | null;
   description?: string | null;
   categoryIds?: string[];
   isFeatured?: boolean;
@@ -126,6 +132,35 @@ export function validateUpdateDestination(input: unknown): Result<UpdateDestinat
   if (body.name !== undefined) {
     if (!isNonEmptyString(body.name)) return err(new ValidationError("name must be a non-empty string"));
     output.name = body.name;
+  }
+  if (body.slug !== undefined) {
+    if (!isNonEmptyString(body.slug)) return err(new ValidationError("slug must be a non-empty string"));
+    output.slug = slugify(body.slug);
+  }
+  if (body.countryId !== undefined) {
+    const countryId = validateOptionalString(body.countryId, "countryId");
+    if (!countryId.ok) return countryId;
+    output.countryId = countryId.value;
+  }
+  if (body.stateId !== undefined) {
+    const stateId = validateOptionalString(body.stateId, "stateId");
+    if (!stateId.ok) return stateId;
+    output.stateId = stateId.value;
+  }
+  if (body.cityId !== undefined) {
+    const cityId = validateOptionalString(body.cityId, "cityId");
+    if (!cityId.ok) return cityId;
+    output.cityId = cityId.value;
+  }
+  if (body.regionId !== undefined) {
+    const regionId = validateOptionalString(body.regionId, "regionId");
+    if (!regionId.ok) return regionId;
+    output.regionId = regionId.value;
+  }
+  if (body.parentDestinationId !== undefined) {
+    const parentDestinationId = validateOptionalString(body.parentDestinationId, "parentDestinationId");
+    if (!parentDestinationId.ok) return parentDestinationId;
+    output.parentDestinationId = parentDestinationId.value;
   }
   if (body.description !== undefined) {
     const description = validateOptionalString(body.description, "description");

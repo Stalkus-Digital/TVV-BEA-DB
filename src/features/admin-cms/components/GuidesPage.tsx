@@ -1,29 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { CmsPageShell } from "./CmsPageShell";
-import { CmsRichTextEditor } from "./CmsRichTextEditor";
-import { ImageUploader } from "@/features/admin-hotels/components/ImageUploader";
+import { CmsEditorForm, EMPTY_EDITOR_FORM, slugify, todayDateInput, type CmsEditorFormState } from "./CmsEditorForm";
 import { adminApiClient } from "@/lib/admin-api/client";
-import { uploadFile } from "@/lib/admin-api/upload";
-
-const GUIDE_CATEGORIES = [
-  "Andaman",
-  "Kerala",
-  "Maldives",
-  "Honeymoon",
-  "Luxury",
-  "Ferry Guide",
-  "International",
-  "Bali",
-  "Dubai",
-  "Leh-Ladakh",
-  "Packing Tips",
-  "Travel Hacks",
-  "Hotel Reviews",
-] as const;
-
-const CUSTOM_CATEGORY = "__custom__";
 
 interface GuideContent {
   body?: string;
@@ -34,7 +14,6 @@ interface GuideContent {
   category?: string;
   tags?: string[];
   author?: string;
-  /** Display date on the public byline (YYYY-MM-DD) */
   publishDate?: string;
 }
 
@@ -47,63 +26,9 @@ interface Guide {
   content?: GuideContent | null;
 }
 
-interface GuideFormState {
-  id: string;
-  title: string;
-  slug: string;
-  status: string;
-  body: string;
-  excerpt: string;
-  metaTitle: string;
-  metaDescription: string;
-  coverImage: string;
-  category: string;
-  tags: string[];
-  author: string;
-  publishDate: string;
-}
-
-function todayDateInput(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-const EMPTY_FORM: GuideFormState = {
-  id: "",
-  title: "",
-  slug: "",
-  status: "DRAFT",
-  body: "",
-  excerpt: "",
-  metaTitle: "",
-  metaDescription: "",
-  coverImage: "",
-  category: "Andaman",
-  tags: [],
-  author: "TVV Editorial",
-  publishDate: todayDateInput(),
-};
-
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-function normalizeTag(value: string): string {
-  return slugify(value);
-}
-
-function parseContent(content: Guide["content"]): GuideContent {
-  if (!content || typeof content !== "object" || Array.isArray(content)) return {};
-  return content as GuideContent;
+function parseContent(raw: Guide["content"]): GuideContent {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  return raw as GuideContent;
 }
 
 function contentCategory(content: GuideContent): string {
@@ -116,7 +41,7 @@ function contentTags(content: GuideContent): string[] {
   if (!Array.isArray(content.tags)) return [];
   return content.tags
     .filter((t): t is string => typeof t === "string")
-    .map(normalizeTag)
+    .map(slugify)
     .filter(Boolean);
 }
 
@@ -124,26 +49,15 @@ export function GuidesPage() {
   const [guides, setGuides] = useState<Guide[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState<GuideFormState>(EMPTY_FORM);
-  const [categoryMode, setCategoryMode] = useState<"preset" | "custom">("preset");
-  const [tagDraft, setTagDraft] = useState("");
-  const [slugTouched, setSlugTouched] = useState(false);
+  const [form, setForm] = useState<CmsEditorFormState>(EMPTY_EDITOR_FORM);
   const [isSaving, setIsSaving] = useState(false);
-  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null);
   const [guideToDelete, setGuideToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isLoadingEdit, setIsLoadingEdit] = useState(false);
 
-  const slugTouchedRef = useRef(false);
-  slugTouchedRef.current = slugTouched;
-
-  useEffect(() => {
-    void fetchGuides();
-  }, []);
+  useEffect(() => { void fetchGuides(); }, []);
 
   async function fetchGuides() {
     try {
@@ -159,33 +73,19 @@ export function GuidesPage() {
   }
 
   function openCreate() {
-    setForm({ ...EMPTY_FORM, publishDate: todayDateInput(), author: "TVV Editorial" });
-    setCategoryMode("preset");
-    setTagDraft("");
-    setSlugTouched(false);
+    setForm({ ...EMPTY_EDITOR_FORM, publishDate: todayDateInput(), author: "TVV Editorial" });
     setFormError(null);
     setIsEditing(true);
   }
 
   async function openEdit(guideId: string) {
     try {
-      setIsLoadingEdit(true);
-      setFormError(null);
+      setIsLoading(true);
       const guide = await adminApiClient.get<Guide>(`/api/cms/guides/${guideId}`);
-      if (!guide) {
-        setFormError("Guide not found");
-        return;
-      }
+      if (!guide) { setFormError("Guide not found"); return; }
       const content = parseContent(guide.content);
-      const category = contentCategory(content);
-      const isPreset = (GUIDE_CATEGORIES as readonly string[]).includes(category);
-      const publishDate =
-        typeof content.publishDate === "string" && /^\d{4}-\d{2}-\d{2}/.test(content.publishDate)
-          ? content.publishDate.slice(0, 10)
-          : guide.createdAt
-            ? guide.createdAt.slice(0, 10)
-            : todayDateInput();
       setForm({
+        ...EMPTY_EDITOR_FORM,
         id: guide.id,
         title: guide.title,
         slug: guide.slug,
@@ -195,61 +95,31 @@ export function GuidesPage() {
         metaTitle: content.metaTitle ?? "",
         metaDescription: content.metaDescription ?? "",
         coverImage: typeof content.coverImage === "string" ? content.coverImage : "",
-        category: category === "Guides" ? "Andaman" : category,
+        category: contentCategory(content) === "Guides" ? "Andaman" : contentCategory(content),
         tags: contentTags(content),
-        author:
-          typeof content.author === "string" && content.author.trim()
-            ? content.author.trim()
-            : "TVV Editorial",
-        publishDate,
+        author: typeof content.author === "string" && content.author.trim() ? content.author.trim() : "TVV Editorial",
+        publishDate:
+          typeof content.publishDate === "string" && /^\d{4}-\d{2}-\d{2}/.test(content.publishDate)
+            ? content.publishDate.slice(0, 10)
+            : guide.createdAt?.slice(0, 10) ?? todayDateInput(),
       });
-      setCategoryMode(isPreset || category === "Guides" ? "preset" : "custom");
-      setTagDraft("");
-      setSlugTouched(true);
+      setFormError(null);
       setIsEditing(true);
     } catch {
       setError("Failed to load guide for editing");
     } finally {
-      setIsLoadingEdit(false);
+      setIsLoading(false);
     }
-  }
-
-  function addTag(raw: string) {
-    const tag = normalizeTag(raw);
-    if (!tag) return;
-    setForm((prev) =>
-      prev.tags.includes(tag) ? prev : { ...prev, tags: [...prev.tags, tag] }
-    );
-    setTagDraft("");
-  }
-
-  function removeTag(tag: string) {
-    setForm((prev) => ({ ...prev, tags: prev.tags.filter((t) => t !== tag) }));
   }
 
   async function saveGuide(status: "DRAFT" | "PUBLISHED") {
-    if (!form.title.trim()) {
-      setFormError("Title is required");
-      return;
-    }
+    if (!form.title.trim()) { setFormError("Title is required"); return; }
     const slug = slugify(form.slug.trim() || form.title);
-    if (!slug) {
-      setFormError("Slug is required");
-      return;
-    }
-    const category = form.category.trim();
-    if (!category) {
-      setFormError("Category is required");
-      return;
-    }
+    if (!slug) { setFormError("Slug is required"); return; }
+    if (!form.category.trim()) { setFormError("Category is required"); return; }
 
     setIsSaving(true);
     setFormError(null);
-
-    const coverImage = typeof form.coverImage === "string" ? form.coverImage.trim() : "";
-
-    const author = form.author.trim() || "TVV Editorial";
-    const publishDate = form.publishDate.trim();
 
     const payload = {
       title: form.title.trim(),
@@ -260,11 +130,11 @@ export function GuidesPage() {
         excerpt: form.excerpt,
         metaTitle: form.metaTitle,
         metaDescription: form.metaDescription,
-        coverImage,
-        category,
+        coverImage: form.coverImage.trim(),
+        category: form.category.trim(),
         tags: form.tags,
-        author,
-        ...(publishDate ? { publishDate } : {}),
+        author: form.author.trim() || "TVV Editorial",
+        ...(form.publishDate ? { publishDate: form.publishDate } : {}),
       },
     };
 
@@ -275,7 +145,7 @@ export function GuidesPage() {
         await adminApiClient.post("/api/cms/guides", payload);
       }
       setIsEditing(false);
-      setForm(EMPTY_FORM);
+      setForm(EMPTY_EDITOR_FORM);
       await fetchGuides();
     } catch {
       setFormError("Failed to save guide. Check that the slug is unique and try again.");
@@ -317,47 +187,11 @@ export function GuidesPage() {
     }
   }
 
-  async function handleCoverChange(files: Array<File | string>) {
-    const next = files[0];
-    if (!next) {
-      setForm((prev) => ({ ...prev, coverImage: "" }));
-      return;
-    }
-    if (typeof next === "string") {
-      setForm((prev) => ({ ...prev, coverImage: next }));
-      return;
-    }
-
-    setIsUploadingCover(true);
-    setFormError(null);
-    try {
-      const result = await uploadFile(next, "GALLERY_IMAGE");
-      setForm((prev) => ({ ...prev, coverImage: result.url }));
-    } catch {
-      setFormError("Failed to upload cover image. Please try again.");
-    } finally {
-      setIsUploadingCover(false);
-    }
-  }
-
-  function handleTitleChange(title: string) {
-    setForm((prev) => ({
-      ...prev,
-      title,
-      slug: !prev.id && !slugTouchedRef.current ? slugify(title) : prev.slug,
-    }));
-  }
-
-  const categorySelectValue =
-    categoryMode === "custom" || !(GUIDE_CATEGORIES as readonly string[]).includes(form.category)
-      ? CUSTOM_CATEGORY
-      : form.category;
-
   return (
     <CmsPageShell
       title="Guides (Blogs)"
       description="Manage blog and guide articles."
-      isLoading={isLoading || isLoadingEdit}
+      isLoading={isLoading}
       isError={!!error}
       errorMessage={error || undefined}
       onRefresh={fetchGuides}
@@ -376,246 +210,16 @@ export function GuidesPage() {
       </div>
 
       {isEditing ? (
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
-          {formError && (
-            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {formError}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-medium mb-1">Title</label>
-            <input
-              required
-              value={form.title}
-              onChange={(e) => handleTitleChange(e.target.value)}
-              className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium mb-1">Slug</label>
-            <input
-              required
-              value={form.slug}
-              onChange={(e) => {
-                setSlugTouched(true);
-                setForm((prev) => ({ ...prev, slug: slugify(e.target.value) || e.target.value }));
-              }}
-              className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm font-mono"
-              placeholder="url-friendly-slug"
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="block text-xs font-medium mb-1">Category</label>
-              <select
-                value={categorySelectValue}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === CUSTOM_CATEGORY) {
-                    setCategoryMode("custom");
-                    setForm((prev) => ({
-                      ...prev,
-                      category: (GUIDE_CATEGORIES as readonly string[]).includes(prev.category)
-                        ? ""
-                        : prev.category,
-                    }));
-                    return;
-                  }
-                  setCategoryMode("preset");
-                  setForm((prev) => ({ ...prev, category: value }));
-                }}
-                className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
-              >
-                {GUIDE_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-                <option value={CUSTOM_CATEGORY}>Custom…</option>
-              </select>
-              {categoryMode === "custom" && (
-                <input
-                  value={form.category}
-                  onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
-                  className="mt-2 w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
-                  placeholder="Custom category name"
-                />
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium mb-1">Tags</label>
-              <input
-                value={tagDraft}
-                onChange={(e) => setTagDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === ",") {
-                    e.preventDefault();
-                    addTag(tagDraft);
-                  }
-                }}
-                onBlur={() => {
-                  if (tagDraft.trim()) addTag(tagDraft);
-                }}
-                className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
-                placeholder="Add tag + Enter"
-              />
-              {form.tags.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {form.tags.map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => removeTag(tag)}
-                      className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-200"
-                      title="Remove tag"
-                    >
-                      {tag}
-                      <span aria-hidden className="text-slate-400">
-                        ×
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Used as filters on the public guides page.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="block text-xs font-medium mb-1">Author</label>
-              <input
-                value={form.author}
-                onChange={(e) => setForm((prev) => ({ ...prev, author: e.target.value }))}
-                className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
-                placeholder="TVV Editorial"
-              />
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Shown as “Words by …” on the guide page.
-              </p>
-            </div>
-            <div>
-              <label className="block text-xs font-medium mb-1">Publish date</label>
-              <input
-                type="date"
-                value={form.publishDate}
-                onChange={(e) => setForm((prev) => ({ ...prev, publishDate: e.target.value }))}
-                className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
-              />
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Month and year shown in the hero byline. Optional.
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium mb-1">Excerpt (short summary)</label>
-            <input
-              value={form.excerpt}
-              onChange={(e) => setForm((prev) => ({ ...prev, excerpt: e.target.value }))}
-              className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
-              placeholder="Brief description shown in listings..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium mb-1">Cover Image</label>
-            <ImageUploader
-              label=""
-              multiple={false}
-              value={form.coverImage ? [form.coverImage] : []}
-              onChange={(files) => void handleCoverChange(files)}
-            />
-            {isUploadingCover && (
-              <p className="mt-2 text-xs text-muted-foreground">Uploading cover image…</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium mb-1">Body / Content</label>
-            <CmsRichTextEditor
-              value={form.body}
-              onChange={(body) => setForm((prev) => ({ ...prev, body }))}
-            />
-          </div>
-
-          <div className="border-t border-border pt-4">
-            <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wide">SEO</p>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-medium mb-1">Meta Title</label>
-                <input
-                  value={form.metaTitle}
-                  onChange={(e) => setForm((prev) => ({ ...prev, metaTitle: e.target.value }))}
-                  className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1">Meta Description</label>
-                <textarea
-                  rows={2}
-                  value={form.metaDescription}
-                  onChange={(e) => setForm((prev) => ({ ...prev, metaDescription: e.target.value }))}
-                  className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border">
-            <p className="text-xs text-muted-foreground">
-              Current status:{" "}
-              <span className="font-semibold text-foreground">
-                {form.status === "PUBLISHED" ? "Published" : "Draft"}
-              </span>
-            </p>
-            <div className="flex flex-wrap justify-end gap-2">
-              <button
-                type="button"
-                disabled={isSaving || isUploadingCover}
-                onClick={() => {
-                  setIsEditing(false);
-                  setFormError(null);
-                }}
-                className="px-4 py-2 text-sm font-medium rounded-md border border-border hover:bg-muted disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={isSaving || isUploadingCover}
-                onClick={() => void saveGuide("DRAFT")}
-                className="px-4 py-2 text-sm font-medium rounded-md border border-border hover:bg-muted disabled:opacity-50"
-              >
-                {isSaving ? "Saving…" : "Save as Draft"}
-              </button>
-              {form.id && form.status === "PUBLISHED" && (
-                <button
-                  type="button"
-                  disabled={isSaving || isUploadingCover}
-                  onClick={() => void saveGuide("DRAFT")}
-                  className="px-4 py-2 text-sm font-medium rounded-md border border-amber-300 text-amber-800 bg-amber-50 hover:bg-amber-100 disabled:opacity-50"
-                >
-                  Unpublish
-                </button>
-              )}
-              <button
-                type="button"
-                disabled={isSaving || isUploadingCover}
-                onClick={() => void saveGuide("PUBLISHED")}
-                className="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 disabled:opacity-50"
-              >
-                {isSaving ? "Saving…" : "Publish"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <CmsEditorForm
+          form={form}
+          onChange={setForm}
+          isSaving={isSaving}
+          formError={formError}
+          showGuideFields
+          onCancel={() => { setIsEditing(false); setFormError(null); }}
+          onSaveDraft={() => void saveGuide("DRAFT")}
+          onPublish={() => void saveGuide("PUBLISHED")}
+        />
       ) : (
         <div className="rounded-xl border border-border bg-card overflow-hidden">
           <table className="w-full text-sm">
@@ -646,10 +250,7 @@ export function GuidesPage() {
                       {tags.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700"
-                            >
+                            <span key={tag} className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
                               {tag}
                             </span>
                           ))}
@@ -659,37 +260,18 @@ export function GuidesPage() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                          isPublished
-                            ? "bg-emerald-100 text-emerald-800"
-                            : "bg-amber-100 text-amber-800"
-                        }`}
-                      >
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${isPublished ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
                         {isPublished ? "Published" : "Draft"}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right whitespace-nowrap space-x-3">
-                      <button
-                        type="button"
-                        onClick={() => void openEdit(guide.id)}
-                        className="text-sm font-medium text-slate-900 hover:underline"
-                      >
+                      <button type="button" onClick={() => void openEdit(guide.id)} className="text-sm font-medium text-slate-900 hover:underline">
                         Edit
                       </button>
-                      <button
-                        type="button"
-                        disabled={isUpdating}
-                        onClick={() => void togglePublish(guide)}
-                        className="text-sm font-medium text-slate-700 hover:underline disabled:opacity-50"
-                      >
+                      <button type="button" disabled={isUpdating} onClick={() => void togglePublish(guide)} className="text-sm font-medium text-slate-700 hover:underline disabled:opacity-50">
                         {isUpdating ? "Updating…" : isPublished ? "Unpublish" : "Publish"}
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => setGuideToDelete(guide.id)}
-                        className="text-sm font-medium text-red-600 hover:underline"
-                      >
+                      <button type="button" onClick={() => setGuideToDelete(guide.id)} className="text-sm font-medium text-red-600 hover:underline">
                         Delete
                       </button>
                     </td>
@@ -698,9 +280,7 @@ export function GuidesPage() {
               })}
               {guides.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                    No guides found
-                  </td>
+                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No guides found</td>
                 </tr>
               )}
             </tbody>
@@ -708,34 +288,18 @@ export function GuidesPage() {
         </div>
       )}
 
+      {/* Delete confirmation dialog */}
       {guideToDelete && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-            onClick={() => setGuideToDelete(null)}
-            aria-label="Cancel"
-          />
+          <button type="button" className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setGuideToDelete(null)} aria-label="Cancel" />
           <div className="relative w-full max-w-sm rounded-lg border border-border bg-white shadow-xl p-6 space-y-4">
             <h3 className="font-semibold text-foreground">Delete Guide</h3>
-            <p className="text-sm text-muted-foreground">
-              Are you sure you want to delete this guide? This cannot be undone.
-            </p>
+            <p className="text-sm text-muted-foreground">Are you sure you want to delete this guide? This cannot be undone.</p>
             <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                disabled={isDeleting}
-                onClick={() => setGuideToDelete(null)}
-                className="px-4 py-2 text-sm rounded-md border border-border hover:bg-muted transition-colors disabled:opacity-50"
-              >
+              <button type="button" disabled={isDeleting} onClick={() => setGuideToDelete(null)} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-muted transition-colors disabled:opacity-50">
                 Cancel
               </button>
-              <button
-                type="button"
-                disabled={isDeleting}
-                onClick={() => void handleDelete()}
-                className="px-4 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
-              >
+              <button type="button" disabled={isDeleting} onClick={() => void handleDelete()} className="px-4 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50">
                 {isDeleting ? "Deleting…" : "Delete"}
               </button>
             </div>

@@ -23,9 +23,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       data: {
         title: body.title,
         slug: body.slug,
-        heroSection: body.heroSection,
-        packages: body.packages,
-        faqSection: body.faqSection,
+        blocks: body.blocks,
+        seo: body.seo,
       },
     });
     return NextResponse.json({ success: true, data: page });

@@ -6836,10 +6836,8 @@ export const LandingPageScalarFieldEnum = {
   id: 'id',
   slug: 'slug',
   title: 'title',
-  heroSection: 'heroSection',
-  packages: 'packages',
-  faqSection: 'faqSection',
-  content: 'content',
+  blocks: 'blocks',
+  seo: 'seo',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

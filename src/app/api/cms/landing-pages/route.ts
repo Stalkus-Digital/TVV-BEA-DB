@@ -21,7 +21,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { title, slug, heroSection, packages, faqSection, content } = body;
+    const { title, slug, blocks, seo } = body;
 
     if (!title || !title.trim()) {
       return NextResponse.json({ success: false, error: "Title is required" }, { status: 400 });
@@ -35,10 +35,8 @@ export async function POST(request: Request) {
       data: {
         title: title.trim(),
         slug: uniqueSlug,
-        heroSection: heroSection || {},
-        packages: packages || [],
-        faqSection: faqSection || {},
-        content: content || {},
+        blocks: blocks || [],
+        seo: seo || {},
       },
     });
 

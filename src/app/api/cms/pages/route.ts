@@ -1,11 +1,12 @@
+import { NextResponse } from "next/server";
 import { jsonSuccess, jsonError } from "@/api/http";
 import { listSitePages } from "@/features/admin-cms/site-pages.service";
-import { prisma } from "@/shared/database/prisma-client";
-import { NextResponse } from "next/server";
+import { createCmsPage } from "@/features/admin-cms/services/cms-content.service";
 
 /**
  * GET — merged site-page registry + CmsPage rows (ensures content pages exist).
- * POST — create a custom CmsPage (unchanged).
+ * POST — create a custom CmsPage via the shared cms-content.service (validates
+ *        slug uniqueness and required fields in one place).
  */
 export async function GET() {
   try {
@@ -22,21 +23,16 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { title, slug, content, status } = body;
 
-    if (!title || !slug) {
-      return NextResponse.json({ success: false, error: "Title and slug are required" }, { status: 400 });
-    }
-
-    const newPage = await prisma.cmsPage.create({
-      data: {
-        title,
-        slug,
-        content: content && typeof content === "object" ? content : {},
-        status: status || "DRAFT",
-      },
+    const newPage = await createCmsPage({
+      title,
+      slug,
+      content: content && typeof content === "object" ? content : {},
+      status: status || "DRAFT",
     });
 
     return jsonSuccess(newPage);
   } catch (error) {
-    return jsonError(new Error("Failed to create static page"));
+    const message = error instanceof Error ? error.message : "Failed to create static page";
+    return NextResponse.json({ success: false, error: message }, { status: 400 });
   }
 }

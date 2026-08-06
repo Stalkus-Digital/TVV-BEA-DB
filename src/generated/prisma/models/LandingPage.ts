@@ -44,10 +44,8 @@ export type LandingPageCountAggregateOutputType = {
   id: number
   slug: number
   title: number
-  heroSection: number
-  packages: number
-  faqSection: number
-  content: number
+  blocks: number
+  seo: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -74,10 +72,8 @@ export type LandingPageCountAggregateInputType = {
   id?: true
   slug?: true
   title?: true
-  heroSection?: true
-  packages?: true
-  faqSection?: true
-  content?: true
+  blocks?: true
+  seo?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -159,10 +155,8 @@ export type LandingPageGroupByOutputType = {
   id: string
   slug: string
   title: string
-  heroSection: runtime.JsonValue
-  packages: runtime.JsonValue
-  faqSection: runtime.JsonValue
-  content: runtime.JsonValue | null
+  blocks: runtime.JsonValue
+  seo: runtime.JsonValue | null
   createdAt: Date
   updatedAt: Date
   _count: LandingPageCountAggregateOutputType | null
@@ -192,10 +186,8 @@ export type LandingPageWhereInput = {
   id?: Prisma.StringFilter<"LandingPage"> | string
   slug?: Prisma.StringFilter<"LandingPage"> | string
   title?: Prisma.StringFilter<"LandingPage"> | string
-  heroSection?: Prisma.JsonFilter<"LandingPage">
-  packages?: Prisma.JsonFilter<"LandingPage">
-  faqSection?: Prisma.JsonFilter<"LandingPage">
-  content?: Prisma.JsonNullableFilter<"LandingPage">
+  blocks?: Prisma.JsonFilter<"LandingPage">
+  seo?: Prisma.JsonNullableFilter<"LandingPage">
   createdAt?: Prisma.DateTimeFilter<"LandingPage"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LandingPage"> | Date | string
 }
@@ -204,10 +196,8 @@ export type LandingPageOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  heroSection?: Prisma.SortOrder
-  packages?: Prisma.SortOrder
-  faqSection?: Prisma.SortOrder
-  content?: Prisma.SortOrderInput | Prisma.SortOrder
+  blocks?: Prisma.SortOrder
+  seo?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -219,10 +209,8 @@ export type LandingPageWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.LandingPageWhereInput[]
   NOT?: Prisma.LandingPageWhereInput | Prisma.LandingPageWhereInput[]
   title?: Prisma.StringFilter<"LandingPage"> | string
-  heroSection?: Prisma.JsonFilter<"LandingPage">
-  packages?: Prisma.JsonFilter<"LandingPage">
-  faqSection?: Prisma.JsonFilter<"LandingPage">
-  content?: Prisma.JsonNullableFilter<"LandingPage">
+  blocks?: Prisma.JsonFilter<"LandingPage">
+  seo?: Prisma.JsonNullableFilter<"LandingPage">
   createdAt?: Prisma.DateTimeFilter<"LandingPage"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LandingPage"> | Date | string
 }, "id" | "slug">
@@ -231,10 +219,8 @@ export type LandingPageOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  heroSection?: Prisma.SortOrder
-  packages?: Prisma.SortOrder
-  faqSection?: Prisma.SortOrder
-  content?: Prisma.SortOrderInput | Prisma.SortOrder
+  blocks?: Prisma.SortOrder
+  seo?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.LandingPageCountOrderByAggregateInput
@@ -249,10 +235,8 @@ export type LandingPageScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"LandingPage"> | string
   slug?: Prisma.StringWithAggregatesFilter<"LandingPage"> | string
   title?: Prisma.StringWithAggregatesFilter<"LandingPage"> | string
-  heroSection?: Prisma.JsonWithAggregatesFilter<"LandingPage">
-  packages?: Prisma.JsonWithAggregatesFilter<"LandingPage">
-  faqSection?: Prisma.JsonWithAggregatesFilter<"LandingPage">
-  content?: Prisma.JsonNullableWithAggregatesFilter<"LandingPage">
+  blocks?: Prisma.JsonWithAggregatesFilter<"LandingPage">
+  seo?: Prisma.JsonNullableWithAggregatesFilter<"LandingPage">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"LandingPage"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"LandingPage"> | Date | string
 }
@@ -261,10 +245,8 @@ export type LandingPageCreateInput = {
   id?: string
   slug: string
   title: string
-  heroSection: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  packages: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  faqSection: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  content?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  blocks: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -273,10 +255,8 @@ export type LandingPageUncheckedCreateInput = {
   id?: string
   slug: string
   title: string
-  heroSection: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  packages: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  faqSection: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  content?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  blocks: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -285,10 +265,8 @@ export type LandingPageUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  heroSection?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  packages?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  faqSection?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  content?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  blocks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -297,10 +275,8 @@ export type LandingPageUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  heroSection?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  packages?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  faqSection?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  content?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  blocks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -309,10 +285,8 @@ export type LandingPageCreateManyInput = {
   id?: string
   slug: string
   title: string
-  heroSection: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  packages: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  faqSection: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  content?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  blocks: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -321,10 +295,8 @@ export type LandingPageUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  heroSection?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  packages?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  faqSection?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  content?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  blocks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -333,10 +305,8 @@ export type LandingPageUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  heroSection?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  packages?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  faqSection?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  content?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  blocks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -345,10 +315,8 @@ export type LandingPageCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  heroSection?: Prisma.SortOrder
-  packages?: Prisma.SortOrder
-  faqSection?: Prisma.SortOrder
-  content?: Prisma.SortOrder
+  blocks?: Prisma.SortOrder
+  seo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -375,10 +343,8 @@ export type LandingPageSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   id?: boolean
   slug?: boolean
   title?: boolean
-  heroSection?: boolean
-  packages?: boolean
-  faqSection?: boolean
-  content?: boolean
+  blocks?: boolean
+  seo?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["landingPage"]>
@@ -387,10 +353,8 @@ export type LandingPageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   id?: boolean
   slug?: boolean
   title?: boolean
-  heroSection?: boolean
-  packages?: boolean
-  faqSection?: boolean
-  content?: boolean
+  blocks?: boolean
+  seo?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["landingPage"]>
@@ -399,10 +363,8 @@ export type LandingPageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   id?: boolean
   slug?: boolean
   title?: boolean
-  heroSection?: boolean
-  packages?: boolean
-  faqSection?: boolean
-  content?: boolean
+  blocks?: boolean
+  seo?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["landingPage"]>
@@ -411,15 +373,13 @@ export type LandingPageSelectScalar = {
   id?: boolean
   slug?: boolean
   title?: boolean
-  heroSection?: boolean
-  packages?: boolean
-  faqSection?: boolean
-  content?: boolean
+  blocks?: boolean
+  seo?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type LandingPageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "title" | "heroSection" | "packages" | "faqSection" | "content" | "createdAt" | "updatedAt", ExtArgs["result"]["landingPage"]>
+export type LandingPageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "title" | "blocks" | "seo" | "createdAt" | "updatedAt", ExtArgs["result"]["landingPage"]>
 
 export type $LandingPagePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "LandingPage"
@@ -428,10 +388,8 @@ export type $LandingPagePayload<ExtArgs extends runtime.Types.Extensions.Interna
     id: string
     slug: string
     title: string
-    heroSection: runtime.JsonValue
-    packages: runtime.JsonValue
-    faqSection: runtime.JsonValue
-    content: runtime.JsonValue | null
+    blocks: runtime.JsonValue
+    seo: runtime.JsonValue | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["landingPage"]>
@@ -860,10 +818,8 @@ export interface LandingPageFieldRefs {
   readonly id: Prisma.FieldRef<"LandingPage", 'String'>
   readonly slug: Prisma.FieldRef<"LandingPage", 'String'>
   readonly title: Prisma.FieldRef<"LandingPage", 'String'>
-  readonly heroSection: Prisma.FieldRef<"LandingPage", 'Json'>
-  readonly packages: Prisma.FieldRef<"LandingPage", 'Json'>
-  readonly faqSection: Prisma.FieldRef<"LandingPage", 'Json'>
-  readonly content: Prisma.FieldRef<"LandingPage", 'Json'>
+  readonly blocks: Prisma.FieldRef<"LandingPage", 'Json'>
+  readonly seo: Prisma.FieldRef<"LandingPage", 'Json'>
   readonly createdAt: Prisma.FieldRef<"LandingPage", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"LandingPage", 'DateTime'>
 }

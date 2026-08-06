@@ -19,17 +19,15 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const body = await request.json();
-    const { title, slug, heroSection, packages, faqSection, content } = body;
+    const { title, slug, blocks, seo } = body;
 
     const landingPage = await prisma.landingPage.update({
       where: { id: (await context.params).id },
       data: {
         title: title?.trim() ?? undefined,
         slug: slug?.trim() || undefined,
-        heroSection: heroSection ?? undefined,
-        packages: packages ?? undefined,
-        faqSection: faqSection ?? undefined,
-        content: content ?? undefined,
+        blocks: blocks ?? undefined,
+        seo: seo ?? undefined,
       },
     });
 

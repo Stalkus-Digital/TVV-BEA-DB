@@ -21,16 +21,16 @@ import {
 } from "@/features/admin-packages/hooks/useAiGenerateMutation";
 import { useCreatePackageMutation } from "@/features/admin-packages/hooks/usePackageMutations";
 import { PackageSourceType } from "@/features/admin-packages/constants";
+import { useDestinationsQuery } from "@/features/admin-quotes/hooks/useDestinationsQuery";
 
 export function AiStudio() {
   const router = useRouter();
   const generateMutation = useAiGenerateMutation();
   const createMutation = useCreatePackageMutation();
+  const destinationsQuery = useDestinationsQuery();
 
-  const [prompt, setPrompt] = useState(
-    "A luxurious 5-day honeymoon trip to Andaman, including a private ferry to Havelock and scuba diving."
-  );
-  const [destination, setDestination] = useState("Andaman & Nicobar");
+  const [prompt, setPrompt] = useState("");
+  const [destination, setDestination] = useState("");
   const [duration, setDuration] = useState("5 Days / 4 Nights");
   const [budget, setBudget] = useState("Premium");
   const [origin, setOrigin] = useState("");
@@ -225,12 +225,17 @@ export function AiStudio() {
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-2">
                 <MapPin className="h-3 w-3" /> Destination
               </label>
-              <input
-                type="text"
+              <select
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
                 className="w-full bg-background border border-border rounded p-2 text-sm focus:ring-1 focus:ring-ring"
-              />
+                required
+              >
+                <option value="" disabled>Select a destination</option>
+                {destinationsQuery.data?.map((d) => (
+                  <option key={d.id} value={d.name}>{d.name}</option>
+                ))}
+              </select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

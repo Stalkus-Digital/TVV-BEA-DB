@@ -7,8 +7,8 @@ import { jsonSuccess, jsonError } from "@/api/http";
 
 const logger = createLogger("api.admin.ai");
 
-/** Allow OpenAI + optional TripJack enrichment enough time on Vercel. */
-export const maxDuration = 60;
+/** Allow OpenAI + optional TripJack enrichment enough time on Vercel Pro/Enterprise. */
+export const maxDuration = 300;
 
 export async function POST(req: Request) {
   try {

@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/shared/database/prisma-client";
 import { jsonSuccess, jsonError } from "@/api/http";
+import { createCmsGuide } from "@/features/admin-cms/services/cms-content.service";
 
-export async function GET(request: Request) {
+/**
+ * GET  — list all guides ordered by newest first.
+ * POST — create a guide via the shared cms-content.service
+ *        (validates slug uniqueness and required fields).
+ */
+export async function GET() {
   try {
+    const { prisma } = await import("@/shared/database/prisma-client");
     const guides = await prisma.cmsGuide.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
     return jsonSuccess({ items: guides });
-  } catch (error) {
+  } catch {
     return jsonError(new Error("Failed to fetch guides"));
   }
 }
@@ -17,24 +23,18 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { title, slug, content, authorId, status } = body;
-    
-    if (!title || !slug) {
-      return NextResponse.json({ success: false, error: "Title and slug are required" }, { status: 400 });
-    }
 
-    const newGuide = await prisma.cmsGuide.create({
-      data: {
-        title,
-        slug,
-        content: content || [],
-        authorId,
-        status: status || "DRAFT",
-        publishedAt: status === "PUBLISHED" ? new Date() : null,
-      }
+    const newGuide = await createCmsGuide({
+      title,
+      slug,
+      content: content || [],
+      authorId: authorId ?? null,
+      status: status || "DRAFT",
     });
 
     return jsonSuccess(newGuide);
   } catch (error) {
-    return jsonError(new Error("Failed to create guide"));
+    const message = error instanceof Error ? error.message : "Failed to create guide";
+    return NextResponse.json({ success: false, error: message }, { status: 400 });
   }
 }

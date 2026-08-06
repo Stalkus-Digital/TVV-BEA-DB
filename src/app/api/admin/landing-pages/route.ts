@@ -27,9 +27,8 @@ export async function POST(request: NextRequest) {
       data: {
         title: body.title,
         slug,
-        heroSection: body.heroSection || {},
-        packages: body.packages || [],
-        faqSection: body.faqSection || [],
+        blocks: body.blocks || [],
+        seo: body.seo || {},
       },
     });
     return NextResponse.json({ success: true, data: page }, { status: 201 });

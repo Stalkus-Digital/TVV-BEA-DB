@@ -837,10 +837,8 @@ model LandingPage {
   id          String   @id @default(uuid())
   slug        String   @unique
   title       String
-  heroSection Json
-  packages    Json
-  faqSection  Json
-  content     Json?
+  blocks      Json
+  seo         Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

@@ -2,14 +2,22 @@ import { BaseService, type ServiceContext } from "@/shared/services";
 import { ok, err, type Result } from "@/shared/types";
 import { InternalError, NotFoundError, type AppError } from "@/shared/errors";
 import { prisma } from "@/shared/database/prisma-client";
+import { Prisma } from "@/generated/prisma/client";
 import { randomUUID } from "crypto";
 
+/**
+ * DTO aligned with the actual LandingPage schema:
+ *  - blocks: Json   (required — contains all page section data)
+ *  - seo:    Json?  (optional — SEO metadata overrides)
+ *
+ * The old DTO fields (heroSection / packages / faqSection) were removed
+ * when the schema was refactored to use a single flexible `blocks` column.
+ */
 export interface CreateLandingPageDto {
   title: string;
   slug: string;
-  heroSection: any;
-  packages: any;
-  faqSection: any;
+  blocks: Record<string, unknown>;
+  seo?: Record<string, unknown> | null;
 }
 
 export class LandingPageService extends BaseService {
@@ -19,93 +27,86 @@ export class LandingPageService extends BaseService {
 
   async getAll(): Promise<Result<any[], AppError>> {
     try {
-
       const pages = await prisma.landingPage.findMany({
         orderBy: { createdAt: "desc" },
       });
       return ok(pages);
-    } catch (error) {
+    } catch {
       return err(new InternalError("Failed to fetch landing pages"));
     }
   }
 
   async getBySlug(slug: string): Promise<Result<any, AppError>> {
     try {
-
-      const page = await prisma.landingPage.findUnique({
-        where: { slug },
-      });
+      const page = await prisma.landingPage.findUnique({ where: { slug } });
       if (!page) return err(new NotFoundError("Landing page not found"));
       return ok(page);
-    } catch (error) {
+    } catch {
       return err(new InternalError("Failed to fetch landing page"));
     }
   }
 
   async create(data: CreateLandingPageDto): Promise<Result<any, AppError>> {
     try {
-
       const page = await prisma.landingPage.create({
         data: {
           id: randomUUID(),
           title: data.title,
           slug: data.slug,
-          heroSection: data.heroSection || {},
-          packages: data.packages || [],
-          faqSection: data.faqSection || [],
+          blocks: (data.blocks ?? {}) as Prisma.InputJsonValue,
+          seo: data.seo ? (data.seo as Prisma.InputJsonValue) : Prisma.JsonNull,
         },
       });
       return ok(page);
-    } catch (error) {
+    } catch {
       return err(new InternalError("Failed to create landing page"));
     }
   }
 
   async update(id: string, data: Partial<CreateLandingPageDto>): Promise<Result<any, AppError>> {
     try {
+      const updateData: Record<string, unknown> = {};
+      if (data.title !== undefined) updateData.title = data.title;
+      if (data.slug !== undefined) updateData.slug = data.slug;
+      if (data.blocks !== undefined) updateData.blocks = data.blocks as Prisma.InputJsonValue;
+      if (data.seo !== undefined) updateData.seo = data.seo ? (data.seo as Prisma.InputJsonValue) : Prisma.JsonNull;
 
       const page = await prisma.landingPage.update({
         where: { id },
-        data,
+        data: updateData,
       });
       return ok(page);
-    } catch (error) {
+    } catch {
       return err(new InternalError("Failed to update landing page"));
     }
   }
 
-  async compileToHtml(id: string): Promise<Result<string, AppError>> {
+  async compileToHtml(slugOrId: string): Promise<Result<string, AppError>> {
     try {
-      const pageResult = await this.getBySlug(id); // assuming slug is passed for compile
+      const pageResult = await this.getBySlug(slugOrId);
       if (!pageResult.ok) return pageResult;
       const page = pageResult.value;
-      
-      const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>${page.title}</title>
-          <meta charset="utf-8">
-          <style>body { font-family: sans-serif; }</style>
-        </head>
-        <body>
-          <div class="hero" style="background-image: url('${page.heroSection?.backgroundImage || ""}')">
-            <h1>${page.heroSection?.headline || page.title}</h1>
-            <p>${page.heroSection?.subheadline || ""}</p>
-          </div>
-          <div class="packages">
-            ${Array.isArray(page.packages) ? page.packages.map((p: any) => `
-              <div class="package">
-                <h2>${p.title}</h2>
-                <p>₹${p.price}</p>
-              </div>
-            `).join("") : ""}
-          </div>
-        </body>
-        </html>
-      `;
+
+      // blocks is a flexible JSON column — render a lightweight preview
+      const blocks = Array.isArray(page.blocks) ? page.blocks : [];
+      const blocksHtml = blocks
+        .map((block: any) => `<section data-type="${block.type ?? "unknown"}">${block.title ?? ""}</section>`)
+        .join("");
+
+      const html = `<!DOCTYPE html>
+<html>
+<head>
+  <title>${page.title}</title>
+  <meta charset="utf-8">
+  <style>body { font-family: sans-serif; }</style>
+</head>
+<body>
+  ${blocksHtml}
+</body>
+</html>`;
+
       return ok(html);
-    } catch (error) {
+    } catch {
       return err(new InternalError("Failed to compile landing page"));
     }
   }

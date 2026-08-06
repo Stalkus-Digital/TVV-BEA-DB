@@ -45,13 +45,18 @@ function assertUploadableImage(file: File): void {
   }
 }
 
-export async function uploadFile(file: File, category: string = "general"): Promise<UploadResult> {
+export async function uploadFile(file: File, category: string = "general", ownerId?: string): Promise<UploadResult> {
   assertUploadableImage(file);
 
   const formData = new FormData();
   formData.append("file", file);
   formData.append("fileName", file.name);
   formData.append("category", category);
+  
+  // The API requires an ownerId for most categories.
+  // If not explicitly provided, we generate a safe temporary one.
+  const safeOwnerId = ownerId || `temp_upload_${Date.now()}`;
+  formData.append("ownerId", safeOwnerId);
 
   const res = await adminApiClient.request<UploadResult>(adminEndpoints.storage.upload, {
     method: "POST",
@@ -65,6 +70,6 @@ export async function uploadFile(file: File, category: string = "general"): Prom
   return res;
 }
 
-export async function uploadFiles(files: File[], category: string = "general"): Promise<UploadResult[]> {
-  return Promise.all(files.map((file) => uploadFile(file, category)));
+export async function uploadFiles(files: File[], category: string = "general", ownerId?: string): Promise<UploadResult[]> {
+  return Promise.all(files.map((file) => uploadFile(file, category, ownerId)));
 }

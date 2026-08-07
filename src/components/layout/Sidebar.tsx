@@ -94,7 +94,7 @@ const navGroups = [
     links: [
       { name: "Content Dashboard", href: "/cms", icon: LayoutDashboard },
       { name: "Home Sections", href: "/cms/home", icon: Megaphone },
-      { name: "Landing Pages", href: "/cms/landing-pages", icon: Layers },
+      { name: "Landing Pages", href: "/marketing/landing-pages", icon: Layers },
       { name: "SEO Pages", href: "/cms/seo", icon: Globe },
       { name: "FAQ Management", href: "/cms/faqs", icon: HelpCircle },
       { name: "Media Browser", href: "/cms/media", icon: ImageIcon },

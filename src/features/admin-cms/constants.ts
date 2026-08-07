@@ -3,7 +3,7 @@ import type { StorageCategory } from "./types";
 export const CMS_SECTIONS = [
   { href: "/cms", label: "Content Dashboard", description: "Overview of website content sources" },
   { href: "/cms/home", label: "Home Sections", description: "Hero, featured packages & destinations" },
-  { href: "/cms/landing-pages", label: "Landing Pages", description: "Dynamic marketing landing pages" },
+  { href: "/marketing/landing-pages", label: "Landing Pages", description: "Dynamic marketing landing pages" },
   { href: "/cms/seo", label: "SEO Pages", description: "Destination & package SEO metadata" },
   { href: "/cms/faqs", label: "FAQ Management", description: "Destination & package FAQs" },
   { href: "/cms/media", label: "Media Browser", description: "Website media files" },

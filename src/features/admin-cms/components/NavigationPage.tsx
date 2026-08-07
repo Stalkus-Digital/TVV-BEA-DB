@@ -60,23 +60,25 @@ export function NavigationPage() {
       isRefreshing={navigationQuery.isFetching}
       onRefresh={() => void navigationQuery.refetch()}
       onRetry={() => void navigationQuery.refetch()}
-      isEmpty={!navigationQuery.isLoading && !navigationQuery.isError && (navigationQuery.data?.menu.length ?? 0) === 0}
+      isEmpty={!isEditing && !navigationQuery.isLoading && !navigationQuery.isError && (navigationQuery.data?.menu.length ?? 0) === 0}
       emptyMessage="No menu items returned"
-    >
-      <div className="flex items-center justify-between mt-6 mb-4">
-        <h2 className="text-lg font-semibold">Top Navigation</h2>
-        {!isEditing && (
+      actions={
+        !isEditing ? (
           <button
             type="button"
             onClick={() => {
               setMenuForm(navigationQuery.data?.menu?.map((m) => ({ label: m.label, url: m.url })) ?? []);
               setIsEditing(true);
             }}
-            className="text-sm text-primary hover:underline"
+            className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:opacity-90"
           >
-            Edit
+            Edit Navigation
           </button>
-        )}
+        ) : undefined
+      }
+    >
+      <div className="flex items-center justify-between mt-6 mb-4">
+        <h2 className="text-lg font-semibold">Top Navigation</h2>
       </div>
 
       {isEditing ? (

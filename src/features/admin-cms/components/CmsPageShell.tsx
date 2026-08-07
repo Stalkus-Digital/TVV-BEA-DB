@@ -16,6 +16,7 @@ interface CmsPageShellProps {
   emptyMessage?: string;
   children: React.ReactNode;
   actions?: React.ReactNode;
+  filters?: React.ReactNode;
 }
 
 export function CmsPageShell({
@@ -31,6 +32,7 @@ export function CmsPageShell({
   emptyMessage,
   children,
   actions,
+  filters,
 }: CmsPageShellProps) {
   return (
     <div className="space-y-6 max-w-6xl">
@@ -54,6 +56,8 @@ export function CmsPageShell({
           )}
         </div>
       </div>
+
+      {filters}
 
       {isLoading ? (
         <WidgetLoading label="Loading content…" />

@@ -16,6 +16,7 @@ interface MarketingPageShellProps {
   emptyMessage?: string;
   children: React.ReactNode;
   actions?: React.ReactNode;
+  filters?: React.ReactNode;
 }
 
 export function MarketingPageShell(props: MarketingPageShellProps) {
@@ -32,6 +33,7 @@ export function MarketingPageShell(props: MarketingPageShellProps) {
     emptyMessage,
     children,
     actions,
+    filters,
   } = props;
 
   return (
@@ -56,6 +58,8 @@ export function MarketingPageShell(props: MarketingPageShellProps) {
           )}
         </div>
       </div>
+
+      {filters}
 
       {isLoading ? (
         <WidgetLoading label="Loading…" />

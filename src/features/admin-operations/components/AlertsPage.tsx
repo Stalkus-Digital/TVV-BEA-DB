@@ -33,19 +33,21 @@ export function AlertsPage() {
       onRetry={() => void metricsQuery.refetch()}
       isEmpty={!metricsQuery.isLoading && !metricsQuery.isError && visibleAlerts.length === 0}
       emptyMessage="No active alerts"
+      filters={
+        dismissed.size > 0 ? (
+          <p className="text-xs text-muted-foreground mt-4">
+            {dismissed.size} alert(s) dismissed for this session.{" "}
+            <button
+              type="button"
+              className="text-primary hover:underline"
+              onClick={() => setDismissed(new Set())}
+            >
+              Restore all
+            </button>
+          </p>
+        ) : undefined
+      }
     >
-      {dismissed.size > 0 && (
-        <p className="text-xs text-muted-foreground mt-4">
-          {dismissed.size} alert(s) dismissed for this session.{" "}
-          <button
-            type="button"
-            className="text-primary hover:underline"
-            onClick={() => setDismissed(new Set())}
-          >
-            Restore all
-          </button>
-        </p>
-      )}
 
       <div className="rounded-xl border border-border overflow-hidden mt-4">
         <table className="w-full text-sm">

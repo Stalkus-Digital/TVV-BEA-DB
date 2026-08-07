@@ -16,6 +16,7 @@ interface OperationsPageShellProps {
   emptyMessage?: string;
   children: React.ReactNode;
   actions?: React.ReactNode;
+  filters?: React.ReactNode;
 }
 
 export function OperationsPageShell({
@@ -31,6 +32,7 @@ export function OperationsPageShell({
   emptyMessage,
   children,
   actions,
+  filters,
 }: OperationsPageShellProps) {
   return (
     <div className="space-y-6 max-w-6xl">
@@ -54,6 +56,8 @@ export function OperationsPageShell({
           )}
         </div>
       </div>
+
+      {filters}
 
       {isLoading ? (
         <WidgetLoading label="Loading…" />

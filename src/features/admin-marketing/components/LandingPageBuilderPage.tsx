@@ -200,12 +200,12 @@ export function LandingPageBuilderPage() {
       onRetry={() => void pagesQuery.refetch()}
       isEmpty={!pagesQuery.isLoading && pages.length === 0}
       emptyMessage="No landing pages yet. Create your first one!"
-    >
-      <div className="flex justify-end mt-4 mb-4">
+      actions={
         <button onClick={openNew} className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium hover:opacity-90">
           <Plus className="w-4 h-4" /> Create Landing Page
         </button>
-      </div>
+      }
+    >
 
       <div className="rounded-xl border border-border overflow-hidden">
         <table className="w-full text-sm">

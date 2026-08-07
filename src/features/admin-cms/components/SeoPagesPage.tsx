@@ -70,25 +70,27 @@ export function SeoPagesPage() {
       onRetry={() => void cms.refetch()}
       isEmpty={!cms.isLoading && !cms.isError && filtered.length === 0}
       emptyMessage="No destinations or packages match your filters"
+      filters={
+        <div className="flex flex-wrap gap-3 mb-4">
+          <input
+            type="search"
+            placeholder="Search name or slug…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 min-w-[200px] bg-background border border-input rounded-md px-3 py-2 text-sm"
+          />
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
+            className="bg-background border border-input rounded-md px-3 py-2 text-sm"
+          >
+            <option value="all">All types</option>
+            <option value="destination">Destinations</option>
+            <option value="package">Packages</option>
+          </select>
+        </div>
+      }
     >
-      <div className="flex flex-wrap gap-3 mb-4">
-        <input
-          type="search"
-          placeholder="Search name or slug…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 min-w-[200px] bg-background border border-input rounded-md px-3 py-2 text-sm"
-        />
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
-          className="bg-background border border-input rounded-md px-3 py-2 text-sm"
-        >
-          <option value="all">All types</option>
-          <option value="destination">Destinations</option>
-          <option value="package">Packages</option>
-        </select>
-      </div>
 
       {error && <p className="text-sm text-destructive mb-4">{error}</p>}
 

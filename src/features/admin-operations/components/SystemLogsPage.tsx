@@ -31,29 +31,29 @@ export function SystemLogsPage() {
       onRetry={() => void logsQuery.refetch()}
       isEmpty={!logsQuery.isLoading && !logsQuery.isError && (logsQuery.data?.length ?? 0) === 0}
       emptyMessage="No log entries match your filters"
+      filters={
+        <div className="flex flex-wrap gap-3 mb-4">
+          <select value={level} onChange={(e) => setLevel(e.target.value)} className="bg-background border border-input rounded-md px-3 py-2 text-sm">
+            <option value="">All levels</option>
+            {LOG_LEVELS.map((item) => (
+              <option key={item} value={item}>{item}</option>
+            ))}
+          </select>
+          <input
+            type="search"
+            placeholder="Scope filter (exact)…"
+            value={scope}
+            onChange={(e) => setScope(e.target.value)}
+            className="flex-1 min-w-[180px] bg-background border border-input rounded-md px-3 py-2 text-sm"
+          />
+          <select value={limit} onChange={(e) => setLimit(Number(e.target.value))} className="bg-background border border-input rounded-md px-3 py-2 text-sm">
+            {[50, 100, 200, 500].map((value) => (
+              <option key={value} value={value}>{value} entries</option>
+            ))}
+          </select>
+        </div>
+      }
     >
-
-
-      <div className="flex flex-wrap gap-3 mb-4">
-        <select value={level} onChange={(e) => setLevel(e.target.value)} className="bg-background border border-input rounded-md px-3 py-2 text-sm">
-          <option value="">All levels</option>
-          {LOG_LEVELS.map((item) => (
-            <option key={item} value={item}>{item}</option>
-          ))}
-        </select>
-        <input
-          type="search"
-          placeholder="Scope filter (exact)…"
-          value={scope}
-          onChange={(e) => setScope(e.target.value)}
-          className="flex-1 min-w-[180px] bg-background border border-input rounded-md px-3 py-2 text-sm"
-        />
-        <select value={limit} onChange={(e) => setLimit(Number(e.target.value))} className="bg-background border border-input rounded-md px-3 py-2 text-sm">
-          {[50, 100, 200, 500].map((value) => (
-            <option key={value} value={value}>{value} entries</option>
-          ))}
-        </select>
-      </div>
 
       <div className="rounded-xl border border-border overflow-hidden">
         <table className="w-full text-sm">

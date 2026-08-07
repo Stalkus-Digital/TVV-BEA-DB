@@ -1,6 +1,7 @@
 import type { HealthCheck, HealthCheckResult, HealthStatus } from "./health.types";
 import { SelfHealthCheck } from "./checks/self-check";
 import { DatabaseHealthCheck } from "./checks/database-check";
+import { RedisHealthCheck } from "./checks/redis-check";
 
 export interface OverallHealth {
   status: HealthStatus;
@@ -63,3 +64,4 @@ if (process.env.NODE_ENV !== "production") {
 }
 healthCheckRegistry.register(new SelfHealthCheck());
 healthCheckRegistry.register(new DatabaseHealthCheck());
+healthCheckRegistry.register(new RedisHealthCheck());

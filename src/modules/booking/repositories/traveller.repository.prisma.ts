@@ -21,35 +21,40 @@ const DEFAULT_PAGE_SIZE = 20;
  * Truncating on read restores the exact round-trip fidelity the in-memory
  * store gave for free.
  */
-function toDomain(row: PrismaTravellerRow): Traveller {
+function toDomain(row: PrismaTravellerRow & { profile?: any }): Traveller {
   return {
     ...row,
     type: row.type as Traveller["type"],
-    gender: row.gender as Traveller["gender"],
+    gender: row.profile?.gender as Traveller["gender"],
     dateOfBirth: row.dateOfBirth?.toISOString().slice(0, 10) ?? null,
-    passportExpiry: row.passportExpiry?.toISOString().slice(0, 10) ?? null,
-    emergencyContact: row.emergencyContact as unknown as Traveller["emergencyContact"],
+    passportExpiry: row.profile?.passportExpiry?.toISOString().slice(0, 10) ?? null,
+    emergencyContact: row.profile?.emergencyContact as unknown as Traveller["emergencyContact"],
+    email: row.profile?.email ?? null,
+    phone: row.profile?.phone ?? null,
+    nationality: row.profile?.nationality ?? null,
+    visaRequired: row.profile?.visaRequired ?? false,
     createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
+    updatedAt: (row as any).updatedAt ? (row as any).updatedAt.toISOString() : row.createdAt.toISOString(),
   };
 }
 
 export class PrismaTravellerRepository implements TravellerRepository {
   async findById(id: string): Promise<Result<Traveller | null, AppError>> {
-    const row = await prisma.traveller.findUnique({ where: { id } });
+    const row = await prisma.traveller.findUnique({ where: { id }, include: { profile: true } });
     return ok(row ? toDomain(row) : null);
   }
 
   async findByBooking(bookingId: string): Promise<Result<Traveller[], AppError>> {
-    const rows = await prisma.traveller.findMany({ where: { bookingId } });
+    const rows = await prisma.traveller.findMany({ where: { bookingId }, include: { profile: true } });
     return ok(rows.map(toDomain));
   }
 
   async findMany(params: PaginationParams = {}): Promise<Result<PaginatedResult<Traveller>, AppError>> {
     const page = params.page ?? DEFAULT_PAGE;
     const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
-    const [rows, total] = await Promise.all([
+    const [_, rows, total] = await Promise.all([
       prisma.traveller.findMany({ skip: (page - 1) * pageSize, take: pageSize }),
+      prisma.traveller.findMany({ skip: (page - 1) * pageSize, take: pageSize, include: { profile: true } }),
       prisma.traveller.count(),
     ]);
     return ok({ items: rows.map(toDomain), page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) });
@@ -58,11 +63,25 @@ export class PrismaTravellerRepository implements TravellerRepository {
   async create(data: Omit<Traveller, "id">): Promise<Result<Traveller, AppError>> {
     const row = await prisma.traveller.create({
       data: {
-        ...data,
+        id: (data as any).id,
+        bookingId: data.bookingId,
+        type: data.type,
+        isLeadTraveller: data.isLeadTraveller,
+        fullName: data.fullName,
         dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
-        passportExpiry: data.passportExpiry ? new Date(data.passportExpiry) : null,
-        emergencyContact: data.emergencyContact !== null ? (data.emergencyContact as object) : undefined,
-      },
+        passportNumber: data.passportNumber,
+        profile: {
+          create: {
+            firstName: data.fullName.split(" ")[0],
+            lastName: data.fullName.split(" ")[1] ?? "",
+            email: data.email,
+            phone: data.phone,
+            nationality: data.nationality,
+            passportExpiry: data.passportExpiry ? new Date(data.passportExpiry) : null,
+          }
+        }
+      } as any,
+      include: { profile: true }
     });
     return ok(toDomain(row));
   }
@@ -72,11 +91,21 @@ export class PrismaTravellerRepository implements TravellerRepository {
       const row = await prisma.traveller.update({
         where: { id },
         data: {
-          ...data,
-          dateOfBirth: data.dateOfBirth !== undefined ? (data.dateOfBirth ? new Date(data.dateOfBirth) : null) : undefined,
-          passportExpiry: data.passportExpiry !== undefined ? (data.passportExpiry ? new Date(data.passportExpiry) : null) : undefined,
-          emergencyContact: data.emergencyContact !== undefined ? (data.emergencyContact as object) : undefined,
+          type: data.type,
+          isLeadTraveller: data.isLeadTraveller,
+          fullName: data.fullName,
+          dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
+          passportNumber: data.passportNumber,
+          profile: {
+            update: {
+              email: data.email,
+              phone: data.phone,
+              nationality: data.nationality,
+              passportExpiry: data.passportExpiry ? new Date(data.passportExpiry) : undefined,
+            }
+          }
         },
+        include: { profile: true }
       });
       return ok(toDomain(row));
     } catch {

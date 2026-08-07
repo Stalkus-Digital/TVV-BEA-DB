@@ -39,7 +39,7 @@ export class PrismaStatusHistoryRepository implements StatusHistoryRepository {
   }
 
   async create(data: Omit<BookingStatusHistory, "id">): Promise<Result<BookingStatusHistory, AppError>> {
-    const row = await prisma.bookingStatusHistory.create({ data });
+    const row = await prisma.bookingStatusHistory.create({ data: data as any });
     return ok(toDomain(row));
   }
 

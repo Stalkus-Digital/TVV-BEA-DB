@@ -30,16 +30,10 @@ export type TravellerMinAggregateOutputType = {
   type: string | null
   isLeadTraveller: boolean | null
   fullName: string | null
-  email: string | null
-  phone: string | null
   dateOfBirth: Date | null
-  gender: string | null
-  nationality: string | null
   passportNumber: string | null
-  passportExpiry: Date | null
-  visaRequired: boolean | null
+  profileId: string | null
   createdAt: Date | null
-  updatedAt: Date | null
 }
 
 export type TravellerMaxAggregateOutputType = {
@@ -48,16 +42,10 @@ export type TravellerMaxAggregateOutputType = {
   type: string | null
   isLeadTraveller: boolean | null
   fullName: string | null
-  email: string | null
-  phone: string | null
   dateOfBirth: Date | null
-  gender: string | null
-  nationality: string | null
   passportNumber: string | null
-  passportExpiry: Date | null
-  visaRequired: boolean | null
+  profileId: string | null
   createdAt: Date | null
-  updatedAt: Date | null
 }
 
 export type TravellerCountAggregateOutputType = {
@@ -66,17 +54,10 @@ export type TravellerCountAggregateOutputType = {
   type: number
   isLeadTraveller: number
   fullName: number
-  email: number
-  phone: number
   dateOfBirth: number
-  gender: number
-  nationality: number
   passportNumber: number
-  passportExpiry: number
-  visaRequired: number
-  emergencyContact: number
+  profileId: number
   createdAt: number
-  updatedAt: number
   _all: number
 }
 
@@ -87,16 +68,10 @@ export type TravellerMinAggregateInputType = {
   type?: true
   isLeadTraveller?: true
   fullName?: true
-  email?: true
-  phone?: true
   dateOfBirth?: true
-  gender?: true
-  nationality?: true
   passportNumber?: true
-  passportExpiry?: true
-  visaRequired?: true
+  profileId?: true
   createdAt?: true
-  updatedAt?: true
 }
 
 export type TravellerMaxAggregateInputType = {
@@ -105,16 +80,10 @@ export type TravellerMaxAggregateInputType = {
   type?: true
   isLeadTraveller?: true
   fullName?: true
-  email?: true
-  phone?: true
   dateOfBirth?: true
-  gender?: true
-  nationality?: true
   passportNumber?: true
-  passportExpiry?: true
-  visaRequired?: true
+  profileId?: true
   createdAt?: true
-  updatedAt?: true
 }
 
 export type TravellerCountAggregateInputType = {
@@ -123,17 +92,10 @@ export type TravellerCountAggregateInputType = {
   type?: true
   isLeadTraveller?: true
   fullName?: true
-  email?: true
-  phone?: true
   dateOfBirth?: true
-  gender?: true
-  nationality?: true
   passportNumber?: true
-  passportExpiry?: true
-  visaRequired?: true
-  emergencyContact?: true
+  profileId?: true
   createdAt?: true
-  updatedAt?: true
   _all?: true
 }
 
@@ -215,17 +177,10 @@ export type TravellerGroupByOutputType = {
   type: string
   isLeadTraveller: boolean
   fullName: string
-  email: string | null
-  phone: string | null
   dateOfBirth: Date | null
-  gender: string | null
-  nationality: string | null
   passportNumber: string | null
-  passportExpiry: Date | null
-  visaRequired: boolean
-  emergencyContact: runtime.JsonValue | null
+  profileId: string | null
   createdAt: Date
-  updatedAt: Date
   _count: TravellerCountAggregateOutputType | null
   _min: TravellerMinAggregateOutputType | null
   _max: TravellerMaxAggregateOutputType | null
@@ -255,17 +210,12 @@ export type TravellerWhereInput = {
   type?: Prisma.StringFilter<"Traveller"> | string
   isLeadTraveller?: Prisma.BoolFilter<"Traveller"> | boolean
   fullName?: Prisma.StringFilter<"Traveller"> | string
-  email?: Prisma.StringNullableFilter<"Traveller"> | string | null
-  phone?: Prisma.StringNullableFilter<"Traveller"> | string | null
   dateOfBirth?: Prisma.DateTimeNullableFilter<"Traveller"> | Date | string | null
-  gender?: Prisma.StringNullableFilter<"Traveller"> | string | null
-  nationality?: Prisma.StringNullableFilter<"Traveller"> | string | null
   passportNumber?: Prisma.StringNullableFilter<"Traveller"> | string | null
-  passportExpiry?: Prisma.DateTimeNullableFilter<"Traveller"> | Date | string | null
-  visaRequired?: Prisma.BoolFilter<"Traveller"> | boolean
-  emergencyContact?: Prisma.JsonNullableFilter<"Traveller">
+  profileId?: Prisma.StringNullableFilter<"Traveller"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Traveller"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"Traveller"> | Date | string
+  booking?: Prisma.XOR<Prisma.BookingScalarRelationFilter, Prisma.BookingWhereInput>
+  profile?: Prisma.XOR<Prisma.TravellerProfileNullableScalarRelationFilter, Prisma.TravellerProfileWhereInput> | null
 }
 
 export type TravellerOrderByWithRelationInput = {
@@ -274,17 +224,12 @@ export type TravellerOrderByWithRelationInput = {
   type?: Prisma.SortOrder
   isLeadTraveller?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
-  email?: Prisma.SortOrderInput | Prisma.SortOrder
-  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   dateOfBirth?: Prisma.SortOrderInput | Prisma.SortOrder
-  gender?: Prisma.SortOrderInput | Prisma.SortOrder
-  nationality?: Prisma.SortOrderInput | Prisma.SortOrder
   passportNumber?: Prisma.SortOrderInput | Prisma.SortOrder
-  passportExpiry?: Prisma.SortOrderInput | Prisma.SortOrder
-  visaRequired?: Prisma.SortOrder
-  emergencyContact?: Prisma.SortOrderInput | Prisma.SortOrder
+  profileId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
+  booking?: Prisma.BookingOrderByWithRelationInput
+  profile?: Prisma.TravellerProfileOrderByWithRelationInput
 }
 
 export type TravellerWhereUniqueInput = Prisma.AtLeast<{
@@ -296,17 +241,12 @@ export type TravellerWhereUniqueInput = Prisma.AtLeast<{
   type?: Prisma.StringFilter<"Traveller"> | string
   isLeadTraveller?: Prisma.BoolFilter<"Traveller"> | boolean
   fullName?: Prisma.StringFilter<"Traveller"> | string
-  email?: Prisma.StringNullableFilter<"Traveller"> | string | null
-  phone?: Prisma.StringNullableFilter<"Traveller"> | string | null
   dateOfBirth?: Prisma.DateTimeNullableFilter<"Traveller"> | Date | string | null
-  gender?: Prisma.StringNullableFilter<"Traveller"> | string | null
-  nationality?: Prisma.StringNullableFilter<"Traveller"> | string | null
   passportNumber?: Prisma.StringNullableFilter<"Traveller"> | string | null
-  passportExpiry?: Prisma.DateTimeNullableFilter<"Traveller"> | Date | string | null
-  visaRequired?: Prisma.BoolFilter<"Traveller"> | boolean
-  emergencyContact?: Prisma.JsonNullableFilter<"Traveller">
+  profileId?: Prisma.StringNullableFilter<"Traveller"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Traveller"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"Traveller"> | Date | string
+  booking?: Prisma.XOR<Prisma.BookingScalarRelationFilter, Prisma.BookingWhereInput>
+  profile?: Prisma.XOR<Prisma.TravellerProfileNullableScalarRelationFilter, Prisma.TravellerProfileWhereInput> | null
 }, "id">
 
 export type TravellerOrderByWithAggregationInput = {
@@ -315,17 +255,10 @@ export type TravellerOrderByWithAggregationInput = {
   type?: Prisma.SortOrder
   isLeadTraveller?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
-  email?: Prisma.SortOrderInput | Prisma.SortOrder
-  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   dateOfBirth?: Prisma.SortOrderInput | Prisma.SortOrder
-  gender?: Prisma.SortOrderInput | Prisma.SortOrder
-  nationality?: Prisma.SortOrderInput | Prisma.SortOrder
   passportNumber?: Prisma.SortOrderInput | Prisma.SortOrder
-  passportExpiry?: Prisma.SortOrderInput | Prisma.SortOrder
-  visaRequired?: Prisma.SortOrder
-  emergencyContact?: Prisma.SortOrderInput | Prisma.SortOrder
+  profileId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
   _count?: Prisma.TravellerCountOrderByAggregateInput
   _max?: Prisma.TravellerMaxOrderByAggregateInput
   _min?: Prisma.TravellerMinOrderByAggregateInput
@@ -340,36 +273,22 @@ export type TravellerScalarWhereWithAggregatesInput = {
   type?: Prisma.StringWithAggregatesFilter<"Traveller"> | string
   isLeadTraveller?: Prisma.BoolWithAggregatesFilter<"Traveller"> | boolean
   fullName?: Prisma.StringWithAggregatesFilter<"Traveller"> | string
-  email?: Prisma.StringNullableWithAggregatesFilter<"Traveller"> | string | null
-  phone?: Prisma.StringNullableWithAggregatesFilter<"Traveller"> | string | null
   dateOfBirth?: Prisma.DateTimeNullableWithAggregatesFilter<"Traveller"> | Date | string | null
-  gender?: Prisma.StringNullableWithAggregatesFilter<"Traveller"> | string | null
-  nationality?: Prisma.StringNullableWithAggregatesFilter<"Traveller"> | string | null
   passportNumber?: Prisma.StringNullableWithAggregatesFilter<"Traveller"> | string | null
-  passportExpiry?: Prisma.DateTimeNullableWithAggregatesFilter<"Traveller"> | Date | string | null
-  visaRequired?: Prisma.BoolWithAggregatesFilter<"Traveller"> | boolean
-  emergencyContact?: Prisma.JsonNullableWithAggregatesFilter<"Traveller">
+  profileId?: Prisma.StringNullableWithAggregatesFilter<"Traveller"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Traveller"> | Date | string
-  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Traveller"> | Date | string
 }
 
 export type TravellerCreateInput = {
   id?: string
-  bookingId: string
   type: string
   isLeadTraveller?: boolean
   fullName: string
-  email?: string | null
-  phone?: string | null
   dateOfBirth?: Date | string | null
-  gender?: string | null
-  nationality?: string | null
   passportNumber?: string | null
-  passportExpiry?: Date | string | null
-  visaRequired?: boolean
-  emergencyContact?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  createdAt: Date | string
-  updatedAt: Date | string
+  createdAt?: Date | string
+  booking: Prisma.BookingCreateNestedOneWithoutTravellersInput
+  profile?: Prisma.TravellerProfileCreateNestedOneWithoutTravellersInput
 }
 
 export type TravellerUncheckedCreateInput = {
@@ -378,36 +297,22 @@ export type TravellerUncheckedCreateInput = {
   type: string
   isLeadTraveller?: boolean
   fullName: string
-  email?: string | null
-  phone?: string | null
   dateOfBirth?: Date | string | null
-  gender?: string | null
-  nationality?: string | null
   passportNumber?: string | null
-  passportExpiry?: Date | string | null
-  visaRequired?: boolean
-  emergencyContact?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  createdAt: Date | string
-  updatedAt: Date | string
+  profileId?: string | null
+  createdAt?: Date | string
 }
 
 export type TravellerUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.StringFieldUpdateOperationsInput | string
   isLeadTraveller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passportNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passportExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  visaRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  emergencyContact?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  booking?: Prisma.BookingUpdateOneRequiredWithoutTravellersNestedInput
+  profile?: Prisma.TravellerProfileUpdateOneWithoutTravellersNestedInput
 }
 
 export type TravellerUncheckedUpdateInput = {
@@ -416,17 +321,10 @@ export type TravellerUncheckedUpdateInput = {
   type?: Prisma.StringFieldUpdateOperationsInput | string
   isLeadTraveller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passportNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passportExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  visaRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  emergencyContact?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  profileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type TravellerCreateManyInput = {
@@ -435,36 +333,20 @@ export type TravellerCreateManyInput = {
   type: string
   isLeadTraveller?: boolean
   fullName: string
-  email?: string | null
-  phone?: string | null
   dateOfBirth?: Date | string | null
-  gender?: string | null
-  nationality?: string | null
   passportNumber?: string | null
-  passportExpiry?: Date | string | null
-  visaRequired?: boolean
-  emergencyContact?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  createdAt: Date | string
-  updatedAt: Date | string
+  profileId?: string | null
+  createdAt?: Date | string
 }
 
 export type TravellerUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.StringFieldUpdateOperationsInput | string
   isLeadTraveller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passportNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passportExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  visaRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  emergencyContact?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type TravellerUncheckedUpdateManyInput = {
@@ -473,17 +355,20 @@ export type TravellerUncheckedUpdateManyInput = {
   type?: Prisma.StringFieldUpdateOperationsInput | string
   isLeadTraveller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passportNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passportExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  visaRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  emergencyContact?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  profileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TravellerListRelationFilter = {
+  every?: Prisma.TravellerWhereInput
+  some?: Prisma.TravellerWhereInput
+  none?: Prisma.TravellerWhereInput
+}
+
+export type TravellerOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type TravellerCountOrderByAggregateInput = {
@@ -492,17 +377,10 @@ export type TravellerCountOrderByAggregateInput = {
   type?: Prisma.SortOrder
   isLeadTraveller?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
-  email?: Prisma.SortOrder
-  phone?: Prisma.SortOrder
   dateOfBirth?: Prisma.SortOrder
-  gender?: Prisma.SortOrder
-  nationality?: Prisma.SortOrder
   passportNumber?: Prisma.SortOrder
-  passportExpiry?: Prisma.SortOrder
-  visaRequired?: Prisma.SortOrder
-  emergencyContact?: Prisma.SortOrder
+  profileId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
 }
 
 export type TravellerMaxOrderByAggregateInput = {
@@ -511,16 +389,10 @@ export type TravellerMaxOrderByAggregateInput = {
   type?: Prisma.SortOrder
   isLeadTraveller?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
-  email?: Prisma.SortOrder
-  phone?: Prisma.SortOrder
   dateOfBirth?: Prisma.SortOrder
-  gender?: Prisma.SortOrder
-  nationality?: Prisma.SortOrder
   passportNumber?: Prisma.SortOrder
-  passportExpiry?: Prisma.SortOrder
-  visaRequired?: Prisma.SortOrder
+  profileId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
 }
 
 export type TravellerMinOrderByAggregateInput = {
@@ -529,16 +401,293 @@ export type TravellerMinOrderByAggregateInput = {
   type?: Prisma.SortOrder
   isLeadTraveller?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
-  email?: Prisma.SortOrder
-  phone?: Prisma.SortOrder
   dateOfBirth?: Prisma.SortOrder
-  gender?: Prisma.SortOrder
-  nationality?: Prisma.SortOrder
   passportNumber?: Prisma.SortOrder
-  passportExpiry?: Prisma.SortOrder
-  visaRequired?: Prisma.SortOrder
+  profileId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
+}
+
+export type TravellerCreateNestedManyWithoutBookingInput = {
+  create?: Prisma.XOR<Prisma.TravellerCreateWithoutBookingInput, Prisma.TravellerUncheckedCreateWithoutBookingInput> | Prisma.TravellerCreateWithoutBookingInput[] | Prisma.TravellerUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.TravellerCreateOrConnectWithoutBookingInput | Prisma.TravellerCreateOrConnectWithoutBookingInput[]
+  createMany?: Prisma.TravellerCreateManyBookingInputEnvelope
+  connect?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+}
+
+export type TravellerUncheckedCreateNestedManyWithoutBookingInput = {
+  create?: Prisma.XOR<Prisma.TravellerCreateWithoutBookingInput, Prisma.TravellerUncheckedCreateWithoutBookingInput> | Prisma.TravellerCreateWithoutBookingInput[] | Prisma.TravellerUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.TravellerCreateOrConnectWithoutBookingInput | Prisma.TravellerCreateOrConnectWithoutBookingInput[]
+  createMany?: Prisma.TravellerCreateManyBookingInputEnvelope
+  connect?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+}
+
+export type TravellerUpdateManyWithoutBookingNestedInput = {
+  create?: Prisma.XOR<Prisma.TravellerCreateWithoutBookingInput, Prisma.TravellerUncheckedCreateWithoutBookingInput> | Prisma.TravellerCreateWithoutBookingInput[] | Prisma.TravellerUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.TravellerCreateOrConnectWithoutBookingInput | Prisma.TravellerCreateOrConnectWithoutBookingInput[]
+  upsert?: Prisma.TravellerUpsertWithWhereUniqueWithoutBookingInput | Prisma.TravellerUpsertWithWhereUniqueWithoutBookingInput[]
+  createMany?: Prisma.TravellerCreateManyBookingInputEnvelope
+  set?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  disconnect?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  delete?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  connect?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  update?: Prisma.TravellerUpdateWithWhereUniqueWithoutBookingInput | Prisma.TravellerUpdateWithWhereUniqueWithoutBookingInput[]
+  updateMany?: Prisma.TravellerUpdateManyWithWhereWithoutBookingInput | Prisma.TravellerUpdateManyWithWhereWithoutBookingInput[]
+  deleteMany?: Prisma.TravellerScalarWhereInput | Prisma.TravellerScalarWhereInput[]
+}
+
+export type TravellerUncheckedUpdateManyWithoutBookingNestedInput = {
+  create?: Prisma.XOR<Prisma.TravellerCreateWithoutBookingInput, Prisma.TravellerUncheckedCreateWithoutBookingInput> | Prisma.TravellerCreateWithoutBookingInput[] | Prisma.TravellerUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.TravellerCreateOrConnectWithoutBookingInput | Prisma.TravellerCreateOrConnectWithoutBookingInput[]
+  upsert?: Prisma.TravellerUpsertWithWhereUniqueWithoutBookingInput | Prisma.TravellerUpsertWithWhereUniqueWithoutBookingInput[]
+  createMany?: Prisma.TravellerCreateManyBookingInputEnvelope
+  set?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  disconnect?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  delete?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  connect?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  update?: Prisma.TravellerUpdateWithWhereUniqueWithoutBookingInput | Prisma.TravellerUpdateWithWhereUniqueWithoutBookingInput[]
+  updateMany?: Prisma.TravellerUpdateManyWithWhereWithoutBookingInput | Prisma.TravellerUpdateManyWithWhereWithoutBookingInput[]
+  deleteMany?: Prisma.TravellerScalarWhereInput | Prisma.TravellerScalarWhereInput[]
+}
+
+export type TravellerCreateNestedManyWithoutProfileInput = {
+  create?: Prisma.XOR<Prisma.TravellerCreateWithoutProfileInput, Prisma.TravellerUncheckedCreateWithoutProfileInput> | Prisma.TravellerCreateWithoutProfileInput[] | Prisma.TravellerUncheckedCreateWithoutProfileInput[]
+  connectOrCreate?: Prisma.TravellerCreateOrConnectWithoutProfileInput | Prisma.TravellerCreateOrConnectWithoutProfileInput[]
+  createMany?: Prisma.TravellerCreateManyProfileInputEnvelope
+  connect?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+}
+
+export type TravellerUncheckedCreateNestedManyWithoutProfileInput = {
+  create?: Prisma.XOR<Prisma.TravellerCreateWithoutProfileInput, Prisma.TravellerUncheckedCreateWithoutProfileInput> | Prisma.TravellerCreateWithoutProfileInput[] | Prisma.TravellerUncheckedCreateWithoutProfileInput[]
+  connectOrCreate?: Prisma.TravellerCreateOrConnectWithoutProfileInput | Prisma.TravellerCreateOrConnectWithoutProfileInput[]
+  createMany?: Prisma.TravellerCreateManyProfileInputEnvelope
+  connect?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+}
+
+export type TravellerUpdateManyWithoutProfileNestedInput = {
+  create?: Prisma.XOR<Prisma.TravellerCreateWithoutProfileInput, Prisma.TravellerUncheckedCreateWithoutProfileInput> | Prisma.TravellerCreateWithoutProfileInput[] | Prisma.TravellerUncheckedCreateWithoutProfileInput[]
+  connectOrCreate?: Prisma.TravellerCreateOrConnectWithoutProfileInput | Prisma.TravellerCreateOrConnectWithoutProfileInput[]
+  upsert?: Prisma.TravellerUpsertWithWhereUniqueWithoutProfileInput | Prisma.TravellerUpsertWithWhereUniqueWithoutProfileInput[]
+  createMany?: Prisma.TravellerCreateManyProfileInputEnvelope
+  set?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  disconnect?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  delete?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  connect?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  update?: Prisma.TravellerUpdateWithWhereUniqueWithoutProfileInput | Prisma.TravellerUpdateWithWhereUniqueWithoutProfileInput[]
+  updateMany?: Prisma.TravellerUpdateManyWithWhereWithoutProfileInput | Prisma.TravellerUpdateManyWithWhereWithoutProfileInput[]
+  deleteMany?: Prisma.TravellerScalarWhereInput | Prisma.TravellerScalarWhereInput[]
+}
+
+export type TravellerUncheckedUpdateManyWithoutProfileNestedInput = {
+  create?: Prisma.XOR<Prisma.TravellerCreateWithoutProfileInput, Prisma.TravellerUncheckedCreateWithoutProfileInput> | Prisma.TravellerCreateWithoutProfileInput[] | Prisma.TravellerUncheckedCreateWithoutProfileInput[]
+  connectOrCreate?: Prisma.TravellerCreateOrConnectWithoutProfileInput | Prisma.TravellerCreateOrConnectWithoutProfileInput[]
+  upsert?: Prisma.TravellerUpsertWithWhereUniqueWithoutProfileInput | Prisma.TravellerUpsertWithWhereUniqueWithoutProfileInput[]
+  createMany?: Prisma.TravellerCreateManyProfileInputEnvelope
+  set?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  disconnect?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  delete?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  connect?: Prisma.TravellerWhereUniqueInput | Prisma.TravellerWhereUniqueInput[]
+  update?: Prisma.TravellerUpdateWithWhereUniqueWithoutProfileInput | Prisma.TravellerUpdateWithWhereUniqueWithoutProfileInput[]
+  updateMany?: Prisma.TravellerUpdateManyWithWhereWithoutProfileInput | Prisma.TravellerUpdateManyWithWhereWithoutProfileInput[]
+  deleteMany?: Prisma.TravellerScalarWhereInput | Prisma.TravellerScalarWhereInput[]
+}
+
+export type TravellerCreateWithoutBookingInput = {
+  id?: string
+  type: string
+  isLeadTraveller?: boolean
+  fullName: string
+  dateOfBirth?: Date | string | null
+  passportNumber?: string | null
+  createdAt?: Date | string
+  profile?: Prisma.TravellerProfileCreateNestedOneWithoutTravellersInput
+}
+
+export type TravellerUncheckedCreateWithoutBookingInput = {
+  id?: string
+  type: string
+  isLeadTraveller?: boolean
+  fullName: string
+  dateOfBirth?: Date | string | null
+  passportNumber?: string | null
+  profileId?: string | null
+  createdAt?: Date | string
+}
+
+export type TravellerCreateOrConnectWithoutBookingInput = {
+  where: Prisma.TravellerWhereUniqueInput
+  create: Prisma.XOR<Prisma.TravellerCreateWithoutBookingInput, Prisma.TravellerUncheckedCreateWithoutBookingInput>
+}
+
+export type TravellerCreateManyBookingInputEnvelope = {
+  data: Prisma.TravellerCreateManyBookingInput | Prisma.TravellerCreateManyBookingInput[]
+  skipDuplicates?: boolean
+}
+
+export type TravellerUpsertWithWhereUniqueWithoutBookingInput = {
+  where: Prisma.TravellerWhereUniqueInput
+  update: Prisma.XOR<Prisma.TravellerUpdateWithoutBookingInput, Prisma.TravellerUncheckedUpdateWithoutBookingInput>
+  create: Prisma.XOR<Prisma.TravellerCreateWithoutBookingInput, Prisma.TravellerUncheckedCreateWithoutBookingInput>
+}
+
+export type TravellerUpdateWithWhereUniqueWithoutBookingInput = {
+  where: Prisma.TravellerWhereUniqueInput
+  data: Prisma.XOR<Prisma.TravellerUpdateWithoutBookingInput, Prisma.TravellerUncheckedUpdateWithoutBookingInput>
+}
+
+export type TravellerUpdateManyWithWhereWithoutBookingInput = {
+  where: Prisma.TravellerScalarWhereInput
+  data: Prisma.XOR<Prisma.TravellerUpdateManyMutationInput, Prisma.TravellerUncheckedUpdateManyWithoutBookingInput>
+}
+
+export type TravellerScalarWhereInput = {
+  AND?: Prisma.TravellerScalarWhereInput | Prisma.TravellerScalarWhereInput[]
+  OR?: Prisma.TravellerScalarWhereInput[]
+  NOT?: Prisma.TravellerScalarWhereInput | Prisma.TravellerScalarWhereInput[]
+  id?: Prisma.StringFilter<"Traveller"> | string
+  bookingId?: Prisma.StringFilter<"Traveller"> | string
+  type?: Prisma.StringFilter<"Traveller"> | string
+  isLeadTraveller?: Prisma.BoolFilter<"Traveller"> | boolean
+  fullName?: Prisma.StringFilter<"Traveller"> | string
+  dateOfBirth?: Prisma.DateTimeNullableFilter<"Traveller"> | Date | string | null
+  passportNumber?: Prisma.StringNullableFilter<"Traveller"> | string | null
+  profileId?: Prisma.StringNullableFilter<"Traveller"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"Traveller"> | Date | string
+}
+
+export type TravellerCreateWithoutProfileInput = {
+  id?: string
+  type: string
+  isLeadTraveller?: boolean
+  fullName: string
+  dateOfBirth?: Date | string | null
+  passportNumber?: string | null
+  createdAt?: Date | string
+  booking: Prisma.BookingCreateNestedOneWithoutTravellersInput
+}
+
+export type TravellerUncheckedCreateWithoutProfileInput = {
+  id?: string
+  bookingId: string
+  type: string
+  isLeadTraveller?: boolean
+  fullName: string
+  dateOfBirth?: Date | string | null
+  passportNumber?: string | null
+  createdAt?: Date | string
+}
+
+export type TravellerCreateOrConnectWithoutProfileInput = {
+  where: Prisma.TravellerWhereUniqueInput
+  create: Prisma.XOR<Prisma.TravellerCreateWithoutProfileInput, Prisma.TravellerUncheckedCreateWithoutProfileInput>
+}
+
+export type TravellerCreateManyProfileInputEnvelope = {
+  data: Prisma.TravellerCreateManyProfileInput | Prisma.TravellerCreateManyProfileInput[]
+  skipDuplicates?: boolean
+}
+
+export type TravellerUpsertWithWhereUniqueWithoutProfileInput = {
+  where: Prisma.TravellerWhereUniqueInput
+  update: Prisma.XOR<Prisma.TravellerUpdateWithoutProfileInput, Prisma.TravellerUncheckedUpdateWithoutProfileInput>
+  create: Prisma.XOR<Prisma.TravellerCreateWithoutProfileInput, Prisma.TravellerUncheckedCreateWithoutProfileInput>
+}
+
+export type TravellerUpdateWithWhereUniqueWithoutProfileInput = {
+  where: Prisma.TravellerWhereUniqueInput
+  data: Prisma.XOR<Prisma.TravellerUpdateWithoutProfileInput, Prisma.TravellerUncheckedUpdateWithoutProfileInput>
+}
+
+export type TravellerUpdateManyWithWhereWithoutProfileInput = {
+  where: Prisma.TravellerScalarWhereInput
+  data: Prisma.XOR<Prisma.TravellerUpdateManyMutationInput, Prisma.TravellerUncheckedUpdateManyWithoutProfileInput>
+}
+
+export type TravellerCreateManyBookingInput = {
+  id?: string
+  type: string
+  isLeadTraveller?: boolean
+  fullName: string
+  dateOfBirth?: Date | string | null
+  passportNumber?: string | null
+  profileId?: string | null
+  createdAt?: Date | string
+}
+
+export type TravellerUpdateWithoutBookingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  isLeadTraveller?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passportNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  profile?: Prisma.TravellerProfileUpdateOneWithoutTravellersNestedInput
+}
+
+export type TravellerUncheckedUpdateWithoutBookingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  isLeadTraveller?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passportNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TravellerUncheckedUpdateManyWithoutBookingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  isLeadTraveller?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passportNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TravellerCreateManyProfileInput = {
+  id?: string
+  bookingId: string
+  type: string
+  isLeadTraveller?: boolean
+  fullName: string
+  dateOfBirth?: Date | string | null
+  passportNumber?: string | null
+  createdAt?: Date | string
+}
+
+export type TravellerUpdateWithoutProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  isLeadTraveller?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passportNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  booking?: Prisma.BookingUpdateOneRequiredWithoutTravellersNestedInput
+}
+
+export type TravellerUncheckedUpdateWithoutProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  isLeadTraveller?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passportNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TravellerUncheckedUpdateManyWithoutProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  isLeadTraveller?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passportNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -549,17 +698,12 @@ export type TravellerSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   type?: boolean
   isLeadTraveller?: boolean
   fullName?: boolean
-  email?: boolean
-  phone?: boolean
   dateOfBirth?: boolean
-  gender?: boolean
-  nationality?: boolean
   passportNumber?: boolean
-  passportExpiry?: boolean
-  visaRequired?: boolean
-  emergencyContact?: boolean
+  profileId?: boolean
   createdAt?: boolean
-  updatedAt?: boolean
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+  profile?: boolean | Prisma.Traveller$profileArgs<ExtArgs>
 }, ExtArgs["result"]["traveller"]>
 
 export type TravellerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -568,17 +712,12 @@ export type TravellerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   type?: boolean
   isLeadTraveller?: boolean
   fullName?: boolean
-  email?: boolean
-  phone?: boolean
   dateOfBirth?: boolean
-  gender?: boolean
-  nationality?: boolean
   passportNumber?: boolean
-  passportExpiry?: boolean
-  visaRequired?: boolean
-  emergencyContact?: boolean
+  profileId?: boolean
   createdAt?: boolean
-  updatedAt?: boolean
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+  profile?: boolean | Prisma.Traveller$profileArgs<ExtArgs>
 }, ExtArgs["result"]["traveller"]>
 
 export type TravellerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -587,17 +726,12 @@ export type TravellerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   type?: boolean
   isLeadTraveller?: boolean
   fullName?: boolean
-  email?: boolean
-  phone?: boolean
   dateOfBirth?: boolean
-  gender?: boolean
-  nationality?: boolean
   passportNumber?: boolean
-  passportExpiry?: boolean
-  visaRequired?: boolean
-  emergencyContact?: boolean
+  profileId?: boolean
   createdAt?: boolean
-  updatedAt?: boolean
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+  profile?: boolean | Prisma.Traveller$profileArgs<ExtArgs>
 }, ExtArgs["result"]["traveller"]>
 
 export type TravellerSelectScalar = {
@@ -606,41 +740,42 @@ export type TravellerSelectScalar = {
   type?: boolean
   isLeadTraveller?: boolean
   fullName?: boolean
-  email?: boolean
-  phone?: boolean
   dateOfBirth?: boolean
-  gender?: boolean
-  nationality?: boolean
   passportNumber?: boolean
-  passportExpiry?: boolean
-  visaRequired?: boolean
-  emergencyContact?: boolean
+  profileId?: boolean
   createdAt?: boolean
-  updatedAt?: boolean
 }
 
-export type TravellerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingId" | "type" | "isLeadTraveller" | "fullName" | "email" | "phone" | "dateOfBirth" | "gender" | "nationality" | "passportNumber" | "passportExpiry" | "visaRequired" | "emergencyContact" | "createdAt" | "updatedAt", ExtArgs["result"]["traveller"]>
+export type TravellerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingId" | "type" | "isLeadTraveller" | "fullName" | "dateOfBirth" | "passportNumber" | "profileId" | "createdAt", ExtArgs["result"]["traveller"]>
+export type TravellerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+  profile?: boolean | Prisma.Traveller$profileArgs<ExtArgs>
+}
+export type TravellerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+  profile?: boolean | Prisma.Traveller$profileArgs<ExtArgs>
+}
+export type TravellerIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+  profile?: boolean | Prisma.Traveller$profileArgs<ExtArgs>
+}
 
 export type $TravellerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Traveller"
-  objects: {}
+  objects: {
+    booking: Prisma.$BookingPayload<ExtArgs>
+    profile: Prisma.$TravellerProfilePayload<ExtArgs> | null
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     bookingId: string
     type: string
     isLeadTraveller: boolean
     fullName: string
-    email: string | null
-    phone: string | null
     dateOfBirth: Date | null
-    gender: string | null
-    nationality: string | null
     passportNumber: string | null
-    passportExpiry: Date | null
-    visaRequired: boolean
-    emergencyContact: runtime.JsonValue | null
+    profileId: string | null
     createdAt: Date
-    updatedAt: Date
   }, ExtArgs["result"]["traveller"]>
   composites: {}
 }
@@ -1035,6 +1170,8 @@ readonly fields: TravellerFieldRefs;
  */
 export interface Prisma__TravellerClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  booking<T extends Prisma.BookingDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BookingDefaultArgs<ExtArgs>>): Prisma.Prisma__BookingClient<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  profile<T extends Prisma.Traveller$profileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Traveller$profileArgs<ExtArgs>>): Prisma.Prisma__TravellerProfileClient<runtime.Types.Result.GetResult<Prisma.$TravellerProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1069,17 +1206,10 @@ export interface TravellerFieldRefs {
   readonly type: Prisma.FieldRef<"Traveller", 'String'>
   readonly isLeadTraveller: Prisma.FieldRef<"Traveller", 'Boolean'>
   readonly fullName: Prisma.FieldRef<"Traveller", 'String'>
-  readonly email: Prisma.FieldRef<"Traveller", 'String'>
-  readonly phone: Prisma.FieldRef<"Traveller", 'String'>
   readonly dateOfBirth: Prisma.FieldRef<"Traveller", 'DateTime'>
-  readonly gender: Prisma.FieldRef<"Traveller", 'String'>
-  readonly nationality: Prisma.FieldRef<"Traveller", 'String'>
   readonly passportNumber: Prisma.FieldRef<"Traveller", 'String'>
-  readonly passportExpiry: Prisma.FieldRef<"Traveller", 'DateTime'>
-  readonly visaRequired: Prisma.FieldRef<"Traveller", 'Boolean'>
-  readonly emergencyContact: Prisma.FieldRef<"Traveller", 'Json'>
+  readonly profileId: Prisma.FieldRef<"Traveller", 'String'>
   readonly createdAt: Prisma.FieldRef<"Traveller", 'DateTime'>
-  readonly updatedAt: Prisma.FieldRef<"Traveller", 'DateTime'>
 }
     
 
@@ -1096,6 +1226,10 @@ export type TravellerFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Omit specific fields from the Traveller
    */
   omit?: Prisma.TravellerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TravellerInclude<ExtArgs> | null
   /**
    * Filter, which Traveller to fetch.
    */
@@ -1115,6 +1249,10 @@ export type TravellerFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extensi
    */
   omit?: Prisma.TravellerOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TravellerInclude<ExtArgs> | null
+  /**
    * Filter, which Traveller to fetch.
    */
   where: Prisma.TravellerWhereUniqueInput
@@ -1132,6 +1270,10 @@ export type TravellerFindFirstArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Omit specific fields from the Traveller
    */
   omit?: Prisma.TravellerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TravellerInclude<ExtArgs> | null
   /**
    * Filter, which Traveller to fetch.
    */
@@ -1181,6 +1323,10 @@ export type TravellerFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensio
    */
   omit?: Prisma.TravellerOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TravellerInclude<ExtArgs> | null
+  /**
    * Filter, which Traveller to fetch.
    */
   where?: Prisma.TravellerWhereInput
@@ -1228,6 +1374,10 @@ export type TravellerFindManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Omit specific fields from the Traveller
    */
   omit?: Prisma.TravellerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TravellerInclude<ExtArgs> | null
   /**
    * Filter, which Travellers to fetch.
    */
@@ -1277,6 +1427,10 @@ export type TravellerCreateArgs<ExtArgs extends runtime.Types.Extensions.Interna
    */
   omit?: Prisma.TravellerOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TravellerInclude<ExtArgs> | null
+  /**
    * The data needed to create a Traveller.
    */
   data: Prisma.XOR<Prisma.TravellerCreateInput, Prisma.TravellerUncheckedCreateInput>
@@ -1310,6 +1464,10 @@ export type TravellerCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Exten
    */
   data: Prisma.TravellerCreateManyInput | Prisma.TravellerCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TravellerIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1324,6 +1482,10 @@ export type TravellerUpdateArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Omit specific fields from the Traveller
    */
   omit?: Prisma.TravellerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TravellerInclude<ExtArgs> | null
   /**
    * The data needed to update a Traveller.
    */
@@ -1376,6 +1538,10 @@ export type TravellerUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Exten
    * Limit how many Travellers to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TravellerIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1390,6 +1556,10 @@ export type TravellerUpsertArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Omit specific fields from the Traveller
    */
   omit?: Prisma.TravellerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TravellerInclude<ExtArgs> | null
   /**
    * The filter to search for the Traveller to update in case it exists.
    */
@@ -1417,6 +1587,10 @@ export type TravellerDeleteArgs<ExtArgs extends runtime.Types.Extensions.Interna
    */
   omit?: Prisma.TravellerOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TravellerInclude<ExtArgs> | null
+  /**
    * Filter which Traveller to delete.
    */
   where: Prisma.TravellerWhereUniqueInput
@@ -1437,6 +1611,25 @@ export type TravellerDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Int
 }
 
 /**
+ * Traveller.profile
+ */
+export type Traveller$profileArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TravellerProfile
+   */
+  select?: Prisma.TravellerProfileSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TravellerProfile
+   */
+  omit?: Prisma.TravellerProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TravellerProfileInclude<ExtArgs> | null
+  where?: Prisma.TravellerProfileWhereInput
+}
+
+/**
  * Traveller without action
  */
 export type TravellerDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1448,4 +1641,8 @@ export type TravellerDefaultArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Omit specific fields from the Traveller
    */
   omit?: Prisma.TravellerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TravellerInclude<ExtArgs> | null
 }

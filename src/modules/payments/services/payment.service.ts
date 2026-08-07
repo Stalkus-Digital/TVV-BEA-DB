@@ -7,7 +7,7 @@ import crypto from "crypto";
 import { PaymentStatus, type BookingPayment as DomainBookingPayment } from "@/modules/booking/types/booking-payment";
 import { computePaymentAggregate } from "@/modules/booking/payments/payment-calculator";
 import { canTransition } from "@/modules/booking/status/booking-status-machine";
-import { BookingStatus } from "@/modules/booking/types/booking-status";
+import { BookingStatus } from "@/generated/prisma/client";
 import { AuditEventType } from "@/modules/auth/types/audit-log";
 
 /** Minimum valid payment (₹1 = lowest Razorpay denomination) */
@@ -69,7 +69,7 @@ function toDomainBookingPayment(row: {
 async function recomputeBookingAggregate(
   tx: Omit<typeof prisma, "$transaction" | "$connect" | "$disconnect" | "$on" | "$use" | "$extends">,
   bookingId: string,
-): Promise<{ status: string; paymentStatus: PaymentStatus; amountPaid: number }> {
+): Promise<{ status: BookingStatus; paymentStatus: PaymentStatus; amountPaid: number }> {
   const booking = await tx.booking.findUniqueOrThrow({ where: { id: bookingId } });
   const rows = await tx.bookingPayment.findMany({ where: { bookingId } });
   const aggregate = computePaymentAggregate(booking.totalAmount, rows.map(toDomainBookingPayment));
@@ -456,7 +456,8 @@ export class PaymentService extends BaseService {
 
       const updatedBooking = await prisma.booking.findUnique({ where: { id: input.bookingId } });
       if (updatedBooking && updatedBooking.status !== previousStatus) {
-        const { getBookingStatusHistoryService, getBookingTimelineService } = await import("@/modules/booking/module");
+        const { getBookingStatusHistoryService } = await import("@/modules/booking/module");
+        const { getBookingTimelineService } = await import("@/modules/booking/module");
         await getBookingStatusHistoryService().record(
           input.bookingId,
           previousStatus as BookingStatus,
@@ -467,7 +468,7 @@ export class PaymentService extends BaseService {
         }
       }
 
-      if (updatedBooking?.paymentStatus === "PAID") {
+      if (updatedBooking?.paymentStatus === PaymentStatus.PAID) {
         const { getFulfillmentService } = await import("@/modules/booking/module");
         await getFulfillmentService().fulfillBooking(input.bookingId);
       }

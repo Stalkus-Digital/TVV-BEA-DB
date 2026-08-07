@@ -13,8 +13,15 @@ const CUSTOM_PAGE_LINKS_KEY = "CUSTOM_PAGE_LINKS";
 /** Static menu/footer shell — no CMS (Sprint 9) to author them from yet; popularDestinations is the one dynamic piece. */
 const STATIC_MENU: MenuItemDTO[] = [
   { label: "Home", url: "/" },
+  { label: "Andaman", url: "/packages/andaman" },
+  { label: "Domestic", url: "/packages/domestic" },
+  { label: "International", url: "/packages/international" },
   { label: "Packages", url: "/packages" },
   { label: "Destinations", url: "/destinations" },
+  { label: "Hotels", url: "/hotels" },
+  { label: "Experiences", url: "/experiences" },
+  { label: "Flights", url: "/flights" },
+  { label: "Ferry", url: "/ferry" },
   { label: "Contact", url: "/contact" },
 ];
 

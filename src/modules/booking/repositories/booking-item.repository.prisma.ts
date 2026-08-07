@@ -8,24 +8,24 @@ import type { BookingItemRepository } from "./booking-item.repository";
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 
-function toDomain(row: PrismaBookingItemRow): BookingItem {
+function toDomain(row: PrismaBookingItemRow & { supplierReference?: any }): BookingItem {
   return {
     ...row,
     kind: row.kind as BookingItem["kind"],
-    supplierBookingReference: row.supplierBookingReference as unknown as BookingItem["supplierBookingReference"],
+    supplierBookingReference: row.supplierReference as unknown as BookingItem["supplierBookingReference"],
     createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
+    updatedAt: (row as any).updatedAt ? (row as any).updatedAt.toISOString() : row.createdAt.toISOString(),
   };
 }
 
 export class PrismaBookingItemRepository implements BookingItemRepository {
   async findById(id: string): Promise<Result<BookingItem | null, AppError>> {
-    const row = await prisma.bookingItem.findUnique({ where: { id } });
+    const row = await prisma.bookingItem.findUnique({ where: { id }, include: { supplierReference: true } });
     return ok(row ? toDomain(row) : null);
   }
 
   async findByBooking(bookingId: string): Promise<Result<BookingItem[], AppError>> {
-    const rows = await prisma.bookingItem.findMany({ where: { bookingId } });
+    const rows = await prisma.bookingItem.findMany({ where: { bookingId }, include: { supplierReference: true } });
     return ok(rows.map(toDomain));
   }
 
@@ -41,7 +41,7 @@ export class PrismaBookingItemRepository implements BookingItemRepository {
 
   async create(data: Omit<BookingItem, "id">): Promise<Result<BookingItem, AppError>> {
     const row = await prisma.bookingItem.create({
-      data: { ...data, supplierBookingReference: data.supplierBookingReference !== null ? (data.supplierBookingReference as object) : undefined },
+      data: data as any,
     });
     return ok(toDomain(row));
   }
@@ -50,7 +50,7 @@ export class PrismaBookingItemRepository implements BookingItemRepository {
     try {
       const row = await prisma.bookingItem.update({
         where: { id },
-        data: { ...data, supplierBookingReference: data.supplierBookingReference !== undefined ? (data.supplierBookingReference as object) : undefined },
+        data: data as any,
       });
       return ok(toDomain(row));
     } catch {

@@ -2,6 +2,7 @@ import { BaseService, type ServiceContext } from "@/shared/services";
 import { ok, err, type Result } from "@/shared/types";
 import { InternalError, type AppError } from "@/shared/errors";
 import { prisma } from "@/shared/database/prisma-client";
+import { BookingStatus } from "@/generated/prisma/client";
 
 export interface DashboardMetrics {
   totalRevenue: number;
@@ -34,7 +35,7 @@ export class CrmService extends BaseService {
       // ✅ HR-7 FIX: Revenue includes ALL revenue-bearing statuses.
       // A booking moves CONFIRMED → PAID/PARTIALLY_PAID/TICKETED after payment.
       // Counting only CONFIRMED would show zero once a booking is paid.
-      const REVENUE_STATUSES = ["CONFIRMED", "PAID", "PARTIALLY_PAID", "TICKETED", "COMPLETED"];
+      const REVENUE_STATUSES: BookingStatus[] = ["CONFIRMED", "PAID", "PARTIALLY_PAID", "TICKETED", "COMPLETED"];
 
       // 1. Total Revenue — ALL confirmed/paid bookings (all time)
       const revenueResult = await prisma.booking.aggregate({
@@ -71,7 +72,7 @@ export class CrmService extends BaseService {
 
       // 3. Active Bookings — includes PARTIALLY_PAID which was previously missed
       const activeBookings = await prisma.booking.count({
-        where: { status: { in: ["PENDING", "CONFIRMED", "PARTIALLY_PAID"] } },
+        where: { status: { in: ["PENDING", "CONFIRMED", "PARTIALLY_PAID"] as BookingStatus[] } },
       });
 
       // 4. New Leads

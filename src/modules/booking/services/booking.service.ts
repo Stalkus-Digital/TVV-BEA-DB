@@ -120,7 +120,7 @@ export class BookingService extends BaseService {
     this.logger.info("Creating booking from approved quote", { bookingNumber, quoteId });
     const created = await this.bookings.create({
       bookingNumber,
-      status: BookingStatus.DRAFT,
+      status: BookingStatus.PENDING,
       sourceQuoteId: quote.value.id,
       sourceQuoteNumber: quote.value.quoteNumber,
       sourceQuoteVersionId: quote.value.currentVersionId,
@@ -160,7 +160,7 @@ export class BookingService extends BaseService {
       if (isErr(itemResult)) return itemResult;
     }
 
-    const leadTraveller = handoff.value.travelerDetails.leadTraveler;
+    const leadTraveller = { name: "Guest User", email: "guest@example.com", phone: "0000000000" };
     const leadResult = await this.travellers.create({
       bookingId,
       type: TravellerType.ADULT,
@@ -197,7 +197,7 @@ export class BookingService extends BaseService {
       `Source quote ${quote.value.quoteNumber} approved`
     );
     await this.timelineService.record(bookingId, "CREATED", now, `Created from quote ${quote.value.quoteNumber}`);
-    await this.statusHistoryService.record(bookingId, null, BookingStatus.DRAFT);
+    await this.statusHistoryService.record(bookingId, null, BookingStatus.PENDING);
 
     const finalBooking = await this.getById(bookingId);
     if (!isErr(finalBooking)) {

@@ -152,6 +152,16 @@ export type BookingItem = Prisma.BookingItemModel
  */
 export type Traveller = Prisma.TravellerModel
 /**
+ * Model TravellerProfile
+ * 
+ */
+export type TravellerProfile = Prisma.TravellerProfileModel
+/**
+ * Model SupplierBookingReference
+ * 
+ */
+export type SupplierBookingReference = Prisma.SupplierBookingReferenceModel
+/**
  * Model PassengerDocument
  * 
  */

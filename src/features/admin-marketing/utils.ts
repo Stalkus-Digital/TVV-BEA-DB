@@ -115,7 +115,8 @@ export function buildLandingPages(
   websiteDestinations: import("./types").WebsiteDestinationSummary[],
   adminPackages: Package[],
   adminDestinations: Destination[],
-  staticRoutes: { label: string; url: string }[]
+  staticRoutes: { label: string; url: string }[],
+  customPages: any[]
 ): LandingPageRow[] {
   const packageBySlug = new Map(adminPackages.map((p) => [p.slug, p]));
   const destinationBySlug = new Map(adminDestinations.map((d) => [d.slug, d]));
@@ -166,20 +167,35 @@ export function buildLandingPages(
   }
 
   const seenUrls = new Set<string>();
-  for (const route of staticRoutes) {
-    if (route.url === "/" || route.url.startsWith("/packages") || route.url.startsWith("/destinations")) continue;
-    if (seenUrls.has(route.url)) continue;
+  staticRoutes.forEach((route, idx) => {
+    if (route.url === "/" || route.url.startsWith("/packages") || route.url.startsWith("/destinations")) return;
+    if (seenUrls.has(route.url)) return;
     seenUrls.add(route.url);
     rows.push({
-      id: `static-${route.url}`,
+      id: `static-${idx}`,
       type: "static",
       title: route.label,
       slug: route.url,
       path: route.url,
       seoTitle: null,
       seoDescription: null,
-      publishedLabel: "Static (navigation menu)",
+      publishedLabel: "Always active",
       previewPath: route.url,
+    });
+  });
+
+  for (const cp of customPages) {
+    const isDestination = !!cp.destinationId;
+    rows.push({
+      id: cp.id,
+      type: "custom",
+      title: cp.title,
+      slug: cp.slug,
+      path: `/${cp.slug}`,
+      seoTitle: cp.seoTitle || null,
+      seoDescription: cp.seoDescription || null,
+      publishedLabel: cp.status === "PUBLISHED" ? "Published (Custom)" : "Draft (Custom)",
+      previewPath: `/${cp.slug}`,
     });
   }
 

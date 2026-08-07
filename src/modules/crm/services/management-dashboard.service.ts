@@ -1,8 +1,10 @@
 import { prisma } from "@/shared/database/prisma-client";
 import { SupplierConfigService } from "@/modules/supplier/services/supplier-config.service";
+import { InternalError } from "@/shared/errors";
+import { BookingStatus } from "@/generated/prisma/client";
 
-const REVENUE_STATUSES = ["CONFIRMED", "PAID", "PARTIALLY_PAID", "TICKETED", "COMPLETED"];
-const ACTIVE_BOOKING_STATUSES = ["PENDING", "CONFIRMED", "PARTIALLY_PAID"];
+const REVENUE_STATUSES: BookingStatus[] = ["CONFIRMED", "PAID", "PARTIALLY_PAID", "TICKETED", "COMPLETED"];
+const ACTIVE_BOOKING_STATUSES: BookingStatus[] = ["PENDING", "CONFIRMED", "PARTIALLY_PAID"];
 const NOT_ARCHIVED = { not: "ARCHIVED" } as const;
 
 export type DashboardKpiIcon =

@@ -23,6 +23,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       data: {
         title: body.title,
         slug: body.slug,
+        destinationId: body.destinationId,
+        template: body.template,
+        status: body.status,
+        seoTitle: body.seoTitle,
+        seoDescription: body.seoDescription,
         blocks: body.blocks,
         seo: body.seo,
       },

@@ -151,15 +151,26 @@ export async function buildAiPackageContext(
     };
   }
 
+  const childDests = await prisma.destination.findMany({
+    where: { parentDestinationId: dest.id },
+    select: { id: true },
+  });
+  const destIds = [dest.id, ...childDests.map((d) => d.id)];
+
+  const searchTerms = destinationName
+    .split(/[(),]/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 2);
+
   // 1. Load Local Inventory Items (Activities, Ferries, and fallback manual Hotels)
   const [manualHotelRows, activityRows, transferRows, tjHotelRows] = await Promise.all([
     prisma.inventoryItem.findMany({
-      where: { kind: "HOTEL", status: "ACTIVE", destinationId: dest.id },
+      where: { kind: "HOTEL", status: "ACTIVE", destinationId: { in: destIds } },
       orderBy: { title: "asc" },
       take: 20,
     }),
     prisma.inventoryItem.findMany({
-      where: { kind: "ACTIVITY", status: "ACTIVE", destinationId: dest.id },
+      where: { kind: "ACTIVITY", status: "ACTIVE", destinationId: { in: destIds } },
       orderBy: { title: "asc" },
       take: 60,
     }),
@@ -167,14 +178,18 @@ export async function buildAiPackageContext(
       where: {
         kind: "TRANSFER",
         status: "ACTIVE",
-        OR: [{ destinationId: dest.id }, { title: { contains: "ferry", mode: "insensitive" } }],
+        OR: [{ destinationId: { in: destIds } }, { title: { contains: "ferry", mode: "insensitive" } }],
       },
       orderBy: { title: "asc" },
       take: 60,
     }),
     // ✅ Load up to 40 TripJack Static Hotels matching the destination city name
     prisma.tjHotel.findMany({
-      where: { city: { cityName: { contains: destinationName, mode: 'insensitive' } } },
+      where: { 
+        OR: searchTerms.length > 0 
+          ? searchTerms.map(term => ({ city: { cityName: { contains: term, mode: "insensitive" } } }))
+          : [{ city: { cityName: { contains: destinationName, mode: "insensitive" } } }]
+      },
       take: 40,
     })
   ]);

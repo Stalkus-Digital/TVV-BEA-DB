@@ -53,7 +53,7 @@ const EMPTY_BOOKING_STATUS: DashboardBookingStatusCounts = {
 function tallyBookingStatus(bookings: Booking[]): DashboardBookingStatusCounts {
   const counts = { ...EMPTY_BOOKING_STATUS };
   for (const booking of bookings) {
-    if (booking.status === BookingStatus.DRAFT) counts.draft++;
+    if (booking.status === BookingStatus.PENDING) counts.draft++;
     else if (booking.status === BookingStatus.CONFIRMED) counts.confirmed++;
     else if (booking.status === BookingStatus.PARTIALLY_PAID) counts.partiallyPaid++;
     else if (booking.status === BookingStatus.PAID) counts.paid++;

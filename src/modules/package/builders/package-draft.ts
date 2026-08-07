@@ -38,5 +38,6 @@ export interface PackageDraft {
   durationNights: number;
   sourceType: PackageSourceType;
   aiGeneratedFromId?: string | null;
+  content?: any;
   days: PackageDraftDayInput[];
 }

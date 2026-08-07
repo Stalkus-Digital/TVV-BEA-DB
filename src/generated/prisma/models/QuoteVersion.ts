@@ -220,6 +220,7 @@ export type QuoteVersionWhereInput = {
   snapshot?: Prisma.JsonFilter<"QuoteVersion">
   createdAt?: Prisma.DateTimeFilter<"QuoteVersion"> | Date | string
   changeNote?: Prisma.StringNullableFilter<"QuoteVersion"> | string | null
+  quote?: Prisma.XOR<Prisma.QuoteScalarRelationFilter, Prisma.QuoteWhereInput>
 }
 
 export type QuoteVersionOrderByWithRelationInput = {
@@ -229,6 +230,7 @@ export type QuoteVersionOrderByWithRelationInput = {
   snapshot?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   changeNote?: Prisma.SortOrderInput | Prisma.SortOrder
+  quote?: Prisma.QuoteOrderByWithRelationInput
 }
 
 export type QuoteVersionWhereUniqueInput = Prisma.AtLeast<{
@@ -241,6 +243,7 @@ export type QuoteVersionWhereUniqueInput = Prisma.AtLeast<{
   snapshot?: Prisma.JsonFilter<"QuoteVersion">
   createdAt?: Prisma.DateTimeFilter<"QuoteVersion"> | Date | string
   changeNote?: Prisma.StringNullableFilter<"QuoteVersion"> | string | null
+  quote?: Prisma.XOR<Prisma.QuoteScalarRelationFilter, Prisma.QuoteWhereInput>
 }, "id">
 
 export type QuoteVersionOrderByWithAggregationInput = {
@@ -271,11 +274,11 @@ export type QuoteVersionScalarWhereWithAggregatesInput = {
 
 export type QuoteVersionCreateInput = {
   id?: string
-  quoteId: string
   versionNumber: number
   snapshot: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt: Date | string
   changeNote?: string | null
+  quote: Prisma.QuoteCreateNestedOneWithoutVersionsInput
 }
 
 export type QuoteVersionUncheckedCreateInput = {
@@ -289,11 +292,11 @@ export type QuoteVersionUncheckedCreateInput = {
 
 export type QuoteVersionUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  quoteId?: Prisma.StringFieldUpdateOperationsInput | string
   versionNumber?: Prisma.IntFieldUpdateOperationsInput | number
   snapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   changeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quote?: Prisma.QuoteUpdateOneRequiredWithoutVersionsNestedInput
 }
 
 export type QuoteVersionUncheckedUpdateInput = {
@@ -316,7 +319,6 @@ export type QuoteVersionCreateManyInput = {
 
 export type QuoteVersionUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  quoteId?: Prisma.StringFieldUpdateOperationsInput | string
   versionNumber?: Prisma.IntFieldUpdateOperationsInput | number
   snapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -330,6 +332,16 @@ export type QuoteVersionUncheckedUpdateManyInput = {
   snapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   changeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type QuoteVersionListRelationFilter = {
+  every?: Prisma.QuoteVersionWhereInput
+  some?: Prisma.QuoteVersionWhereInput
+  none?: Prisma.QuoteVersionWhereInput
+}
+
+export type QuoteVersionOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type QuoteVersionCountOrderByAggregateInput = {
@@ -365,6 +377,134 @@ export type QuoteVersionSumOrderByAggregateInput = {
   versionNumber?: Prisma.SortOrder
 }
 
+export type QuoteVersionCreateNestedManyWithoutQuoteInput = {
+  create?: Prisma.XOR<Prisma.QuoteVersionCreateWithoutQuoteInput, Prisma.QuoteVersionUncheckedCreateWithoutQuoteInput> | Prisma.QuoteVersionCreateWithoutQuoteInput[] | Prisma.QuoteVersionUncheckedCreateWithoutQuoteInput[]
+  connectOrCreate?: Prisma.QuoteVersionCreateOrConnectWithoutQuoteInput | Prisma.QuoteVersionCreateOrConnectWithoutQuoteInput[]
+  createMany?: Prisma.QuoteVersionCreateManyQuoteInputEnvelope
+  connect?: Prisma.QuoteVersionWhereUniqueInput | Prisma.QuoteVersionWhereUniqueInput[]
+}
+
+export type QuoteVersionUncheckedCreateNestedManyWithoutQuoteInput = {
+  create?: Prisma.XOR<Prisma.QuoteVersionCreateWithoutQuoteInput, Prisma.QuoteVersionUncheckedCreateWithoutQuoteInput> | Prisma.QuoteVersionCreateWithoutQuoteInput[] | Prisma.QuoteVersionUncheckedCreateWithoutQuoteInput[]
+  connectOrCreate?: Prisma.QuoteVersionCreateOrConnectWithoutQuoteInput | Prisma.QuoteVersionCreateOrConnectWithoutQuoteInput[]
+  createMany?: Prisma.QuoteVersionCreateManyQuoteInputEnvelope
+  connect?: Prisma.QuoteVersionWhereUniqueInput | Prisma.QuoteVersionWhereUniqueInput[]
+}
+
+export type QuoteVersionUpdateManyWithoutQuoteNestedInput = {
+  create?: Prisma.XOR<Prisma.QuoteVersionCreateWithoutQuoteInput, Prisma.QuoteVersionUncheckedCreateWithoutQuoteInput> | Prisma.QuoteVersionCreateWithoutQuoteInput[] | Prisma.QuoteVersionUncheckedCreateWithoutQuoteInput[]
+  connectOrCreate?: Prisma.QuoteVersionCreateOrConnectWithoutQuoteInput | Prisma.QuoteVersionCreateOrConnectWithoutQuoteInput[]
+  upsert?: Prisma.QuoteVersionUpsertWithWhereUniqueWithoutQuoteInput | Prisma.QuoteVersionUpsertWithWhereUniqueWithoutQuoteInput[]
+  createMany?: Prisma.QuoteVersionCreateManyQuoteInputEnvelope
+  set?: Prisma.QuoteVersionWhereUniqueInput | Prisma.QuoteVersionWhereUniqueInput[]
+  disconnect?: Prisma.QuoteVersionWhereUniqueInput | Prisma.QuoteVersionWhereUniqueInput[]
+  delete?: Prisma.QuoteVersionWhereUniqueInput | Prisma.QuoteVersionWhereUniqueInput[]
+  connect?: Prisma.QuoteVersionWhereUniqueInput | Prisma.QuoteVersionWhereUniqueInput[]
+  update?: Prisma.QuoteVersionUpdateWithWhereUniqueWithoutQuoteInput | Prisma.QuoteVersionUpdateWithWhereUniqueWithoutQuoteInput[]
+  updateMany?: Prisma.QuoteVersionUpdateManyWithWhereWithoutQuoteInput | Prisma.QuoteVersionUpdateManyWithWhereWithoutQuoteInput[]
+  deleteMany?: Prisma.QuoteVersionScalarWhereInput | Prisma.QuoteVersionScalarWhereInput[]
+}
+
+export type QuoteVersionUncheckedUpdateManyWithoutQuoteNestedInput = {
+  create?: Prisma.XOR<Prisma.QuoteVersionCreateWithoutQuoteInput, Prisma.QuoteVersionUncheckedCreateWithoutQuoteInput> | Prisma.QuoteVersionCreateWithoutQuoteInput[] | Prisma.QuoteVersionUncheckedCreateWithoutQuoteInput[]
+  connectOrCreate?: Prisma.QuoteVersionCreateOrConnectWithoutQuoteInput | Prisma.QuoteVersionCreateOrConnectWithoutQuoteInput[]
+  upsert?: Prisma.QuoteVersionUpsertWithWhereUniqueWithoutQuoteInput | Prisma.QuoteVersionUpsertWithWhereUniqueWithoutQuoteInput[]
+  createMany?: Prisma.QuoteVersionCreateManyQuoteInputEnvelope
+  set?: Prisma.QuoteVersionWhereUniqueInput | Prisma.QuoteVersionWhereUniqueInput[]
+  disconnect?: Prisma.QuoteVersionWhereUniqueInput | Prisma.QuoteVersionWhereUniqueInput[]
+  delete?: Prisma.QuoteVersionWhereUniqueInput | Prisma.QuoteVersionWhereUniqueInput[]
+  connect?: Prisma.QuoteVersionWhereUniqueInput | Prisma.QuoteVersionWhereUniqueInput[]
+  update?: Prisma.QuoteVersionUpdateWithWhereUniqueWithoutQuoteInput | Prisma.QuoteVersionUpdateWithWhereUniqueWithoutQuoteInput[]
+  updateMany?: Prisma.QuoteVersionUpdateManyWithWhereWithoutQuoteInput | Prisma.QuoteVersionUpdateManyWithWhereWithoutQuoteInput[]
+  deleteMany?: Prisma.QuoteVersionScalarWhereInput | Prisma.QuoteVersionScalarWhereInput[]
+}
+
+export type QuoteVersionCreateWithoutQuoteInput = {
+  id?: string
+  versionNumber: number
+  snapshot: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt: Date | string
+  changeNote?: string | null
+}
+
+export type QuoteVersionUncheckedCreateWithoutQuoteInput = {
+  id?: string
+  versionNumber: number
+  snapshot: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt: Date | string
+  changeNote?: string | null
+}
+
+export type QuoteVersionCreateOrConnectWithoutQuoteInput = {
+  where: Prisma.QuoteVersionWhereUniqueInput
+  create: Prisma.XOR<Prisma.QuoteVersionCreateWithoutQuoteInput, Prisma.QuoteVersionUncheckedCreateWithoutQuoteInput>
+}
+
+export type QuoteVersionCreateManyQuoteInputEnvelope = {
+  data: Prisma.QuoteVersionCreateManyQuoteInput | Prisma.QuoteVersionCreateManyQuoteInput[]
+  skipDuplicates?: boolean
+}
+
+export type QuoteVersionUpsertWithWhereUniqueWithoutQuoteInput = {
+  where: Prisma.QuoteVersionWhereUniqueInput
+  update: Prisma.XOR<Prisma.QuoteVersionUpdateWithoutQuoteInput, Prisma.QuoteVersionUncheckedUpdateWithoutQuoteInput>
+  create: Prisma.XOR<Prisma.QuoteVersionCreateWithoutQuoteInput, Prisma.QuoteVersionUncheckedCreateWithoutQuoteInput>
+}
+
+export type QuoteVersionUpdateWithWhereUniqueWithoutQuoteInput = {
+  where: Prisma.QuoteVersionWhereUniqueInput
+  data: Prisma.XOR<Prisma.QuoteVersionUpdateWithoutQuoteInput, Prisma.QuoteVersionUncheckedUpdateWithoutQuoteInput>
+}
+
+export type QuoteVersionUpdateManyWithWhereWithoutQuoteInput = {
+  where: Prisma.QuoteVersionScalarWhereInput
+  data: Prisma.XOR<Prisma.QuoteVersionUpdateManyMutationInput, Prisma.QuoteVersionUncheckedUpdateManyWithoutQuoteInput>
+}
+
+export type QuoteVersionScalarWhereInput = {
+  AND?: Prisma.QuoteVersionScalarWhereInput | Prisma.QuoteVersionScalarWhereInput[]
+  OR?: Prisma.QuoteVersionScalarWhereInput[]
+  NOT?: Prisma.QuoteVersionScalarWhereInput | Prisma.QuoteVersionScalarWhereInput[]
+  id?: Prisma.StringFilter<"QuoteVersion"> | string
+  quoteId?: Prisma.StringFilter<"QuoteVersion"> | string
+  versionNumber?: Prisma.IntFilter<"QuoteVersion"> | number
+  snapshot?: Prisma.JsonFilter<"QuoteVersion">
+  createdAt?: Prisma.DateTimeFilter<"QuoteVersion"> | Date | string
+  changeNote?: Prisma.StringNullableFilter<"QuoteVersion"> | string | null
+}
+
+export type QuoteVersionCreateManyQuoteInput = {
+  id?: string
+  versionNumber: number
+  snapshot: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt: Date | string
+  changeNote?: string | null
+}
+
+export type QuoteVersionUpdateWithoutQuoteInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  versionNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  snapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  changeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type QuoteVersionUncheckedUpdateWithoutQuoteInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  versionNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  snapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  changeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type QuoteVersionUncheckedUpdateManyWithoutQuoteInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  versionNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  snapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  changeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
 
 
 export type QuoteVersionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -374,6 +514,7 @@ export type QuoteVersionSelect<ExtArgs extends runtime.Types.Extensions.Internal
   snapshot?: boolean
   createdAt?: boolean
   changeNote?: boolean
+  quote?: boolean | Prisma.QuoteDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["quoteVersion"]>
 
 export type QuoteVersionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -383,6 +524,7 @@ export type QuoteVersionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   snapshot?: boolean
   createdAt?: boolean
   changeNote?: boolean
+  quote?: boolean | Prisma.QuoteDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["quoteVersion"]>
 
 export type QuoteVersionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -392,6 +534,7 @@ export type QuoteVersionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   snapshot?: boolean
   createdAt?: boolean
   changeNote?: boolean
+  quote?: boolean | Prisma.QuoteDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["quoteVersion"]>
 
 export type QuoteVersionSelectScalar = {
@@ -404,10 +547,21 @@ export type QuoteVersionSelectScalar = {
 }
 
 export type QuoteVersionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "quoteId" | "versionNumber" | "snapshot" | "createdAt" | "changeNote", ExtArgs["result"]["quoteVersion"]>
+export type QuoteVersionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  quote?: boolean | Prisma.QuoteDefaultArgs<ExtArgs>
+}
+export type QuoteVersionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  quote?: boolean | Prisma.QuoteDefaultArgs<ExtArgs>
+}
+export type QuoteVersionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  quote?: boolean | Prisma.QuoteDefaultArgs<ExtArgs>
+}
 
 export type $QuoteVersionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "QuoteVersion"
-  objects: {}
+  objects: {
+    quote: Prisma.$QuotePayload<ExtArgs>
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     quoteId: string
@@ -809,6 +963,7 @@ readonly fields: QuoteVersionFieldRefs;
  */
 export interface Prisma__QuoteVersionClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  quote<T extends Prisma.QuoteDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.QuoteDefaultArgs<ExtArgs>>): Prisma.Prisma__QuoteClient<runtime.Types.Result.GetResult<Prisma.$QuotePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -861,6 +1016,10 @@ export type QuoteVersionFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.
    */
   omit?: Prisma.QuoteVersionOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteVersionInclude<ExtArgs> | null
+  /**
    * Filter, which QuoteVersion to fetch.
    */
   where: Prisma.QuoteVersionWhereUniqueInput
@@ -879,6 +1038,10 @@ export type QuoteVersionFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Exte
    */
   omit?: Prisma.QuoteVersionOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteVersionInclude<ExtArgs> | null
+  /**
    * Filter, which QuoteVersion to fetch.
    */
   where: Prisma.QuoteVersionWhereUniqueInput
@@ -896,6 +1059,10 @@ export type QuoteVersionFindFirstArgs<ExtArgs extends runtime.Types.Extensions.I
    * Omit specific fields from the QuoteVersion
    */
   omit?: Prisma.QuoteVersionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteVersionInclude<ExtArgs> | null
   /**
    * Filter, which QuoteVersion to fetch.
    */
@@ -945,6 +1112,10 @@ export type QuoteVersionFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Exten
    */
   omit?: Prisma.QuoteVersionOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteVersionInclude<ExtArgs> | null
+  /**
    * Filter, which QuoteVersion to fetch.
    */
   where?: Prisma.QuoteVersionWhereInput
@@ -992,6 +1163,10 @@ export type QuoteVersionFindManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the QuoteVersion
    */
   omit?: Prisma.QuoteVersionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteVersionInclude<ExtArgs> | null
   /**
    * Filter, which QuoteVersions to fetch.
    */
@@ -1041,6 +1216,10 @@ export type QuoteVersionCreateArgs<ExtArgs extends runtime.Types.Extensions.Inte
    */
   omit?: Prisma.QuoteVersionOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteVersionInclude<ExtArgs> | null
+  /**
    * The data needed to create a QuoteVersion.
    */
   data: Prisma.XOR<Prisma.QuoteVersionCreateInput, Prisma.QuoteVersionUncheckedCreateInput>
@@ -1074,6 +1253,10 @@ export type QuoteVersionCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Ex
    */
   data: Prisma.QuoteVersionCreateManyInput | Prisma.QuoteVersionCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteVersionIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1088,6 +1271,10 @@ export type QuoteVersionUpdateArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Omit specific fields from the QuoteVersion
    */
   omit?: Prisma.QuoteVersionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteVersionInclude<ExtArgs> | null
   /**
    * The data needed to update a QuoteVersion.
    */
@@ -1140,6 +1327,10 @@ export type QuoteVersionUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Ex
    * Limit how many QuoteVersions to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteVersionIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1154,6 +1345,10 @@ export type QuoteVersionUpsertArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Omit specific fields from the QuoteVersion
    */
   omit?: Prisma.QuoteVersionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteVersionInclude<ExtArgs> | null
   /**
    * The filter to search for the QuoteVersion to update in case it exists.
    */
@@ -1180,6 +1375,10 @@ export type QuoteVersionDeleteArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Omit specific fields from the QuoteVersion
    */
   omit?: Prisma.QuoteVersionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteVersionInclude<ExtArgs> | null
   /**
    * Filter which QuoteVersion to delete.
    */
@@ -1212,4 +1411,8 @@ export type QuoteVersionDefaultArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Omit specific fields from the QuoteVersion
    */
   omit?: Prisma.QuoteVersionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteVersionInclude<ExtArgs> | null
 }

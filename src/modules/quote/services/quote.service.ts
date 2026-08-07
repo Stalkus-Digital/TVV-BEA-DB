@@ -108,8 +108,7 @@ export class QuoteService extends BaseService {
         title: value.title,
         status: QuoteStatus.DRAFT,
         destinationId: value.destinationId,
-        packageId: value.packageId,
-        travelerDetails: value.travelerDetails,
+        packageId: value.packageId ?? null,
         currency: value.currency,
         adjustments: value.adjustments,
         currentVersionId: null,
@@ -222,7 +221,7 @@ export class QuoteService extends BaseService {
 
     this.logger.info("Approving quote", { id });
     const now = new Date().toISOString();
-    return this.quotes.update(id, { status: QuoteStatus.APPROVED, approvedAt: now, updatedAt: now });
+    return this.quotes.update(id, { status: QuoteStatus.ACCEPTED, approvedAt: now, updatedAt: now });
   }
 
   async reject(id: string, input: unknown): Promise<Result<Quote, AppError>> {
@@ -282,7 +281,6 @@ export class QuoteService extends BaseService {
         status: QuoteStatus.DRAFT,
         destinationId: source.value.destinationId,
         packageId: source.value.packageId,
-        travelerDetails: source.value.travelerDetails,
         currency: source.value.currency,
         adjustments: source.value.adjustments,
         currentVersionId: null,
@@ -350,7 +348,7 @@ export class QuoteService extends BaseService {
     }
 
     const eligible =
-      quote.value.status === QuoteStatus.APPROVED ||
+      quote.value.status === QuoteStatus.ACCEPTED ||
       (quote.value.status === QuoteStatus.CONVERTED && !quote.value.convertedBookingId);
     if (!eligible) {
       return err(
@@ -370,7 +368,7 @@ export class QuoteService extends BaseService {
       quoteNumber: quote.value.quoteNumber,
       destinationId: quote.value.destinationId,
       packageId: quote.value.packageId,
-      travelerDetails: quote.value.travelerDetails,
+      title: quote.value.title,
       items: itemsResult.value,
       pricing,
       preparedAt,

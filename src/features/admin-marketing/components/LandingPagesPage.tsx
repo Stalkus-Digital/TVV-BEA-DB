@@ -30,7 +30,9 @@ export function LandingPagesPage() {
   }, [pagesQuery.data, typeFilter, debouncedSearch]);
 
   const handleEdit = (page: any) => {
-    if (page.type === "destination") {
+    if (page.type === "custom") {
+      alert("Editing custom landing pages directly from here is not yet implemented. Please recreate or edit in DB.");
+    } else if (page.type === "destination") {
       router.push(`/destinations/builder/${page.id}`);
     } else if (page.type === "package") {
       router.push(`/packages/${page.id}`);
@@ -42,7 +44,7 @@ export function LandingPagesPage() {
   };
 
   const handleDelete = async (page: any) => {
-    if (page.type !== "destination" && page.type !== "package") {
+    if (page.type !== "destination" && page.type !== "package" && page.type !== "custom") {
       alert(`Cannot delete ${page.type} pages from here.`);
       return;
     }
@@ -50,7 +52,9 @@ export function LandingPagesPage() {
 
     setIsDeletingId(page.id);
     try {
-      if (page.type === "destination") {
+      if (page.type === "custom") {
+        await adminApiClient.delete(`/api/admin/landing-pages/${page.id}`);
+      } else if (page.type === "destination") {
         await adminApiClient.delete(`/api/destinations/${page.id}`);
       } else if (page.type === "package") {
         await adminApiClient.delete(`/api/packages/${page.id}`);
@@ -147,7 +151,7 @@ export function LandingPagesPage() {
                       >
                         <Edit2 className="h-4 w-4" />
                       </button>
-                      {(page.type === "destination" || page.type === "package") && (
+                      {(page.type === "destination" || page.type === "package" || page.type === "custom") && (
                         <button
                           onClick={() => void handleDelete(page)}
                           disabled={isDeletingId === page.id}

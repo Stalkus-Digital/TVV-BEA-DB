@@ -46,6 +46,13 @@ export async function POST(req: Request) {
         durationDays: pkgData.durationDays,
         durationNights: pkgData.durationNights,
         aiGenerationReferenceId: "ai_gen_" + Date.now(),
+        content: {
+          shortDescription: (pkgData as any).shortDescription ?? "",
+          itineraryDetails: (pkgData as any).itineraryDetails ?? "",
+          rules: ((pkgData as any).rules || []).join("\n"),
+          inclusions: pkgData.inclusions.join("\n"),
+          exclusions: pkgData.exclusions.join("\n"),
+        },
         days: pkgData.days.map((d) => ({
           dayNumber: d.dayNumber,
           title: d.title,

@@ -28,7 +28,7 @@ export type QuoteMinAggregateOutputType = {
   id: string | null
   quoteNumber: string | null
   title: string | null
-  status: string | null
+  status: $Enums.QuoteStatus | null
   destinationId: string | null
   packageId: string | null
   currency: string | null
@@ -51,7 +51,7 @@ export type QuoteMaxAggregateOutputType = {
   id: string | null
   quoteNumber: string | null
   title: string | null
-  status: string | null
+  status: $Enums.QuoteStatus | null
   destinationId: string | null
   packageId: string | null
   currency: string | null
@@ -77,7 +77,6 @@ export type QuoteCountAggregateOutputType = {
   status: number
   destinationId: number
   packageId: number
-  travelerDetails: number
   currency: number
   adjustments: number
   currentVersionId: number
@@ -150,7 +149,6 @@ export type QuoteCountAggregateInputType = {
   status?: true
   destinationId?: true
   packageId?: true
-  travelerDetails?: true
   currency?: true
   adjustments?: true
   currentVersionId?: true
@@ -245,10 +243,9 @@ export type QuoteGroupByOutputType = {
   id: string
   quoteNumber: string
   title: string
-  status: string
+  status: $Enums.QuoteStatus
   destinationId: string
   packageId: string | null
-  travelerDetails: runtime.JsonValue
   currency: string
   adjustments: runtime.JsonValue
   currentVersionId: string | null
@@ -291,10 +288,9 @@ export type QuoteWhereInput = {
   id?: Prisma.StringFilter<"Quote"> | string
   quoteNumber?: Prisma.StringFilter<"Quote"> | string
   title?: Prisma.StringFilter<"Quote"> | string
-  status?: Prisma.StringFilter<"Quote"> | string
+  status?: Prisma.EnumQuoteStatusFilter<"Quote"> | $Enums.QuoteStatus
   destinationId?: Prisma.StringFilter<"Quote"> | string
   packageId?: Prisma.StringNullableFilter<"Quote"> | string | null
-  travelerDetails?: Prisma.JsonFilter<"Quote">
   currency?: Prisma.StringFilter<"Quote"> | string
   adjustments?: Prisma.JsonFilter<"Quote">
   currentVersionId?: Prisma.StringNullableFilter<"Quote"> | string | null
@@ -310,6 +306,9 @@ export type QuoteWhereInput = {
   customerId?: Prisma.StringNullableFilter<"Quote"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Quote"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Quote"> | Date | string
+  customer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  versions?: Prisma.QuoteVersionListRelationFilter
+  travellerProfiles?: Prisma.TravellerProfileListRelationFilter
 }
 
 export type QuoteOrderByWithRelationInput = {
@@ -319,7 +318,6 @@ export type QuoteOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   destinationId?: Prisma.SortOrder
   packageId?: Prisma.SortOrderInput | Prisma.SortOrder
-  travelerDetails?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   adjustments?: Prisma.SortOrder
   currentVersionId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -335,6 +333,9 @@ export type QuoteOrderByWithRelationInput = {
   customerId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  customer?: Prisma.UserOrderByWithRelationInput
+  versions?: Prisma.QuoteVersionOrderByRelationAggregateInput
+  travellerProfiles?: Prisma.TravellerProfileOrderByRelationAggregateInput
 }
 
 export type QuoteWhereUniqueInput = Prisma.AtLeast<{
@@ -344,10 +345,9 @@ export type QuoteWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.QuoteWhereInput[]
   NOT?: Prisma.QuoteWhereInput | Prisma.QuoteWhereInput[]
   title?: Prisma.StringFilter<"Quote"> | string
-  status?: Prisma.StringFilter<"Quote"> | string
+  status?: Prisma.EnumQuoteStatusFilter<"Quote"> | $Enums.QuoteStatus
   destinationId?: Prisma.StringFilter<"Quote"> | string
   packageId?: Prisma.StringNullableFilter<"Quote"> | string | null
-  travelerDetails?: Prisma.JsonFilter<"Quote">
   currency?: Prisma.StringFilter<"Quote"> | string
   adjustments?: Prisma.JsonFilter<"Quote">
   currentVersionId?: Prisma.StringNullableFilter<"Quote"> | string | null
@@ -363,6 +363,9 @@ export type QuoteWhereUniqueInput = Prisma.AtLeast<{
   customerId?: Prisma.StringNullableFilter<"Quote"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Quote"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Quote"> | Date | string
+  customer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  versions?: Prisma.QuoteVersionListRelationFilter
+  travellerProfiles?: Prisma.TravellerProfileListRelationFilter
 }, "id" | "quoteNumber">
 
 export type QuoteOrderByWithAggregationInput = {
@@ -372,7 +375,6 @@ export type QuoteOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   destinationId?: Prisma.SortOrder
   packageId?: Prisma.SortOrderInput | Prisma.SortOrder
-  travelerDetails?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   adjustments?: Prisma.SortOrder
   currentVersionId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -400,10 +402,9 @@ export type QuoteScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Quote"> | string
   quoteNumber?: Prisma.StringWithAggregatesFilter<"Quote"> | string
   title?: Prisma.StringWithAggregatesFilter<"Quote"> | string
-  status?: Prisma.StringWithAggregatesFilter<"Quote"> | string
+  status?: Prisma.EnumQuoteStatusWithAggregatesFilter<"Quote"> | $Enums.QuoteStatus
   destinationId?: Prisma.StringWithAggregatesFilter<"Quote"> | string
   packageId?: Prisma.StringNullableWithAggregatesFilter<"Quote"> | string | null
-  travelerDetails?: Prisma.JsonWithAggregatesFilter<"Quote">
   currency?: Prisma.StringWithAggregatesFilter<"Quote"> | string
   adjustments?: Prisma.JsonWithAggregatesFilter<"Quote">
   currentVersionId?: Prisma.StringNullableWithAggregatesFilter<"Quote"> | string | null
@@ -425,10 +426,9 @@ export type QuoteCreateInput = {
   id?: string
   quoteNumber: string
   title: string
-  status: string
+  status?: $Enums.QuoteStatus
   destinationId: string
   packageId?: string | null
-  travelerDetails: Prisma.JsonNullValueInput | runtime.InputJsonValue
   currency: string
   adjustments: Prisma.JsonNullValueInput | runtime.InputJsonValue
   currentVersionId?: string | null
@@ -441,19 +441,20 @@ export type QuoteCreateInput = {
   rejectionReason?: string | null
   convertedAt?: Date | string | null
   convertedBookingId?: string | null
-  customerId?: string | null
   createdAt: Date | string
   updatedAt: Date | string
+  customer?: Prisma.UserCreateNestedOneWithoutQuotesInput
+  versions?: Prisma.QuoteVersionCreateNestedManyWithoutQuoteInput
+  travellerProfiles?: Prisma.TravellerProfileCreateNestedManyWithoutQuoteInput
 }
 
 export type QuoteUncheckedCreateInput = {
   id?: string
   quoteNumber: string
   title: string
-  status: string
+  status?: $Enums.QuoteStatus
   destinationId: string
   packageId?: string | null
-  travelerDetails: Prisma.JsonNullValueInput | runtime.InputJsonValue
   currency: string
   adjustments: Prisma.JsonNullValueInput | runtime.InputJsonValue
   currentVersionId?: string | null
@@ -469,16 +470,17 @@ export type QuoteUncheckedCreateInput = {
   customerId?: string | null
   createdAt: Date | string
   updatedAt: Date | string
+  versions?: Prisma.QuoteVersionUncheckedCreateNestedManyWithoutQuoteInput
+  travellerProfiles?: Prisma.TravellerProfileUncheckedCreateNestedManyWithoutQuoteInput
 }
 
 export type QuoteUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quoteNumber?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumQuoteStatusFieldUpdateOperationsInput | $Enums.QuoteStatus
   destinationId?: Prisma.StringFieldUpdateOperationsInput | string
   packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  travelerDetails?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   adjustments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -491,19 +493,20 @@ export type QuoteUpdateInput = {
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   convertedBookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  customer?: Prisma.UserUpdateOneWithoutQuotesNestedInput
+  versions?: Prisma.QuoteVersionUpdateManyWithoutQuoteNestedInput
+  travellerProfiles?: Prisma.TravellerProfileUpdateManyWithoutQuoteNestedInput
 }
 
 export type QuoteUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quoteNumber?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumQuoteStatusFieldUpdateOperationsInput | $Enums.QuoteStatus
   destinationId?: Prisma.StringFieldUpdateOperationsInput | string
   packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  travelerDetails?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   adjustments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -519,16 +522,17 @@ export type QuoteUncheckedUpdateInput = {
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  versions?: Prisma.QuoteVersionUncheckedUpdateManyWithoutQuoteNestedInput
+  travellerProfiles?: Prisma.TravellerProfileUncheckedUpdateManyWithoutQuoteNestedInput
 }
 
 export type QuoteCreateManyInput = {
   id?: string
   quoteNumber: string
   title: string
-  status: string
+  status?: $Enums.QuoteStatus
   destinationId: string
   packageId?: string | null
-  travelerDetails: Prisma.JsonNullValueInput | runtime.InputJsonValue
   currency: string
   adjustments: Prisma.JsonNullValueInput | runtime.InputJsonValue
   currentVersionId?: string | null
@@ -550,10 +554,9 @@ export type QuoteUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quoteNumber?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumQuoteStatusFieldUpdateOperationsInput | $Enums.QuoteStatus
   destinationId?: Prisma.StringFieldUpdateOperationsInput | string
   packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  travelerDetails?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   adjustments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -566,7 +569,6 @@ export type QuoteUpdateManyMutationInput = {
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   convertedBookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -575,10 +577,9 @@ export type QuoteUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quoteNumber?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumQuoteStatusFieldUpdateOperationsInput | $Enums.QuoteStatus
   destinationId?: Prisma.StringFieldUpdateOperationsInput | string
   packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  travelerDetails?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   adjustments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -603,7 +604,6 @@ export type QuoteCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   destinationId?: Prisma.SortOrder
   packageId?: Prisma.SortOrder
-  travelerDetails?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   adjustments?: Prisma.SortOrder
   currentVersionId?: Prisma.SortOrder
@@ -667,10 +667,575 @@ export type QuoteMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type QuoteScalarRelationFilter = {
+  is?: Prisma.QuoteWhereInput
+  isNot?: Prisma.QuoteWhereInput
+}
+
+export type QuoteNullableScalarRelationFilter = {
+  is?: Prisma.QuoteWhereInput | null
+  isNot?: Prisma.QuoteWhereInput | null
+}
+
+export type QuoteListRelationFilter = {
+  every?: Prisma.QuoteWhereInput
+  some?: Prisma.QuoteWhereInput
+  none?: Prisma.QuoteWhereInput
+}
+
+export type QuoteOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
+export type EnumQuoteStatusFieldUpdateOperationsInput = {
+  set?: $Enums.QuoteStatus
+}
+
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
 }
 
+export type QuoteCreateNestedOneWithoutVersionsInput = {
+  create?: Prisma.XOR<Prisma.QuoteCreateWithoutVersionsInput, Prisma.QuoteUncheckedCreateWithoutVersionsInput>
+  connectOrCreate?: Prisma.QuoteCreateOrConnectWithoutVersionsInput
+  connect?: Prisma.QuoteWhereUniqueInput
+}
+
+export type QuoteUpdateOneRequiredWithoutVersionsNestedInput = {
+  create?: Prisma.XOR<Prisma.QuoteCreateWithoutVersionsInput, Prisma.QuoteUncheckedCreateWithoutVersionsInput>
+  connectOrCreate?: Prisma.QuoteCreateOrConnectWithoutVersionsInput
+  upsert?: Prisma.QuoteUpsertWithoutVersionsInput
+  connect?: Prisma.QuoteWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.QuoteUpdateToOneWithWhereWithoutVersionsInput, Prisma.QuoteUpdateWithoutVersionsInput>, Prisma.QuoteUncheckedUpdateWithoutVersionsInput>
+}
+
+export type QuoteCreateNestedOneWithoutTravellerProfilesInput = {
+  create?: Prisma.XOR<Prisma.QuoteCreateWithoutTravellerProfilesInput, Prisma.QuoteUncheckedCreateWithoutTravellerProfilesInput>
+  connectOrCreate?: Prisma.QuoteCreateOrConnectWithoutTravellerProfilesInput
+  connect?: Prisma.QuoteWhereUniqueInput
+}
+
+export type QuoteUpdateOneWithoutTravellerProfilesNestedInput = {
+  create?: Prisma.XOR<Prisma.QuoteCreateWithoutTravellerProfilesInput, Prisma.QuoteUncheckedCreateWithoutTravellerProfilesInput>
+  connectOrCreate?: Prisma.QuoteCreateOrConnectWithoutTravellerProfilesInput
+  upsert?: Prisma.QuoteUpsertWithoutTravellerProfilesInput
+  disconnect?: Prisma.QuoteWhereInput | boolean
+  delete?: Prisma.QuoteWhereInput | boolean
+  connect?: Prisma.QuoteWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.QuoteUpdateToOneWithWhereWithoutTravellerProfilesInput, Prisma.QuoteUpdateWithoutTravellerProfilesInput>, Prisma.QuoteUncheckedUpdateWithoutTravellerProfilesInput>
+}
+
+export type QuoteCreateNestedManyWithoutCustomerInput = {
+  create?: Prisma.XOR<Prisma.QuoteCreateWithoutCustomerInput, Prisma.QuoteUncheckedCreateWithoutCustomerInput> | Prisma.QuoteCreateWithoutCustomerInput[] | Prisma.QuoteUncheckedCreateWithoutCustomerInput[]
+  connectOrCreate?: Prisma.QuoteCreateOrConnectWithoutCustomerInput | Prisma.QuoteCreateOrConnectWithoutCustomerInput[]
+  createMany?: Prisma.QuoteCreateManyCustomerInputEnvelope
+  connect?: Prisma.QuoteWhereUniqueInput | Prisma.QuoteWhereUniqueInput[]
+}
+
+export type QuoteUncheckedCreateNestedManyWithoutCustomerInput = {
+  create?: Prisma.XOR<Prisma.QuoteCreateWithoutCustomerInput, Prisma.QuoteUncheckedCreateWithoutCustomerInput> | Prisma.QuoteCreateWithoutCustomerInput[] | Prisma.QuoteUncheckedCreateWithoutCustomerInput[]
+  connectOrCreate?: Prisma.QuoteCreateOrConnectWithoutCustomerInput | Prisma.QuoteCreateOrConnectWithoutCustomerInput[]
+  createMany?: Prisma.QuoteCreateManyCustomerInputEnvelope
+  connect?: Prisma.QuoteWhereUniqueInput | Prisma.QuoteWhereUniqueInput[]
+}
+
+export type QuoteUpdateManyWithoutCustomerNestedInput = {
+  create?: Prisma.XOR<Prisma.QuoteCreateWithoutCustomerInput, Prisma.QuoteUncheckedCreateWithoutCustomerInput> | Prisma.QuoteCreateWithoutCustomerInput[] | Prisma.QuoteUncheckedCreateWithoutCustomerInput[]
+  connectOrCreate?: Prisma.QuoteCreateOrConnectWithoutCustomerInput | Prisma.QuoteCreateOrConnectWithoutCustomerInput[]
+  upsert?: Prisma.QuoteUpsertWithWhereUniqueWithoutCustomerInput | Prisma.QuoteUpsertWithWhereUniqueWithoutCustomerInput[]
+  createMany?: Prisma.QuoteCreateManyCustomerInputEnvelope
+  set?: Prisma.QuoteWhereUniqueInput | Prisma.QuoteWhereUniqueInput[]
+  disconnect?: Prisma.QuoteWhereUniqueInput | Prisma.QuoteWhereUniqueInput[]
+  delete?: Prisma.QuoteWhereUniqueInput | Prisma.QuoteWhereUniqueInput[]
+  connect?: Prisma.QuoteWhereUniqueInput | Prisma.QuoteWhereUniqueInput[]
+  update?: Prisma.QuoteUpdateWithWhereUniqueWithoutCustomerInput | Prisma.QuoteUpdateWithWhereUniqueWithoutCustomerInput[]
+  updateMany?: Prisma.QuoteUpdateManyWithWhereWithoutCustomerInput | Prisma.QuoteUpdateManyWithWhereWithoutCustomerInput[]
+  deleteMany?: Prisma.QuoteScalarWhereInput | Prisma.QuoteScalarWhereInput[]
+}
+
+export type QuoteUncheckedUpdateManyWithoutCustomerNestedInput = {
+  create?: Prisma.XOR<Prisma.QuoteCreateWithoutCustomerInput, Prisma.QuoteUncheckedCreateWithoutCustomerInput> | Prisma.QuoteCreateWithoutCustomerInput[] | Prisma.QuoteUncheckedCreateWithoutCustomerInput[]
+  connectOrCreate?: Prisma.QuoteCreateOrConnectWithoutCustomerInput | Prisma.QuoteCreateOrConnectWithoutCustomerInput[]
+  upsert?: Prisma.QuoteUpsertWithWhereUniqueWithoutCustomerInput | Prisma.QuoteUpsertWithWhereUniqueWithoutCustomerInput[]
+  createMany?: Prisma.QuoteCreateManyCustomerInputEnvelope
+  set?: Prisma.QuoteWhereUniqueInput | Prisma.QuoteWhereUniqueInput[]
+  disconnect?: Prisma.QuoteWhereUniqueInput | Prisma.QuoteWhereUniqueInput[]
+  delete?: Prisma.QuoteWhereUniqueInput | Prisma.QuoteWhereUniqueInput[]
+  connect?: Prisma.QuoteWhereUniqueInput | Prisma.QuoteWhereUniqueInput[]
+  update?: Prisma.QuoteUpdateWithWhereUniqueWithoutCustomerInput | Prisma.QuoteUpdateWithWhereUniqueWithoutCustomerInput[]
+  updateMany?: Prisma.QuoteUpdateManyWithWhereWithoutCustomerInput | Prisma.QuoteUpdateManyWithWhereWithoutCustomerInput[]
+  deleteMany?: Prisma.QuoteScalarWhereInput | Prisma.QuoteScalarWhereInput[]
+}
+
+export type QuoteCreateWithoutVersionsInput = {
+  id?: string
+  quoteNumber: string
+  title: string
+  status?: $Enums.QuoteStatus
+  destinationId: string
+  packageId?: string | null
+  currency: string
+  adjustments: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  currentVersionId?: string | null
+  validFrom: Date | string
+  validTo: Date | string
+  internalNotes?: string | null
+  customerNotes?: string | null
+  approvedAt?: Date | string | null
+  rejectedAt?: Date | string | null
+  rejectionReason?: string | null
+  convertedAt?: Date | string | null
+  convertedBookingId?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  customer?: Prisma.UserCreateNestedOneWithoutQuotesInput
+  travellerProfiles?: Prisma.TravellerProfileCreateNestedManyWithoutQuoteInput
+}
+
+export type QuoteUncheckedCreateWithoutVersionsInput = {
+  id?: string
+  quoteNumber: string
+  title: string
+  status?: $Enums.QuoteStatus
+  destinationId: string
+  packageId?: string | null
+  currency: string
+  adjustments: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  currentVersionId?: string | null
+  validFrom: Date | string
+  validTo: Date | string
+  internalNotes?: string | null
+  customerNotes?: string | null
+  approvedAt?: Date | string | null
+  rejectedAt?: Date | string | null
+  rejectionReason?: string | null
+  convertedAt?: Date | string | null
+  convertedBookingId?: string | null
+  customerId?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  travellerProfiles?: Prisma.TravellerProfileUncheckedCreateNestedManyWithoutQuoteInput
+}
+
+export type QuoteCreateOrConnectWithoutVersionsInput = {
+  where: Prisma.QuoteWhereUniqueInput
+  create: Prisma.XOR<Prisma.QuoteCreateWithoutVersionsInput, Prisma.QuoteUncheckedCreateWithoutVersionsInput>
+}
+
+export type QuoteUpsertWithoutVersionsInput = {
+  update: Prisma.XOR<Prisma.QuoteUpdateWithoutVersionsInput, Prisma.QuoteUncheckedUpdateWithoutVersionsInput>
+  create: Prisma.XOR<Prisma.QuoteCreateWithoutVersionsInput, Prisma.QuoteUncheckedCreateWithoutVersionsInput>
+  where?: Prisma.QuoteWhereInput
+}
+
+export type QuoteUpdateToOneWithWhereWithoutVersionsInput = {
+  where?: Prisma.QuoteWhereInput
+  data: Prisma.XOR<Prisma.QuoteUpdateWithoutVersionsInput, Prisma.QuoteUncheckedUpdateWithoutVersionsInput>
+}
+
+export type QuoteUpdateWithoutVersionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  quoteNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumQuoteStatusFieldUpdateOperationsInput | $Enums.QuoteStatus
+  destinationId?: Prisma.StringFieldUpdateOperationsInput | string
+  packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  adjustments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  validTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  convertedBookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  customer?: Prisma.UserUpdateOneWithoutQuotesNestedInput
+  travellerProfiles?: Prisma.TravellerProfileUpdateManyWithoutQuoteNestedInput
+}
+
+export type QuoteUncheckedUpdateWithoutVersionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  quoteNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumQuoteStatusFieldUpdateOperationsInput | $Enums.QuoteStatus
+  destinationId?: Prisma.StringFieldUpdateOperationsInput | string
+  packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  adjustments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  validTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  convertedBookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  travellerProfiles?: Prisma.TravellerProfileUncheckedUpdateManyWithoutQuoteNestedInput
+}
+
+export type QuoteCreateWithoutTravellerProfilesInput = {
+  id?: string
+  quoteNumber: string
+  title: string
+  status?: $Enums.QuoteStatus
+  destinationId: string
+  packageId?: string | null
+  currency: string
+  adjustments: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  currentVersionId?: string | null
+  validFrom: Date | string
+  validTo: Date | string
+  internalNotes?: string | null
+  customerNotes?: string | null
+  approvedAt?: Date | string | null
+  rejectedAt?: Date | string | null
+  rejectionReason?: string | null
+  convertedAt?: Date | string | null
+  convertedBookingId?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  customer?: Prisma.UserCreateNestedOneWithoutQuotesInput
+  versions?: Prisma.QuoteVersionCreateNestedManyWithoutQuoteInput
+}
+
+export type QuoteUncheckedCreateWithoutTravellerProfilesInput = {
+  id?: string
+  quoteNumber: string
+  title: string
+  status?: $Enums.QuoteStatus
+  destinationId: string
+  packageId?: string | null
+  currency: string
+  adjustments: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  currentVersionId?: string | null
+  validFrom: Date | string
+  validTo: Date | string
+  internalNotes?: string | null
+  customerNotes?: string | null
+  approvedAt?: Date | string | null
+  rejectedAt?: Date | string | null
+  rejectionReason?: string | null
+  convertedAt?: Date | string | null
+  convertedBookingId?: string | null
+  customerId?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  versions?: Prisma.QuoteVersionUncheckedCreateNestedManyWithoutQuoteInput
+}
+
+export type QuoteCreateOrConnectWithoutTravellerProfilesInput = {
+  where: Prisma.QuoteWhereUniqueInput
+  create: Prisma.XOR<Prisma.QuoteCreateWithoutTravellerProfilesInput, Prisma.QuoteUncheckedCreateWithoutTravellerProfilesInput>
+}
+
+export type QuoteUpsertWithoutTravellerProfilesInput = {
+  update: Prisma.XOR<Prisma.QuoteUpdateWithoutTravellerProfilesInput, Prisma.QuoteUncheckedUpdateWithoutTravellerProfilesInput>
+  create: Prisma.XOR<Prisma.QuoteCreateWithoutTravellerProfilesInput, Prisma.QuoteUncheckedCreateWithoutTravellerProfilesInput>
+  where?: Prisma.QuoteWhereInput
+}
+
+export type QuoteUpdateToOneWithWhereWithoutTravellerProfilesInput = {
+  where?: Prisma.QuoteWhereInput
+  data: Prisma.XOR<Prisma.QuoteUpdateWithoutTravellerProfilesInput, Prisma.QuoteUncheckedUpdateWithoutTravellerProfilesInput>
+}
+
+export type QuoteUpdateWithoutTravellerProfilesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  quoteNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumQuoteStatusFieldUpdateOperationsInput | $Enums.QuoteStatus
+  destinationId?: Prisma.StringFieldUpdateOperationsInput | string
+  packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  adjustments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  validTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  convertedBookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  customer?: Prisma.UserUpdateOneWithoutQuotesNestedInput
+  versions?: Prisma.QuoteVersionUpdateManyWithoutQuoteNestedInput
+}
+
+export type QuoteUncheckedUpdateWithoutTravellerProfilesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  quoteNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumQuoteStatusFieldUpdateOperationsInput | $Enums.QuoteStatus
+  destinationId?: Prisma.StringFieldUpdateOperationsInput | string
+  packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  adjustments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  validTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  convertedBookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  versions?: Prisma.QuoteVersionUncheckedUpdateManyWithoutQuoteNestedInput
+}
+
+export type QuoteCreateWithoutCustomerInput = {
+  id?: string
+  quoteNumber: string
+  title: string
+  status?: $Enums.QuoteStatus
+  destinationId: string
+  packageId?: string | null
+  currency: string
+  adjustments: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  currentVersionId?: string | null
+  validFrom: Date | string
+  validTo: Date | string
+  internalNotes?: string | null
+  customerNotes?: string | null
+  approvedAt?: Date | string | null
+  rejectedAt?: Date | string | null
+  rejectionReason?: string | null
+  convertedAt?: Date | string | null
+  convertedBookingId?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  versions?: Prisma.QuoteVersionCreateNestedManyWithoutQuoteInput
+  travellerProfiles?: Prisma.TravellerProfileCreateNestedManyWithoutQuoteInput
+}
+
+export type QuoteUncheckedCreateWithoutCustomerInput = {
+  id?: string
+  quoteNumber: string
+  title: string
+  status?: $Enums.QuoteStatus
+  destinationId: string
+  packageId?: string | null
+  currency: string
+  adjustments: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  currentVersionId?: string | null
+  validFrom: Date | string
+  validTo: Date | string
+  internalNotes?: string | null
+  customerNotes?: string | null
+  approvedAt?: Date | string | null
+  rejectedAt?: Date | string | null
+  rejectionReason?: string | null
+  convertedAt?: Date | string | null
+  convertedBookingId?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  versions?: Prisma.QuoteVersionUncheckedCreateNestedManyWithoutQuoteInput
+  travellerProfiles?: Prisma.TravellerProfileUncheckedCreateNestedManyWithoutQuoteInput
+}
+
+export type QuoteCreateOrConnectWithoutCustomerInput = {
+  where: Prisma.QuoteWhereUniqueInput
+  create: Prisma.XOR<Prisma.QuoteCreateWithoutCustomerInput, Prisma.QuoteUncheckedCreateWithoutCustomerInput>
+}
+
+export type QuoteCreateManyCustomerInputEnvelope = {
+  data: Prisma.QuoteCreateManyCustomerInput | Prisma.QuoteCreateManyCustomerInput[]
+  skipDuplicates?: boolean
+}
+
+export type QuoteUpsertWithWhereUniqueWithoutCustomerInput = {
+  where: Prisma.QuoteWhereUniqueInput
+  update: Prisma.XOR<Prisma.QuoteUpdateWithoutCustomerInput, Prisma.QuoteUncheckedUpdateWithoutCustomerInput>
+  create: Prisma.XOR<Prisma.QuoteCreateWithoutCustomerInput, Prisma.QuoteUncheckedCreateWithoutCustomerInput>
+}
+
+export type QuoteUpdateWithWhereUniqueWithoutCustomerInput = {
+  where: Prisma.QuoteWhereUniqueInput
+  data: Prisma.XOR<Prisma.QuoteUpdateWithoutCustomerInput, Prisma.QuoteUncheckedUpdateWithoutCustomerInput>
+}
+
+export type QuoteUpdateManyWithWhereWithoutCustomerInput = {
+  where: Prisma.QuoteScalarWhereInput
+  data: Prisma.XOR<Prisma.QuoteUpdateManyMutationInput, Prisma.QuoteUncheckedUpdateManyWithoutCustomerInput>
+}
+
+export type QuoteScalarWhereInput = {
+  AND?: Prisma.QuoteScalarWhereInput | Prisma.QuoteScalarWhereInput[]
+  OR?: Prisma.QuoteScalarWhereInput[]
+  NOT?: Prisma.QuoteScalarWhereInput | Prisma.QuoteScalarWhereInput[]
+  id?: Prisma.StringFilter<"Quote"> | string
+  quoteNumber?: Prisma.StringFilter<"Quote"> | string
+  title?: Prisma.StringFilter<"Quote"> | string
+  status?: Prisma.EnumQuoteStatusFilter<"Quote"> | $Enums.QuoteStatus
+  destinationId?: Prisma.StringFilter<"Quote"> | string
+  packageId?: Prisma.StringNullableFilter<"Quote"> | string | null
+  currency?: Prisma.StringFilter<"Quote"> | string
+  adjustments?: Prisma.JsonFilter<"Quote">
+  currentVersionId?: Prisma.StringNullableFilter<"Quote"> | string | null
+  validFrom?: Prisma.DateTimeFilter<"Quote"> | Date | string
+  validTo?: Prisma.DateTimeFilter<"Quote"> | Date | string
+  internalNotes?: Prisma.StringNullableFilter<"Quote"> | string | null
+  customerNotes?: Prisma.StringNullableFilter<"Quote"> | string | null
+  approvedAt?: Prisma.DateTimeNullableFilter<"Quote"> | Date | string | null
+  rejectedAt?: Prisma.DateTimeNullableFilter<"Quote"> | Date | string | null
+  rejectionReason?: Prisma.StringNullableFilter<"Quote"> | string | null
+  convertedAt?: Prisma.DateTimeNullableFilter<"Quote"> | Date | string | null
+  convertedBookingId?: Prisma.StringNullableFilter<"Quote"> | string | null
+  customerId?: Prisma.StringNullableFilter<"Quote"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"Quote"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Quote"> | Date | string
+}
+
+export type QuoteCreateManyCustomerInput = {
+  id?: string
+  quoteNumber: string
+  title: string
+  status?: $Enums.QuoteStatus
+  destinationId: string
+  packageId?: string | null
+  currency: string
+  adjustments: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  currentVersionId?: string | null
+  validFrom: Date | string
+  validTo: Date | string
+  internalNotes?: string | null
+  customerNotes?: string | null
+  approvedAt?: Date | string | null
+  rejectedAt?: Date | string | null
+  rejectionReason?: string | null
+  convertedAt?: Date | string | null
+  convertedBookingId?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+}
+
+export type QuoteUpdateWithoutCustomerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  quoteNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumQuoteStatusFieldUpdateOperationsInput | $Enums.QuoteStatus
+  destinationId?: Prisma.StringFieldUpdateOperationsInput | string
+  packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  adjustments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  validTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  convertedBookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  versions?: Prisma.QuoteVersionUpdateManyWithoutQuoteNestedInput
+  travellerProfiles?: Prisma.TravellerProfileUpdateManyWithoutQuoteNestedInput
+}
+
+export type QuoteUncheckedUpdateWithoutCustomerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  quoteNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumQuoteStatusFieldUpdateOperationsInput | $Enums.QuoteStatus
+  destinationId?: Prisma.StringFieldUpdateOperationsInput | string
+  packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  adjustments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  validTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  convertedBookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  versions?: Prisma.QuoteVersionUncheckedUpdateManyWithoutQuoteNestedInput
+  travellerProfiles?: Prisma.TravellerProfileUncheckedUpdateManyWithoutQuoteNestedInput
+}
+
+export type QuoteUncheckedUpdateManyWithoutCustomerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  quoteNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumQuoteStatusFieldUpdateOperationsInput | $Enums.QuoteStatus
+  destinationId?: Prisma.StringFieldUpdateOperationsInput | string
+  packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  adjustments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  currentVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  validTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  convertedBookingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+
+/**
+ * Count Type QuoteCountOutputType
+ */
+
+export type QuoteCountOutputType = {
+  versions: number
+  travellerProfiles: number
+}
+
+export type QuoteCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  versions?: boolean | QuoteCountOutputTypeCountVersionsArgs
+  travellerProfiles?: boolean | QuoteCountOutputTypeCountTravellerProfilesArgs
+}
+
+/**
+ * QuoteCountOutputType without action
+ */
+export type QuoteCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the QuoteCountOutputType
+   */
+  select?: Prisma.QuoteCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * QuoteCountOutputType without action
+ */
+export type QuoteCountOutputTypeCountVersionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.QuoteVersionWhereInput
+}
+
+/**
+ * QuoteCountOutputType without action
+ */
+export type QuoteCountOutputTypeCountTravellerProfilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TravellerProfileWhereInput
+}
 
 
 export type QuoteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -680,7 +1245,6 @@ export type QuoteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   status?: boolean
   destinationId?: boolean
   packageId?: boolean
-  travelerDetails?: boolean
   currency?: boolean
   adjustments?: boolean
   currentVersionId?: boolean
@@ -696,6 +1260,10 @@ export type QuoteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   customerId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  customer?: boolean | Prisma.Quote$customerArgs<ExtArgs>
+  versions?: boolean | Prisma.Quote$versionsArgs<ExtArgs>
+  travellerProfiles?: boolean | Prisma.Quote$travellerProfilesArgs<ExtArgs>
+  _count?: boolean | Prisma.QuoteCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["quote"]>
 
 export type QuoteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -705,7 +1273,6 @@ export type QuoteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   status?: boolean
   destinationId?: boolean
   packageId?: boolean
-  travelerDetails?: boolean
   currency?: boolean
   adjustments?: boolean
   currentVersionId?: boolean
@@ -721,6 +1288,7 @@ export type QuoteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   customerId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  customer?: boolean | Prisma.Quote$customerArgs<ExtArgs>
 }, ExtArgs["result"]["quote"]>
 
 export type QuoteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -730,7 +1298,6 @@ export type QuoteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   status?: boolean
   destinationId?: boolean
   packageId?: boolean
-  travelerDetails?: boolean
   currency?: boolean
   adjustments?: boolean
   currentVersionId?: boolean
@@ -746,6 +1313,7 @@ export type QuoteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   customerId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  customer?: boolean | Prisma.Quote$customerArgs<ExtArgs>
 }, ExtArgs["result"]["quote"]>
 
 export type QuoteSelectScalar = {
@@ -755,7 +1323,6 @@ export type QuoteSelectScalar = {
   status?: boolean
   destinationId?: boolean
   packageId?: boolean
-  travelerDetails?: boolean
   currency?: boolean
   adjustments?: boolean
   currentVersionId?: boolean
@@ -773,19 +1340,34 @@ export type QuoteSelectScalar = {
   updatedAt?: boolean
 }
 
-export type QuoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "quoteNumber" | "title" | "status" | "destinationId" | "packageId" | "travelerDetails" | "currency" | "adjustments" | "currentVersionId" | "validFrom" | "validTo" | "internalNotes" | "customerNotes" | "approvedAt" | "rejectedAt" | "rejectionReason" | "convertedAt" | "convertedBookingId" | "customerId" | "createdAt" | "updatedAt", ExtArgs["result"]["quote"]>
+export type QuoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "quoteNumber" | "title" | "status" | "destinationId" | "packageId" | "currency" | "adjustments" | "currentVersionId" | "validFrom" | "validTo" | "internalNotes" | "customerNotes" | "approvedAt" | "rejectedAt" | "rejectionReason" | "convertedAt" | "convertedBookingId" | "customerId" | "createdAt" | "updatedAt", ExtArgs["result"]["quote"]>
+export type QuoteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  customer?: boolean | Prisma.Quote$customerArgs<ExtArgs>
+  versions?: boolean | Prisma.Quote$versionsArgs<ExtArgs>
+  travellerProfiles?: boolean | Prisma.Quote$travellerProfilesArgs<ExtArgs>
+  _count?: boolean | Prisma.QuoteCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type QuoteIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  customer?: boolean | Prisma.Quote$customerArgs<ExtArgs>
+}
+export type QuoteIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  customer?: boolean | Prisma.Quote$customerArgs<ExtArgs>
+}
 
 export type $QuotePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Quote"
-  objects: {}
+  objects: {
+    customer: Prisma.$UserPayload<ExtArgs> | null
+    versions: Prisma.$QuoteVersionPayload<ExtArgs>[]
+    travellerProfiles: Prisma.$TravellerProfilePayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     quoteNumber: string
     title: string
-    status: string
+    status: $Enums.QuoteStatus
     destinationId: string
     packageId: string | null
-    travelerDetails: runtime.JsonValue
     currency: string
     adjustments: runtime.JsonValue
     currentVersionId: string | null
@@ -801,7 +1383,7 @@ export type $QuotePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     /**
      * Owning customer (Sprint 13 — Customer Experience Platform). Null for
      * staff-created quotes with no registered account behind them (walk-in/
-     * phone leads) — never backfilled, never inferred.
+     * phone leads) - never backfilled, never inferred.
      */
     customerId: string | null
     createdAt: Date
@@ -1200,6 +1782,9 @@ readonly fields: QuoteFieldRefs;
  */
 export interface Prisma__QuoteClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  customer<T extends Prisma.Quote$customerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Quote$customerArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  versions<T extends Prisma.Quote$versionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Quote$versionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$QuoteVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  travellerProfiles<T extends Prisma.Quote$travellerProfilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Quote$travellerProfilesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TravellerProfilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1232,10 +1817,9 @@ export interface QuoteFieldRefs {
   readonly id: Prisma.FieldRef<"Quote", 'String'>
   readonly quoteNumber: Prisma.FieldRef<"Quote", 'String'>
   readonly title: Prisma.FieldRef<"Quote", 'String'>
-  readonly status: Prisma.FieldRef<"Quote", 'String'>
+  readonly status: Prisma.FieldRef<"Quote", 'QuoteStatus'>
   readonly destinationId: Prisma.FieldRef<"Quote", 'String'>
   readonly packageId: Prisma.FieldRef<"Quote", 'String'>
-  readonly travelerDetails: Prisma.FieldRef<"Quote", 'Json'>
   readonly currency: Prisma.FieldRef<"Quote", 'String'>
   readonly adjustments: Prisma.FieldRef<"Quote", 'Json'>
   readonly currentVersionId: Prisma.FieldRef<"Quote", 'String'>
@@ -1268,6 +1852,10 @@ export type QuoteFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.Interna
    */
   omit?: Prisma.QuoteOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteInclude<ExtArgs> | null
+  /**
    * Filter, which Quote to fetch.
    */
   where: Prisma.QuoteWhereUniqueInput
@@ -1286,6 +1874,10 @@ export type QuoteFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extensions.
    */
   omit?: Prisma.QuoteOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteInclude<ExtArgs> | null
+  /**
    * Filter, which Quote to fetch.
    */
   where: Prisma.QuoteWhereUniqueInput
@@ -1303,6 +1895,10 @@ export type QuoteFindFirstArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Omit specific fields from the Quote
    */
   omit?: Prisma.QuoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteInclude<ExtArgs> | null
   /**
    * Filter, which Quote to fetch.
    */
@@ -1352,6 +1948,10 @@ export type QuoteFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   omit?: Prisma.QuoteOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteInclude<ExtArgs> | null
+  /**
    * Filter, which Quote to fetch.
    */
   where?: Prisma.QuoteWhereInput
@@ -1399,6 +1999,10 @@ export type QuoteFindManyArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    * Omit specific fields from the Quote
    */
   omit?: Prisma.QuoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteInclude<ExtArgs> | null
   /**
    * Filter, which Quotes to fetch.
    */
@@ -1448,6 +2052,10 @@ export type QuoteCreateArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    */
   omit?: Prisma.QuoteOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteInclude<ExtArgs> | null
+  /**
    * The data needed to create a Quote.
    */
   data: Prisma.XOR<Prisma.QuoteCreateInput, Prisma.QuoteUncheckedCreateInput>
@@ -1481,6 +2089,10 @@ export type QuoteCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extension
    */
   data: Prisma.QuoteCreateManyInput | Prisma.QuoteCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1495,6 +2107,10 @@ export type QuoteUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    * Omit specific fields from the Quote
    */
   omit?: Prisma.QuoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteInclude<ExtArgs> | null
   /**
    * The data needed to update a Quote.
    */
@@ -1547,6 +2163,10 @@ export type QuoteUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extension
    * Limit how many Quotes to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1561,6 +2181,10 @@ export type QuoteUpsertArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    * Omit specific fields from the Quote
    */
   omit?: Prisma.QuoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteInclude<ExtArgs> | null
   /**
    * The filter to search for the Quote to update in case it exists.
    */
@@ -1588,6 +2212,10 @@ export type QuoteDeleteArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    */
   omit?: Prisma.QuoteOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteInclude<ExtArgs> | null
+  /**
    * Filter which Quote to delete.
    */
   where: Prisma.QuoteWhereUniqueInput
@@ -1608,6 +2236,73 @@ export type QuoteDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
 }
 
 /**
+ * Quote.customer
+ */
+export type Quote$customerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
+}
+
+/**
+ * Quote.versions
+ */
+export type Quote$versionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the QuoteVersion
+   */
+  select?: Prisma.QuoteVersionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the QuoteVersion
+   */
+  omit?: Prisma.QuoteVersionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteVersionInclude<ExtArgs> | null
+  where?: Prisma.QuoteVersionWhereInput
+  orderBy?: Prisma.QuoteVersionOrderByWithRelationInput | Prisma.QuoteVersionOrderByWithRelationInput[]
+  cursor?: Prisma.QuoteVersionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.QuoteVersionScalarFieldEnum | Prisma.QuoteVersionScalarFieldEnum[]
+}
+
+/**
+ * Quote.travellerProfiles
+ */
+export type Quote$travellerProfilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TravellerProfile
+   */
+  select?: Prisma.TravellerProfileSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TravellerProfile
+   */
+  omit?: Prisma.TravellerProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TravellerProfileInclude<ExtArgs> | null
+  where?: Prisma.TravellerProfileWhereInput
+  orderBy?: Prisma.TravellerProfileOrderByWithRelationInput | Prisma.TravellerProfileOrderByWithRelationInput[]
+  cursor?: Prisma.TravellerProfileWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TravellerProfileScalarFieldEnum | Prisma.TravellerProfileScalarFieldEnum[]
+}
+
+/**
  * Quote without action
  */
 export type QuoteDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1619,4 +2314,8 @@ export type QuoteDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    * Omit specific fields from the Quote
    */
   omit?: Prisma.QuoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuoteInclude<ExtArgs> | null
 }

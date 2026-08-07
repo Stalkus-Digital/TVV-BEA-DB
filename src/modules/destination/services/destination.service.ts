@@ -397,6 +397,7 @@ export class DestinationService extends BaseService {
     return result;
   }
 
+
   async restore(id: string): Promise<Result<Destination, AppError>> {
     const existing = await this.getById(id);
     if (isErr(existing)) return existing;
@@ -464,10 +465,10 @@ export class DestinationService extends BaseService {
     for (const id of ids) {
       const existing = await this.getById(id);
       if (isErr(existing)) continue;
-      const result = await this.repository.update(id, { status: DestinationStatus.ARCHIVED });
+      const result = await this.repository.delete(id);
       if (!isErr(result)) {
         archived++;
-        await this.recordAudit("DESTINATION_ARCHIVED", result.value, "Bulk archived destination", {});
+        await this.recordAudit("DESTINATION_ARCHIVED", existing.value, "Bulk hard deleted destination", {});
       }
     }
     return ok({ archived });

@@ -1,5 +1,6 @@
 import type { AppError } from "@/shared/errors";
 import type { PaginatedResult, Result } from "@/shared/types";
+import { isErr, ok } from "@/shared/types";
 import { getDestinationService } from "../module";
 import type { Destination, DestinationBreadcrumb } from "../types/destination";
 import type { ListDestinationsQuery } from "./dto";
@@ -83,7 +84,14 @@ export async function unpublishDestinationHandler(id: string): Promise<Result<De
 }
 
 export async function archiveDestinationHandler(id: string): Promise<Result<Destination, AppError>> {
-  return getDestinationService().archive(id);
+  const service = getDestinationService();
+  const existing = await service.getById(id);
+  if (isErr(existing)) return existing;
+  
+  const result = await service.delete(id);
+  if (isErr(result)) return result as any; // coerce since Result<void, AppError> is treated as error here
+  
+  return ok(existing.value);
 }
 
 export async function restoreDestinationHandler(id: string): Promise<Result<Destination, AppError>> {

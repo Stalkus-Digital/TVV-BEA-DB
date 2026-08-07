@@ -18,8 +18,8 @@ export class FulfillmentService extends BaseService {
 
       if (!booking) return err(new InternalError(`Booking ${bookingId} not found`));
 
-      const items = await prisma.bookingItem.findMany({ where: { bookingId } });
-      const travellers = await prisma.traveller.findMany({ where: { bookingId } });
+      const items = await prisma.bookingItem.findMany({ where: { bookingId }, include: { supplierReference: true } });
+      const travellers = await prisma.traveller.findMany({ where: { bookingId }, include: { profile: true } });
 
       const supplierEngine = getSupplierService();
 
@@ -34,7 +34,7 @@ export class FulfillmentService extends BaseService {
         }
 
         // Skip items already fulfilled (have a real supplier reference stored)
-        const existing = item.supplierBookingReference as any;
+        const existing = (item as any).supplierReference;
         if (existing?.id && !existing.id.startsWith("MOCK_")) {
           this.logger.info(`Item ${item.id} already has supplier reference ${existing.id} — skipping`);
           continue;
@@ -43,15 +43,15 @@ export class FulfillmentService extends BaseService {
         const leadTraveller = travellers.find(t => t.isLeadTraveller);
         const supplierBookingRequest: SupplierBookingRequest = {
           referenceId,
-          passengers: travellers.map(t => ({
-            title: t.gender === "M" ? "Mr" : "Ms",
+          passengers: travellers.map((t: any) => ({
+            title: t.profile?.gender === "M" ? "Mr" : "Ms",
             firstName: t.fullName.split(" ")[0] || "Guest",
             lastName: t.fullName.split(" ").slice(1).join(" ") || "Traveller",
             dateOfBirth: t.dateOfBirth ? t.dateOfBirth.toISOString().split("T")[0] : "1990-01-01",
             passportNumber: t.passportNumber ?? undefined,
           })),
-          contactEmail: leadTraveller?.email ?? booking.id + "@thevacationvoice.com",
-          contactPhone: leadTraveller?.phone ?? "9999999999",
+          contactEmail: (leadTraveller as any)?.profile?.email ?? booking.id + "@thevacationvoice.com",
+          contactPhone: (leadTraveller as any)?.profile?.phone ?? "9999999999",
           // For flight bookings — TripJack requires Review to have been called first.
           // The FulfillmentService calls reviewThenBook to enforce this.
           isHotel: isHotelItem,
@@ -79,11 +79,13 @@ export class FulfillmentService extends BaseService {
           await prisma.bookingItem.update({
             where: { id: item.id },
             data: {
-              supplierBookingReference: {
-                id: confirmRef,
-                status: "CONFIRMED",
-                raw: bookingResult.value as any,
-                fulfilledAt: new Date().toISOString(),
+              supplierReference: {
+                create: {
+                  supplierName: "tripjack",
+                  bookingId: confirmRef,
+                  status: "CONFIRMED",
+                  rawPayload: bookingResult.value as any
+                }
               }
             }
           });
@@ -99,11 +101,12 @@ export class FulfillmentService extends BaseService {
           await prisma.bookingItem.update({
             where: { id: item.id },
             data: {
-              supplierBookingReference: {
-                id: null,
-                status: "FAILED",
-                error: bookingResult.error.message,
-                failedAt: new Date().toISOString(),
+              supplierReference: {
+                create: {
+                  supplierName: "tripjack",
+                  status: "FAILED",
+                  rawPayload: { error: bookingResult.error.message }
+                }
               }
             }
           });

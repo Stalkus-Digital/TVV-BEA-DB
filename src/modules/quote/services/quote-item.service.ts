@@ -9,7 +9,7 @@ import type { QuoteItemRepository } from "../repositories/quote-item.repository"
 import type { QuoteRepository } from "../repositories/quote.repository";
 import { validateCreateQuoteItem, validateUpdateQuoteItem } from "../validation/quote-item.validation";
 
-const LOCKED_STATUSES: QuoteStatus[] = [QuoteStatus.APPROVED, QuoteStatus.REJECTED, QuoteStatus.CONVERTED];
+const LOCKED_STATUSES: QuoteStatus[] = [QuoteStatus.ACCEPTED, QuoteStatus.REJECTED, QuoteStatus.CONVERTED];
 
 export class QuoteItemService extends BaseService {
   constructor(

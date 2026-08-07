@@ -10,12 +10,40 @@
 // in-memory Map-based stores.
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
+  extensions = [pg_trgm]
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  PARTIALLY_PAID
+  PAID
+  TICKETED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  CONVERTED
+  REJECTED
 }
 
 // ── Inventory ──────────────────────────────────────────────────────────
@@ -138,6 +166,10 @@ model Destination {
   status              String
   createdAt           DateTime
   updatedAt           DateTime
+
+  landingPages LandingPage[]
+
+  bookings Booking[]
 
   @@index([countryId])
   @@index([parentDestinationId])
@@ -287,10 +319,9 @@ model Quote {
   id                 String    @id @default(uuid())
   quoteNumber        String    @unique
   title              String
-  status             String
+  status             QuoteStatus @default(DRAFT)
   destinationId      String
   packageId          String?
-  travelerDetails    Json
   currency           String
   adjustments        Json
   currentVersionId   String?
@@ -305,10 +336,14 @@ model Quote {
   convertedBookingId String?
   /// Owning customer (Sprint 13 — Customer Experience Platform). Null for
   /// staff-created quotes with no registered account behind them (walk-in/
-  /// phone leads) — never backfilled, never inferred.
+  /// phone leads) - never backfilled, never inferred.
   customerId         String?
+  customer           User?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
   createdAt          DateTime
   updatedAt          DateTime
+
+  versions           QuoteVersion[]
+  travellerProfiles  TravellerProfile[]
 
   @@index([destinationId])
   @@index([status])
@@ -338,6 +373,7 @@ model QuoteItem {
 model QuoteVersion {
   id            String   @id @default(uuid())
   quoteId       String
+  quote         Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
   versionNumber Int
   snapshot      Json
   createdAt     DateTime
@@ -350,29 +386,35 @@ model QuoteVersion {
 // ── Booking ────────────────────────────────────────────────────────────
 
 model Booking {
-  id                   String    @id @default(uuid())
-  bookingNumber        String    @unique
-  status               String
+  id                   String      @id @default(uuid())
+  bookingNumber        String      @unique
+  status               BookingStatus @default(PENDING)
   sourceQuoteId        String
   sourceQuoteNumber    String
   sourceQuoteVersionId String?
   destinationId        String
+  destination          Destination  @relation(fields: [destinationId], references: [id], onDelete: Restrict)
   packageId            String?
   currency             String
   totalAmount          Float
   amountPaid           Float
-  paymentStatus        String
+  paymentStatus        PaymentStatus @default(PENDING)
   internalNotes        String?
   confirmedAt          DateTime?
   ticketedAt           DateTime?
   completedAt          DateTime?
   cancelledAt          DateTime?
   cancellationReason   String?
-  /// Owning customer (Sprint 13) — propagated automatically from the
+  /// Owning customer (Sprint 13) - propagated automatically from the
   /// source Quote's customerId at creation, never set independently.
   customerId           String?
+  customer             User?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
   createdAt            DateTime
   updatedAt            DateTime
+
+  items               BookingItem[]
+  travellers          Traveller[]
+  travellerProfiles   TravellerProfile[]
 
   @@index([sourceQuoteId])
   @@index([status])
@@ -385,6 +427,7 @@ model Booking {
 model BookingItem {
   id                       String   @id @default(uuid())
   bookingId                String
+  booking                  Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   kind                     String
   packageId                String?
   inventoryItemId          String?
@@ -392,7 +435,13 @@ model BookingItem {
   description              String?
   quantity                 Int
   unitPrice                Float
-  supplierBookingReference Json?
+  startDate                DateTime
+  endDate                  DateTime
+  totalAmount              Float
+  costAmount               Float
+  
+  supplierReference        SupplierBookingReference?
+
   createdAt                DateTime
   updatedAt                DateTime
 
@@ -403,23 +452,58 @@ model BookingItem {
 model Traveller {
   id               String    @id @default(uuid())
   bookingId        String
+  booking          Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   type             String
   isLeadTraveller  Boolean   @default(false)
   fullName         String
-  email            String?
-  phone            String?
   dateOfBirth      DateTime?
-  gender           String?
-  nationality      String?
   passportNumber   String?
-  passportExpiry   DateTime?
-  visaRequired     Boolean   @default(false)
-  emergencyContact Json?
-  createdAt        DateTime
-  updatedAt        DateTime
+
+  profileId        String?
+  profile          TravellerProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+
+  createdAt        DateTime  @default(now())
 
   @@index([bookingId])
   @@map("travellers")
+}
+
+model TravellerProfile {
+  id           String    @id @default(uuid())
+  firstName    String
+  lastName     String
+  dateOfBirth  DateTime?
+  passportNumber String?
+  passportExpiry DateTime?
+  nationality  String?
+  email        String?
+  phone        String?
+
+  quoteId      String?
+  quote        Quote?    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  bookingId    String?
+  booking      Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  travellers   Traveller[]
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model SupplierBookingReference {
+  id               String    @id @default(uuid())
+  bookingItemId    String    @unique
+  item             BookingItem @relation(fields: [bookingItemId], references: [id], onDelete: Cascade)
+  
+  supplierName     String
+  pnr              String?
+  bookingId        String?
+  ticketNumber     String?
+  status           String?
+  rawPayload       Json?
+  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
 model PassengerDocument {
@@ -493,6 +577,8 @@ model BookingVoucher {
 model BookingStatusHistory {
   id         String   @id @default(uuid())
   bookingId  String
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
   fromStatus String?
   toStatus   String
   changedAt  DateTime
@@ -539,6 +625,10 @@ model User {
   lastLoginAt         DateTime?
   createdAt           DateTime
   updatedAt           DateTime
+
+  bookings             Booking[]
+  quotes               Quote[]
+  bookingStatusHistory BookingStatusHistory[]
 
   @@map("users")
 }
@@ -834,13 +924,20 @@ model FerryRate {
 }
 
 model LandingPage {
-  id          String   @id @default(uuid())
-  slug        String   @unique
-  title       String
-  blocks      Json
-  seo         Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(uuid())
+  slug           String   @unique
+  title          String
+  blocks         Json?
+  seo            Json?
+  destinationId  String?
+  template       String   @default("destination_v1")
+  seoTitle       String?
+  seoDescription String?
+  status         String   @default("DRAFT")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  destination Destination? @relation(fields: [destinationId], references: [id], onDelete: SetNull)
 
   @@map("landing_pages")
 }
@@ -1113,7 +1210,7 @@ model TjCityRegion {
   hotels  TjHotel[]
 
   @@index([countryName])
-  @@index([cityName])
+  @@index([cityName(ops: raw("gin_trgm_ops"))], type: Gin)
   @@map("tj_city_regions")
 }
 
@@ -1160,6 +1257,7 @@ model TjHotel {
 
   @@index([countryName])
   @@index([cityRegionId])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin)
   @@map("tj_hotels")
 }
 
@@ -1192,32 +1290,31 @@ model TjSyncLog {
 }
 
 model TjSyncExecution {
-  id                 String   @id @default(uuid())
-  executionId        String   @unique
-  status             String   // PENDING, RUNNING, PAUSED, COMPLETED, FAILED
-  currentStage       String   // COUNTRIES, CITIES, MAPPINGS, CONTENT
-  progress           Float    @default(0.0)
-  processedCountries Int      @default(0)
-  processedCities    Int      @default(0)
-  processedHotels    Int      @default(0)
+  id                 String    @id @default(uuid())
+  executionId        String    @unique
+  status             String // PENDING, RUNNING, PAUSED, COMPLETED, FAILED
+  currentStage       String // COUNTRIES, CITIES, MAPPINGS, CONTENT
+  progress           Float     @default(0.0)
+  processedCountries Int       @default(0)
+  processedCities    Int       @default(0)
+  processedHotels    Int       @default(0)
   errorDetails       String?
-  startedAt          DateTime @default(now())
+  startedAt          DateTime  @default(now())
   completedAt        DateTime?
-  
+
   @@map("tj_sync_executions")
 }
 
 model TjSyncCheckpoint {
   id             String   @id @default(uuid())
   executionId    String
-  stage          String   // COUNTRIES, CITIES, MAPPINGS, CONTENT
+  stage          String // COUNTRIES, CITIES, MAPPINGS, CONTENT
   page           Int      @default(0)
   cursor         String?
   processedCount Int      @default(0)
   remainingCount Int      @default(0)
   updatedAt      DateTime @updatedAt
-  
+
   @@unique([executionId, stage])
   @@map("tj_sync_checkpoints")
 }
-

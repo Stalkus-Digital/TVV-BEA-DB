@@ -1,7 +1,7 @@
 import { CorsConfigService } from "./cors-config.service";
 
 const ALLOWED_METHODS = "GET, POST, PATCH, PUT, DELETE, OPTIONS";
-const ALLOWED_HEADERS = "Content-Type, Authorization, Accept";
+const ALLOWED_HEADERS = "Content-Type, Authorization, Accept, x-api-key";
 const PREFLIGHT_MAX_AGE_SECONDS = 600;
 
 /**

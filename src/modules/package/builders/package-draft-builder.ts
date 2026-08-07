@@ -34,6 +34,7 @@ export class PackageDraftBuilder {
       sourceType: draft.sourceType,
       durationDays: draft.durationDays,
       durationNights: draft.durationNights,
+      ...(draft.content ? { content: draft.content } : {}),
     });
     if (isErr(created)) return created;
 

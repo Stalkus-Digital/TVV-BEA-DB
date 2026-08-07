@@ -73,6 +73,8 @@ export const ModelName = {
   Booking: 'Booking',
   BookingItem: 'BookingItem',
   Traveller: 'Traveller',
+  TravellerProfile: 'TravellerProfile',
+  SupplierBookingReference: 'SupplierBookingReference',
   PassengerDocument: 'PassengerDocument',
   BookingPayment: 'BookingPayment',
   BookingInvoice: 'BookingInvoice',
@@ -398,7 +400,6 @@ export const QuoteScalarFieldEnum = {
   status: 'status',
   destinationId: 'destinationId',
   packageId: 'packageId',
-  travelerDetails: 'travelerDetails',
   currency: 'currency',
   adjustments: 'adjustments',
   currentVersionId: 'currentVersionId',
@@ -486,7 +487,10 @@ export const BookingItemScalarFieldEnum = {
   description: 'description',
   quantity: 'quantity',
   unitPrice: 'unitPrice',
-  supplierBookingReference: 'supplierBookingReference',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  totalAmount: 'totalAmount',
+  costAmount: 'costAmount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -500,20 +504,48 @@ export const TravellerScalarFieldEnum = {
   type: 'type',
   isLeadTraveller: 'isLeadTraveller',
   fullName: 'fullName',
-  email: 'email',
-  phone: 'phone',
   dateOfBirth: 'dateOfBirth',
-  gender: 'gender',
-  nationality: 'nationality',
+  passportNumber: 'passportNumber',
+  profileId: 'profileId',
+  createdAt: 'createdAt'
+} as const
+
+export type TravellerScalarFieldEnum = (typeof TravellerScalarFieldEnum)[keyof typeof TravellerScalarFieldEnum]
+
+
+export const TravellerProfileScalarFieldEnum = {
+  id: 'id',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  dateOfBirth: 'dateOfBirth',
   passportNumber: 'passportNumber',
   passportExpiry: 'passportExpiry',
-  visaRequired: 'visaRequired',
-  emergencyContact: 'emergencyContact',
+  nationality: 'nationality',
+  email: 'email',
+  phone: 'phone',
+  quoteId: 'quoteId',
+  bookingId: 'bookingId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type TravellerScalarFieldEnum = (typeof TravellerScalarFieldEnum)[keyof typeof TravellerScalarFieldEnum]
+export type TravellerProfileScalarFieldEnum = (typeof TravellerProfileScalarFieldEnum)[keyof typeof TravellerProfileScalarFieldEnum]
+
+
+export const SupplierBookingReferenceScalarFieldEnum = {
+  id: 'id',
+  bookingItemId: 'bookingItemId',
+  supplierName: 'supplierName',
+  pnr: 'pnr',
+  bookingId: 'bookingId',
+  ticketNumber: 'ticketNumber',
+  status: 'status',
+  rawPayload: 'rawPayload',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SupplierBookingReferenceScalarFieldEnum = (typeof SupplierBookingReferenceScalarFieldEnum)[keyof typeof SupplierBookingReferenceScalarFieldEnum]
 
 
 export const PassengerDocumentScalarFieldEnum = {
@@ -587,6 +619,7 @@ export type BookingVoucherScalarFieldEnum = (typeof BookingVoucherScalarFieldEnu
 export const BookingStatusHistoryScalarFieldEnum = {
   id: 'id',
   bookingId: 'bookingId',
+  userId: 'userId',
   fromStatus: 'fromStatus',
   toStatus: 'toStatus',
   changedAt: 'changedAt',
@@ -902,6 +935,11 @@ export const LandingPageScalarFieldEnum = {
   title: 'title',
   blocks: 'blocks',
   seo: 'seo',
+  destinationId: 'destinationId',
+  template: 'template',
+  seoTitle: 'seoTitle',
+  seoDescription: 'seoDescription',
+  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

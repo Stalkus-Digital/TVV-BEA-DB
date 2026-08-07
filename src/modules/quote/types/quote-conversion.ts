@@ -12,7 +12,6 @@ export interface BookingHandoffPayload {
   quoteNumber: string;
   destinationId: string;
   packageId: string | null;
-  travelerDetails: TravelerDetails;
   items: QuoteItem[];
   pricing: QuotePriceResult;
   /** ISO timestamp when the handoff was prepared (not necessarily quote.convertedAt). */

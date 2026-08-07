@@ -8,6 +8,7 @@ import type { PackageDraft, PackageDraftItemInput } from "./package-draft";
 
 interface AIDraftInput extends Omit<PackageDraft, "sourceType"> {
   aiGenerationReferenceId?: string | null;
+  content?: any;
 }
 
 function resolveItemMode(item: PackageDraftItemInput): PackageDraftItemInput {
@@ -84,6 +85,7 @@ export class AIPackageBuilder {
       durationNights: draft.durationNights ?? Math.max(0, draft.durationDays - 1),
       sourceType: PackageSourceType.AI_GENERATED,
       aiGeneratedFromId: draft.aiGenerationReferenceId ?? null,
+      content: draft.content,
       days: draft.days.map((day) => ({
         ...day,
         items: day.items.map((item) => {

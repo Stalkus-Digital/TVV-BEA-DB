@@ -6,7 +6,7 @@ import { BookingStatus } from "../types/booking-status";
  * each call site.
  */
 export const BOOKING_STATUS_TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
-  [BookingStatus.DRAFT]: [BookingStatus.CONFIRMED, BookingStatus.CANCELLED],
+  PENDING: [BookingStatus.CONFIRMED, BookingStatus.CANCELLED],
   [BookingStatus.CONFIRMED]: [BookingStatus.PARTIALLY_PAID, BookingStatus.PAID, BookingStatus.CANCELLED],
   // Refunds may reduce paid amount — allow stepping back toward CONFIRMED
   [BookingStatus.PARTIALLY_PAID]: [BookingStatus.PAID, BookingStatus.CONFIRMED, BookingStatus.CANCELLED],

@@ -419,6 +419,8 @@ export const ModelName = {
   Booking: 'Booking',
   BookingItem: 'BookingItem',
   Traveller: 'Traveller',
+  TravellerProfile: 'TravellerProfile',
+  SupplierBookingReference: 'SupplierBookingReference',
   PassengerDocument: 'PassengerDocument',
   BookingPayment: 'BookingPayment',
   BookingInvoice: 'BookingInvoice',
@@ -487,7 +489,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "revokedJwt" | "loginHistory" | "passwordReset" | "emailVerification" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "customerNote" | "notification" | "emailDispatch" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent" | "integrationProvider" | "integrationSecret" | "integrationWebhook" | "guide" | "ferryRoute" | "ferrySchedule" | "review" | "backgroundJob" | "rateLimit" | "tjCountry" | "tjCityRegion" | "tjHotelMapping" | "tjHotel" | "tjSyncProgress" | "tjSyncLog" | "tjSyncExecution" | "tjSyncCheckpoint"
+    modelProps: "inventoryItem" | "supplierRecord" | "country" | "state" | "region" | "city" | "airport" | "destinationCategory" | "destination" | "package" | "packageDay" | "packageItem" | "packagePricing" | "packageRule" | "packageAvailability" | "packageVersion" | "quote" | "quoteItem" | "quoteVersion" | "booking" | "bookingItem" | "traveller" | "travellerProfile" | "supplierBookingReference" | "passengerDocument" | "bookingPayment" | "bookingInvoice" | "bookingVoucher" | "bookingStatusHistory" | "bookingTimelineEntry" | "bookingNote" | "user" | "role" | "permission" | "userRole" | "session" | "refreshToken" | "revokedJwt" | "loginHistory" | "passwordReset" | "emailVerification" | "auditLog" | "apiKey" | "customerProfile" | "enquiry" | "enquiryNote" | "customerNote" | "notification" | "emailDispatch" | "lead" | "ferryRate" | "landingPage" | "cmsConfig" | "cmsPage" | "cmsGuide" | "cmsRedirect" | "mediaAsset" | "marketingCampaign" | "pageAnalytics" | "webhookEvent" | "integrationProvider" | "integrationSecret" | "integrationWebhook" | "guide" | "ferryRoute" | "ferrySchedule" | "review" | "backgroundJob" | "rateLimit" | "tjCountry" | "tjCityRegion" | "tjHotelMapping" | "tjHotel" | "tjSyncProgress" | "tjSyncLog" | "tjSyncExecution" | "tjSyncCheckpoint"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2116,6 +2118,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.TravellerCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.TravellerCountAggregateOutputType> | number
+        }
+      }
+    }
+    TravellerProfile: {
+      payload: Prisma.$TravellerProfilePayload<ExtArgs>
+      fields: Prisma.TravellerProfileFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TravellerProfileFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TravellerProfilePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TravellerProfileFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TravellerProfilePayload>
+        }
+        findFirst: {
+          args: Prisma.TravellerProfileFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TravellerProfilePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TravellerProfileFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TravellerProfilePayload>
+        }
+        findMany: {
+          args: Prisma.TravellerProfileFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TravellerProfilePayload>[]
+        }
+        create: {
+          args: Prisma.TravellerProfileCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TravellerProfilePayload>
+        }
+        createMany: {
+          args: Prisma.TravellerProfileCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TravellerProfileCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TravellerProfilePayload>[]
+        }
+        delete: {
+          args: Prisma.TravellerProfileDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TravellerProfilePayload>
+        }
+        update: {
+          args: Prisma.TravellerProfileUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TravellerProfilePayload>
+        }
+        deleteMany: {
+          args: Prisma.TravellerProfileDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TravellerProfileUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TravellerProfileUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TravellerProfilePayload>[]
+        }
+        upsert: {
+          args: Prisma.TravellerProfileUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TravellerProfilePayload>
+        }
+        aggregate: {
+          args: Prisma.TravellerProfileAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTravellerProfile>
+        }
+        groupBy: {
+          args: Prisma.TravellerProfileGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TravellerProfileGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TravellerProfileCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TravellerProfileCountAggregateOutputType> | number
+        }
+      }
+    }
+    SupplierBookingReference: {
+      payload: Prisma.$SupplierBookingReferencePayload<ExtArgs>
+      fields: Prisma.SupplierBookingReferenceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SupplierBookingReferenceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupplierBookingReferencePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SupplierBookingReferenceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupplierBookingReferencePayload>
+        }
+        findFirst: {
+          args: Prisma.SupplierBookingReferenceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupplierBookingReferencePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SupplierBookingReferenceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupplierBookingReferencePayload>
+        }
+        findMany: {
+          args: Prisma.SupplierBookingReferenceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupplierBookingReferencePayload>[]
+        }
+        create: {
+          args: Prisma.SupplierBookingReferenceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupplierBookingReferencePayload>
+        }
+        createMany: {
+          args: Prisma.SupplierBookingReferenceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SupplierBookingReferenceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupplierBookingReferencePayload>[]
+        }
+        delete: {
+          args: Prisma.SupplierBookingReferenceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupplierBookingReferencePayload>
+        }
+        update: {
+          args: Prisma.SupplierBookingReferenceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupplierBookingReferencePayload>
+        }
+        deleteMany: {
+          args: Prisma.SupplierBookingReferenceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SupplierBookingReferenceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SupplierBookingReferenceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupplierBookingReferencePayload>[]
+        }
+        upsert: {
+          args: Prisma.SupplierBookingReferenceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupplierBookingReferencePayload>
+        }
+        aggregate: {
+          args: Prisma.SupplierBookingReferenceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSupplierBookingReference>
+        }
+        groupBy: {
+          args: Prisma.SupplierBookingReferenceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SupplierBookingReferenceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SupplierBookingReferenceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SupplierBookingReferenceCountAggregateOutputType> | number
         }
       }
     }
@@ -6334,7 +6484,6 @@ export const QuoteScalarFieldEnum = {
   status: 'status',
   destinationId: 'destinationId',
   packageId: 'packageId',
-  travelerDetails: 'travelerDetails',
   currency: 'currency',
   adjustments: 'adjustments',
   currentVersionId: 'currentVersionId',
@@ -6422,7 +6571,10 @@ export const BookingItemScalarFieldEnum = {
   description: 'description',
   quantity: 'quantity',
   unitPrice: 'unitPrice',
-  supplierBookingReference: 'supplierBookingReference',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  totalAmount: 'totalAmount',
+  costAmount: 'costAmount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -6436,20 +6588,48 @@ export const TravellerScalarFieldEnum = {
   type: 'type',
   isLeadTraveller: 'isLeadTraveller',
   fullName: 'fullName',
-  email: 'email',
-  phone: 'phone',
   dateOfBirth: 'dateOfBirth',
-  gender: 'gender',
-  nationality: 'nationality',
+  passportNumber: 'passportNumber',
+  profileId: 'profileId',
+  createdAt: 'createdAt'
+} as const
+
+export type TravellerScalarFieldEnum = (typeof TravellerScalarFieldEnum)[keyof typeof TravellerScalarFieldEnum]
+
+
+export const TravellerProfileScalarFieldEnum = {
+  id: 'id',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  dateOfBirth: 'dateOfBirth',
   passportNumber: 'passportNumber',
   passportExpiry: 'passportExpiry',
-  visaRequired: 'visaRequired',
-  emergencyContact: 'emergencyContact',
+  nationality: 'nationality',
+  email: 'email',
+  phone: 'phone',
+  quoteId: 'quoteId',
+  bookingId: 'bookingId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type TravellerScalarFieldEnum = (typeof TravellerScalarFieldEnum)[keyof typeof TravellerScalarFieldEnum]
+export type TravellerProfileScalarFieldEnum = (typeof TravellerProfileScalarFieldEnum)[keyof typeof TravellerProfileScalarFieldEnum]
+
+
+export const SupplierBookingReferenceScalarFieldEnum = {
+  id: 'id',
+  bookingItemId: 'bookingItemId',
+  supplierName: 'supplierName',
+  pnr: 'pnr',
+  bookingId: 'bookingId',
+  ticketNumber: 'ticketNumber',
+  status: 'status',
+  rawPayload: 'rawPayload',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SupplierBookingReferenceScalarFieldEnum = (typeof SupplierBookingReferenceScalarFieldEnum)[keyof typeof SupplierBookingReferenceScalarFieldEnum]
 
 
 export const PassengerDocumentScalarFieldEnum = {
@@ -6523,6 +6703,7 @@ export type BookingVoucherScalarFieldEnum = (typeof BookingVoucherScalarFieldEnu
 export const BookingStatusHistoryScalarFieldEnum = {
   id: 'id',
   bookingId: 'bookingId',
+  userId: 'userId',
   fromStatus: 'fromStatus',
   toStatus: 'toStatus',
   changedAt: 'changedAt',
@@ -6838,6 +7019,11 @@ export const LandingPageScalarFieldEnum = {
   title: 'title',
   blocks: 'blocks',
   seo: 'seo',
+  destinationId: 'destinationId',
+  template: 'template',
+  seoTitle: 'seoTitle',
+  seoDescription: 'seoDescription',
+  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -7323,6 +7509,48 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
     
 
+
+/**
+ * Reference to a field of type 'QuoteStatus'
+ */
+export type EnumQuoteStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QuoteStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'QuoteStatus[]'
+ */
+export type ListEnumQuoteStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QuoteStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'BookingStatus'
+ */
+export type EnumBookingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookingStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'BookingStatus[]'
+ */
+export type ListEnumBookingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookingStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentStatus'
+ */
+export type EnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentStatus[]'
+ */
+export type ListEnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -7496,6 +7724,8 @@ export type GlobalOmitConfig = {
   booking?: Prisma.BookingOmit
   bookingItem?: Prisma.BookingItemOmit
   traveller?: Prisma.TravellerOmit
+  travellerProfile?: Prisma.TravellerProfileOmit
+  supplierBookingReference?: Prisma.SupplierBookingReferenceOmit
   passengerDocument?: Prisma.PassengerDocumentOmit
   bookingPayment?: Prisma.BookingPaymentOmit
   bookingInvoice?: Prisma.BookingInvoiceOmit

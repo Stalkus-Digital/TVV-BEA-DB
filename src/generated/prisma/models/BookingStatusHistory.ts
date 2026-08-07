@@ -27,6 +27,7 @@ export type AggregateBookingStatusHistory = {
 export type BookingStatusHistoryMinAggregateOutputType = {
   id: string | null
   bookingId: string | null
+  userId: string | null
   fromStatus: string | null
   toStatus: string | null
   changedAt: Date | null
@@ -36,6 +37,7 @@ export type BookingStatusHistoryMinAggregateOutputType = {
 export type BookingStatusHistoryMaxAggregateOutputType = {
   id: string | null
   bookingId: string | null
+  userId: string | null
   fromStatus: string | null
   toStatus: string | null
   changedAt: Date | null
@@ -45,6 +47,7 @@ export type BookingStatusHistoryMaxAggregateOutputType = {
 export type BookingStatusHistoryCountAggregateOutputType = {
   id: number
   bookingId: number
+  userId: number
   fromStatus: number
   toStatus: number
   changedAt: number
@@ -56,6 +59,7 @@ export type BookingStatusHistoryCountAggregateOutputType = {
 export type BookingStatusHistoryMinAggregateInputType = {
   id?: true
   bookingId?: true
+  userId?: true
   fromStatus?: true
   toStatus?: true
   changedAt?: true
@@ -65,6 +69,7 @@ export type BookingStatusHistoryMinAggregateInputType = {
 export type BookingStatusHistoryMaxAggregateInputType = {
   id?: true
   bookingId?: true
+  userId?: true
   fromStatus?: true
   toStatus?: true
   changedAt?: true
@@ -74,6 +79,7 @@ export type BookingStatusHistoryMaxAggregateInputType = {
 export type BookingStatusHistoryCountAggregateInputType = {
   id?: true
   bookingId?: true
+  userId?: true
   fromStatus?: true
   toStatus?: true
   changedAt?: true
@@ -156,6 +162,7 @@ export type BookingStatusHistoryGroupByArgs<ExtArgs extends runtime.Types.Extens
 export type BookingStatusHistoryGroupByOutputType = {
   id: string
   bookingId: string
+  userId: string
   fromStatus: string | null
   toStatus: string
   changedAt: Date
@@ -186,19 +193,23 @@ export type BookingStatusHistoryWhereInput = {
   NOT?: Prisma.BookingStatusHistoryWhereInput | Prisma.BookingStatusHistoryWhereInput[]
   id?: Prisma.StringFilter<"BookingStatusHistory"> | string
   bookingId?: Prisma.StringFilter<"BookingStatusHistory"> | string
+  userId?: Prisma.StringFilter<"BookingStatusHistory"> | string
   fromStatus?: Prisma.StringNullableFilter<"BookingStatusHistory"> | string | null
   toStatus?: Prisma.StringFilter<"BookingStatusHistory"> | string
   changedAt?: Prisma.DateTimeFilter<"BookingStatusHistory"> | Date | string
   note?: Prisma.StringNullableFilter<"BookingStatusHistory"> | string | null
+  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
 export type BookingStatusHistoryOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   bookingId?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
   fromStatus?: Prisma.SortOrderInput | Prisma.SortOrder
   toStatus?: Prisma.SortOrder
   changedAt?: Prisma.SortOrder
   note?: Prisma.SortOrderInput | Prisma.SortOrder
+  user?: Prisma.UserOrderByWithRelationInput
 }
 
 export type BookingStatusHistoryWhereUniqueInput = Prisma.AtLeast<{
@@ -207,15 +218,18 @@ export type BookingStatusHistoryWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.BookingStatusHistoryWhereInput[]
   NOT?: Prisma.BookingStatusHistoryWhereInput | Prisma.BookingStatusHistoryWhereInput[]
   bookingId?: Prisma.StringFilter<"BookingStatusHistory"> | string
+  userId?: Prisma.StringFilter<"BookingStatusHistory"> | string
   fromStatus?: Prisma.StringNullableFilter<"BookingStatusHistory"> | string | null
   toStatus?: Prisma.StringFilter<"BookingStatusHistory"> | string
   changedAt?: Prisma.DateTimeFilter<"BookingStatusHistory"> | Date | string
   note?: Prisma.StringNullableFilter<"BookingStatusHistory"> | string | null
+  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id">
 
 export type BookingStatusHistoryOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   bookingId?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
   fromStatus?: Prisma.SortOrderInput | Prisma.SortOrder
   toStatus?: Prisma.SortOrder
   changedAt?: Prisma.SortOrder
@@ -231,6 +245,7 @@ export type BookingStatusHistoryScalarWhereWithAggregatesInput = {
   NOT?: Prisma.BookingStatusHistoryScalarWhereWithAggregatesInput | Prisma.BookingStatusHistoryScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"BookingStatusHistory"> | string
   bookingId?: Prisma.StringWithAggregatesFilter<"BookingStatusHistory"> | string
+  userId?: Prisma.StringWithAggregatesFilter<"BookingStatusHistory"> | string
   fromStatus?: Prisma.StringNullableWithAggregatesFilter<"BookingStatusHistory"> | string | null
   toStatus?: Prisma.StringWithAggregatesFilter<"BookingStatusHistory"> | string
   changedAt?: Prisma.DateTimeWithAggregatesFilter<"BookingStatusHistory"> | Date | string
@@ -244,11 +259,13 @@ export type BookingStatusHistoryCreateInput = {
   toStatus: string
   changedAt: Date | string
   note?: string | null
+  user: Prisma.UserCreateNestedOneWithoutBookingStatusHistoryInput
 }
 
 export type BookingStatusHistoryUncheckedCreateInput = {
   id?: string
   bookingId: string
+  userId: string
   fromStatus?: string | null
   toStatus: string
   changedAt: Date | string
@@ -262,11 +279,13 @@ export type BookingStatusHistoryUpdateInput = {
   toStatus?: Prisma.StringFieldUpdateOperationsInput | string
   changedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user?: Prisma.UserUpdateOneRequiredWithoutBookingStatusHistoryNestedInput
 }
 
 export type BookingStatusHistoryUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   bookingId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   fromStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   toStatus?: Prisma.StringFieldUpdateOperationsInput | string
   changedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -276,6 +295,7 @@ export type BookingStatusHistoryUncheckedUpdateInput = {
 export type BookingStatusHistoryCreateManyInput = {
   id?: string
   bookingId: string
+  userId: string
   fromStatus?: string | null
   toStatus: string
   changedAt: Date | string
@@ -294,6 +314,7 @@ export type BookingStatusHistoryUpdateManyMutationInput = {
 export type BookingStatusHistoryUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   bookingId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   fromStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   toStatus?: Prisma.StringFieldUpdateOperationsInput | string
   changedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -303,6 +324,7 @@ export type BookingStatusHistoryUncheckedUpdateManyInput = {
 export type BookingStatusHistoryCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   bookingId?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
   fromStatus?: Prisma.SortOrder
   toStatus?: Prisma.SortOrder
   changedAt?: Prisma.SortOrder
@@ -312,6 +334,7 @@ export type BookingStatusHistoryCountOrderByAggregateInput = {
 export type BookingStatusHistoryMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   bookingId?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
   fromStatus?: Prisma.SortOrder
   toStatus?: Prisma.SortOrder
   changedAt?: Prisma.SortOrder
@@ -321,10 +344,156 @@ export type BookingStatusHistoryMaxOrderByAggregateInput = {
 export type BookingStatusHistoryMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   bookingId?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
   fromStatus?: Prisma.SortOrder
   toStatus?: Prisma.SortOrder
   changedAt?: Prisma.SortOrder
   note?: Prisma.SortOrder
+}
+
+export type BookingStatusHistoryListRelationFilter = {
+  every?: Prisma.BookingStatusHistoryWhereInput
+  some?: Prisma.BookingStatusHistoryWhereInput
+  none?: Prisma.BookingStatusHistoryWhereInput
+}
+
+export type BookingStatusHistoryOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
+export type BookingStatusHistoryCreateNestedManyWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.BookingStatusHistoryCreateWithoutUserInput, Prisma.BookingStatusHistoryUncheckedCreateWithoutUserInput> | Prisma.BookingStatusHistoryCreateWithoutUserInput[] | Prisma.BookingStatusHistoryUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.BookingStatusHistoryCreateOrConnectWithoutUserInput | Prisma.BookingStatusHistoryCreateOrConnectWithoutUserInput[]
+  createMany?: Prisma.BookingStatusHistoryCreateManyUserInputEnvelope
+  connect?: Prisma.BookingStatusHistoryWhereUniqueInput | Prisma.BookingStatusHistoryWhereUniqueInput[]
+}
+
+export type BookingStatusHistoryUncheckedCreateNestedManyWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.BookingStatusHistoryCreateWithoutUserInput, Prisma.BookingStatusHistoryUncheckedCreateWithoutUserInput> | Prisma.BookingStatusHistoryCreateWithoutUserInput[] | Prisma.BookingStatusHistoryUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.BookingStatusHistoryCreateOrConnectWithoutUserInput | Prisma.BookingStatusHistoryCreateOrConnectWithoutUserInput[]
+  createMany?: Prisma.BookingStatusHistoryCreateManyUserInputEnvelope
+  connect?: Prisma.BookingStatusHistoryWhereUniqueInput | Prisma.BookingStatusHistoryWhereUniqueInput[]
+}
+
+export type BookingStatusHistoryUpdateManyWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingStatusHistoryCreateWithoutUserInput, Prisma.BookingStatusHistoryUncheckedCreateWithoutUserInput> | Prisma.BookingStatusHistoryCreateWithoutUserInput[] | Prisma.BookingStatusHistoryUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.BookingStatusHistoryCreateOrConnectWithoutUserInput | Prisma.BookingStatusHistoryCreateOrConnectWithoutUserInput[]
+  upsert?: Prisma.BookingStatusHistoryUpsertWithWhereUniqueWithoutUserInput | Prisma.BookingStatusHistoryUpsertWithWhereUniqueWithoutUserInput[]
+  createMany?: Prisma.BookingStatusHistoryCreateManyUserInputEnvelope
+  set?: Prisma.BookingStatusHistoryWhereUniqueInput | Prisma.BookingStatusHistoryWhereUniqueInput[]
+  disconnect?: Prisma.BookingStatusHistoryWhereUniqueInput | Prisma.BookingStatusHistoryWhereUniqueInput[]
+  delete?: Prisma.BookingStatusHistoryWhereUniqueInput | Prisma.BookingStatusHistoryWhereUniqueInput[]
+  connect?: Prisma.BookingStatusHistoryWhereUniqueInput | Prisma.BookingStatusHistoryWhereUniqueInput[]
+  update?: Prisma.BookingStatusHistoryUpdateWithWhereUniqueWithoutUserInput | Prisma.BookingStatusHistoryUpdateWithWhereUniqueWithoutUserInput[]
+  updateMany?: Prisma.BookingStatusHistoryUpdateManyWithWhereWithoutUserInput | Prisma.BookingStatusHistoryUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.BookingStatusHistoryScalarWhereInput | Prisma.BookingStatusHistoryScalarWhereInput[]
+}
+
+export type BookingStatusHistoryUncheckedUpdateManyWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingStatusHistoryCreateWithoutUserInput, Prisma.BookingStatusHistoryUncheckedCreateWithoutUserInput> | Prisma.BookingStatusHistoryCreateWithoutUserInput[] | Prisma.BookingStatusHistoryUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.BookingStatusHistoryCreateOrConnectWithoutUserInput | Prisma.BookingStatusHistoryCreateOrConnectWithoutUserInput[]
+  upsert?: Prisma.BookingStatusHistoryUpsertWithWhereUniqueWithoutUserInput | Prisma.BookingStatusHistoryUpsertWithWhereUniqueWithoutUserInput[]
+  createMany?: Prisma.BookingStatusHistoryCreateManyUserInputEnvelope
+  set?: Prisma.BookingStatusHistoryWhereUniqueInput | Prisma.BookingStatusHistoryWhereUniqueInput[]
+  disconnect?: Prisma.BookingStatusHistoryWhereUniqueInput | Prisma.BookingStatusHistoryWhereUniqueInput[]
+  delete?: Prisma.BookingStatusHistoryWhereUniqueInput | Prisma.BookingStatusHistoryWhereUniqueInput[]
+  connect?: Prisma.BookingStatusHistoryWhereUniqueInput | Prisma.BookingStatusHistoryWhereUniqueInput[]
+  update?: Prisma.BookingStatusHistoryUpdateWithWhereUniqueWithoutUserInput | Prisma.BookingStatusHistoryUpdateWithWhereUniqueWithoutUserInput[]
+  updateMany?: Prisma.BookingStatusHistoryUpdateManyWithWhereWithoutUserInput | Prisma.BookingStatusHistoryUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.BookingStatusHistoryScalarWhereInput | Prisma.BookingStatusHistoryScalarWhereInput[]
+}
+
+export type BookingStatusHistoryCreateWithoutUserInput = {
+  id?: string
+  bookingId: string
+  fromStatus?: string | null
+  toStatus: string
+  changedAt: Date | string
+  note?: string | null
+}
+
+export type BookingStatusHistoryUncheckedCreateWithoutUserInput = {
+  id?: string
+  bookingId: string
+  fromStatus?: string | null
+  toStatus: string
+  changedAt: Date | string
+  note?: string | null
+}
+
+export type BookingStatusHistoryCreateOrConnectWithoutUserInput = {
+  where: Prisma.BookingStatusHistoryWhereUniqueInput
+  create: Prisma.XOR<Prisma.BookingStatusHistoryCreateWithoutUserInput, Prisma.BookingStatusHistoryUncheckedCreateWithoutUserInput>
+}
+
+export type BookingStatusHistoryCreateManyUserInputEnvelope = {
+  data: Prisma.BookingStatusHistoryCreateManyUserInput | Prisma.BookingStatusHistoryCreateManyUserInput[]
+  skipDuplicates?: boolean
+}
+
+export type BookingStatusHistoryUpsertWithWhereUniqueWithoutUserInput = {
+  where: Prisma.BookingStatusHistoryWhereUniqueInput
+  update: Prisma.XOR<Prisma.BookingStatusHistoryUpdateWithoutUserInput, Prisma.BookingStatusHistoryUncheckedUpdateWithoutUserInput>
+  create: Prisma.XOR<Prisma.BookingStatusHistoryCreateWithoutUserInput, Prisma.BookingStatusHistoryUncheckedCreateWithoutUserInput>
+}
+
+export type BookingStatusHistoryUpdateWithWhereUniqueWithoutUserInput = {
+  where: Prisma.BookingStatusHistoryWhereUniqueInput
+  data: Prisma.XOR<Prisma.BookingStatusHistoryUpdateWithoutUserInput, Prisma.BookingStatusHistoryUncheckedUpdateWithoutUserInput>
+}
+
+export type BookingStatusHistoryUpdateManyWithWhereWithoutUserInput = {
+  where: Prisma.BookingStatusHistoryScalarWhereInput
+  data: Prisma.XOR<Prisma.BookingStatusHistoryUpdateManyMutationInput, Prisma.BookingStatusHistoryUncheckedUpdateManyWithoutUserInput>
+}
+
+export type BookingStatusHistoryScalarWhereInput = {
+  AND?: Prisma.BookingStatusHistoryScalarWhereInput | Prisma.BookingStatusHistoryScalarWhereInput[]
+  OR?: Prisma.BookingStatusHistoryScalarWhereInput[]
+  NOT?: Prisma.BookingStatusHistoryScalarWhereInput | Prisma.BookingStatusHistoryScalarWhereInput[]
+  id?: Prisma.StringFilter<"BookingStatusHistory"> | string
+  bookingId?: Prisma.StringFilter<"BookingStatusHistory"> | string
+  userId?: Prisma.StringFilter<"BookingStatusHistory"> | string
+  fromStatus?: Prisma.StringNullableFilter<"BookingStatusHistory"> | string | null
+  toStatus?: Prisma.StringFilter<"BookingStatusHistory"> | string
+  changedAt?: Prisma.DateTimeFilter<"BookingStatusHistory"> | Date | string
+  note?: Prisma.StringNullableFilter<"BookingStatusHistory"> | string | null
+}
+
+export type BookingStatusHistoryCreateManyUserInput = {
+  id?: string
+  bookingId: string
+  fromStatus?: string | null
+  toStatus: string
+  changedAt: Date | string
+  note?: string | null
+}
+
+export type BookingStatusHistoryUpdateWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
+  fromStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  changedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type BookingStatusHistoryUncheckedUpdateWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
+  fromStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  changedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type BookingStatusHistoryUncheckedUpdateManyWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
+  fromStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  changedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -332,47 +501,66 @@ export type BookingStatusHistoryMinOrderByAggregateInput = {
 export type BookingStatusHistorySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   bookingId?: boolean
+  userId?: boolean
   fromStatus?: boolean
   toStatus?: boolean
   changedAt?: boolean
   note?: boolean
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["bookingStatusHistory"]>
 
 export type BookingStatusHistorySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   bookingId?: boolean
+  userId?: boolean
   fromStatus?: boolean
   toStatus?: boolean
   changedAt?: boolean
   note?: boolean
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["bookingStatusHistory"]>
 
 export type BookingStatusHistorySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   bookingId?: boolean
+  userId?: boolean
   fromStatus?: boolean
   toStatus?: boolean
   changedAt?: boolean
   note?: boolean
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["bookingStatusHistory"]>
 
 export type BookingStatusHistorySelectScalar = {
   id?: boolean
   bookingId?: boolean
+  userId?: boolean
   fromStatus?: boolean
   toStatus?: boolean
   changedAt?: boolean
   note?: boolean
 }
 
-export type BookingStatusHistoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingId" | "fromStatus" | "toStatus" | "changedAt" | "note", ExtArgs["result"]["bookingStatusHistory"]>
+export type BookingStatusHistoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingId" | "userId" | "fromStatus" | "toStatus" | "changedAt" | "note", ExtArgs["result"]["bookingStatusHistory"]>
+export type BookingStatusHistoryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}
+export type BookingStatusHistoryIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}
+export type BookingStatusHistoryIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}
 
 export type $BookingStatusHistoryPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "BookingStatusHistory"
-  objects: {}
+  objects: {
+    user: Prisma.$UserPayload<ExtArgs>
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     bookingId: string
+    userId: string
     fromStatus: string | null
     toStatus: string
     changedAt: Date
@@ -771,6 +959,7 @@ readonly fields: BookingStatusHistoryFieldRefs;
  */
 export interface Prisma__BookingStatusHistoryClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -802,6 +991,7 @@ export interface Prisma__BookingStatusHistoryClient<T, Null = never, ExtArgs ext
 export interface BookingStatusHistoryFieldRefs {
   readonly id: Prisma.FieldRef<"BookingStatusHistory", 'String'>
   readonly bookingId: Prisma.FieldRef<"BookingStatusHistory", 'String'>
+  readonly userId: Prisma.FieldRef<"BookingStatusHistory", 'String'>
   readonly fromStatus: Prisma.FieldRef<"BookingStatusHistory", 'String'>
   readonly toStatus: Prisma.FieldRef<"BookingStatusHistory", 'String'>
   readonly changedAt: Prisma.FieldRef<"BookingStatusHistory", 'DateTime'>
@@ -823,6 +1013,10 @@ export type BookingStatusHistoryFindUniqueArgs<ExtArgs extends runtime.Types.Ext
    */
   omit?: Prisma.BookingStatusHistoryOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingStatusHistoryInclude<ExtArgs> | null
+  /**
    * Filter, which BookingStatusHistory to fetch.
    */
   where: Prisma.BookingStatusHistoryWhereUniqueInput
@@ -841,6 +1035,10 @@ export type BookingStatusHistoryFindUniqueOrThrowArgs<ExtArgs extends runtime.Ty
    */
   omit?: Prisma.BookingStatusHistoryOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingStatusHistoryInclude<ExtArgs> | null
+  /**
    * Filter, which BookingStatusHistory to fetch.
    */
   where: Prisma.BookingStatusHistoryWhereUniqueInput
@@ -858,6 +1056,10 @@ export type BookingStatusHistoryFindFirstArgs<ExtArgs extends runtime.Types.Exte
    * Omit specific fields from the BookingStatusHistory
    */
   omit?: Prisma.BookingStatusHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingStatusHistoryInclude<ExtArgs> | null
   /**
    * Filter, which BookingStatusHistory to fetch.
    */
@@ -907,6 +1109,10 @@ export type BookingStatusHistoryFindFirstOrThrowArgs<ExtArgs extends runtime.Typ
    */
   omit?: Prisma.BookingStatusHistoryOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingStatusHistoryInclude<ExtArgs> | null
+  /**
    * Filter, which BookingStatusHistory to fetch.
    */
   where?: Prisma.BookingStatusHistoryWhereInput
@@ -954,6 +1160,10 @@ export type BookingStatusHistoryFindManyArgs<ExtArgs extends runtime.Types.Exten
    * Omit specific fields from the BookingStatusHistory
    */
   omit?: Prisma.BookingStatusHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingStatusHistoryInclude<ExtArgs> | null
   /**
    * Filter, which BookingStatusHistories to fetch.
    */
@@ -1003,6 +1213,10 @@ export type BookingStatusHistoryCreateArgs<ExtArgs extends runtime.Types.Extensi
    */
   omit?: Prisma.BookingStatusHistoryOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingStatusHistoryInclude<ExtArgs> | null
+  /**
    * The data needed to create a BookingStatusHistory.
    */
   data: Prisma.XOR<Prisma.BookingStatusHistoryCreateInput, Prisma.BookingStatusHistoryUncheckedCreateInput>
@@ -1036,6 +1250,10 @@ export type BookingStatusHistoryCreateManyAndReturnArgs<ExtArgs extends runtime.
    */
   data: Prisma.BookingStatusHistoryCreateManyInput | Prisma.BookingStatusHistoryCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingStatusHistoryIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1050,6 +1268,10 @@ export type BookingStatusHistoryUpdateArgs<ExtArgs extends runtime.Types.Extensi
    * Omit specific fields from the BookingStatusHistory
    */
   omit?: Prisma.BookingStatusHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingStatusHistoryInclude<ExtArgs> | null
   /**
    * The data needed to update a BookingStatusHistory.
    */
@@ -1102,6 +1324,10 @@ export type BookingStatusHistoryUpdateManyAndReturnArgs<ExtArgs extends runtime.
    * Limit how many BookingStatusHistories to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingStatusHistoryIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1116,6 +1342,10 @@ export type BookingStatusHistoryUpsertArgs<ExtArgs extends runtime.Types.Extensi
    * Omit specific fields from the BookingStatusHistory
    */
   omit?: Prisma.BookingStatusHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingStatusHistoryInclude<ExtArgs> | null
   /**
    * The filter to search for the BookingStatusHistory to update in case it exists.
    */
@@ -1142,6 +1372,10 @@ export type BookingStatusHistoryDeleteArgs<ExtArgs extends runtime.Types.Extensi
    * Omit specific fields from the BookingStatusHistory
    */
   omit?: Prisma.BookingStatusHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingStatusHistoryInclude<ExtArgs> | null
   /**
    * Filter which BookingStatusHistory to delete.
    */
@@ -1174,4 +1408,8 @@ export type BookingStatusHistoryDefaultArgs<ExtArgs extends runtime.Types.Extens
    * Omit specific fields from the BookingStatusHistory
    */
   omit?: Prisma.BookingStatusHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingStatusHistoryInclude<ExtArgs> | null
 }

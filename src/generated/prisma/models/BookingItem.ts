@@ -29,11 +29,15 @@ export type AggregateBookingItem = {
 export type BookingItemAvgAggregateOutputType = {
   quantity: number | null
   unitPrice: number | null
+  totalAmount: number | null
+  costAmount: number | null
 }
 
 export type BookingItemSumAggregateOutputType = {
   quantity: number | null
   unitPrice: number | null
+  totalAmount: number | null
+  costAmount: number | null
 }
 
 export type BookingItemMinAggregateOutputType = {
@@ -46,6 +50,10 @@ export type BookingItemMinAggregateOutputType = {
   description: string | null
   quantity: number | null
   unitPrice: number | null
+  startDate: Date | null
+  endDate: Date | null
+  totalAmount: number | null
+  costAmount: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -60,6 +68,10 @@ export type BookingItemMaxAggregateOutputType = {
   description: string | null
   quantity: number | null
   unitPrice: number | null
+  startDate: Date | null
+  endDate: Date | null
+  totalAmount: number | null
+  costAmount: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -74,7 +86,10 @@ export type BookingItemCountAggregateOutputType = {
   description: number
   quantity: number
   unitPrice: number
-  supplierBookingReference: number
+  startDate: number
+  endDate: number
+  totalAmount: number
+  costAmount: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -84,11 +99,15 @@ export type BookingItemCountAggregateOutputType = {
 export type BookingItemAvgAggregateInputType = {
   quantity?: true
   unitPrice?: true
+  totalAmount?: true
+  costAmount?: true
 }
 
 export type BookingItemSumAggregateInputType = {
   quantity?: true
   unitPrice?: true
+  totalAmount?: true
+  costAmount?: true
 }
 
 export type BookingItemMinAggregateInputType = {
@@ -101,6 +120,10 @@ export type BookingItemMinAggregateInputType = {
   description?: true
   quantity?: true
   unitPrice?: true
+  startDate?: true
+  endDate?: true
+  totalAmount?: true
+  costAmount?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -115,6 +138,10 @@ export type BookingItemMaxAggregateInputType = {
   description?: true
   quantity?: true
   unitPrice?: true
+  startDate?: true
+  endDate?: true
+  totalAmount?: true
+  costAmount?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -129,7 +156,10 @@ export type BookingItemCountAggregateInputType = {
   description?: true
   quantity?: true
   unitPrice?: true
-  supplierBookingReference?: true
+  startDate?: true
+  endDate?: true
+  totalAmount?: true
+  costAmount?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -231,7 +261,10 @@ export type BookingItemGroupByOutputType = {
   description: string | null
   quantity: number
   unitPrice: number
-  supplierBookingReference: runtime.JsonValue | null
+  startDate: Date
+  endDate: Date
+  totalAmount: number
+  costAmount: number
   createdAt: Date
   updatedAt: Date
   _count: BookingItemCountAggregateOutputType | null
@@ -269,9 +302,14 @@ export type BookingItemWhereInput = {
   description?: Prisma.StringNullableFilter<"BookingItem"> | string | null
   quantity?: Prisma.IntFilter<"BookingItem"> | number
   unitPrice?: Prisma.FloatFilter<"BookingItem"> | number
-  supplierBookingReference?: Prisma.JsonNullableFilter<"BookingItem">
+  startDate?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
+  endDate?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
+  totalAmount?: Prisma.FloatFilter<"BookingItem"> | number
+  costAmount?: Prisma.FloatFilter<"BookingItem"> | number
   createdAt?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
+  booking?: Prisma.XOR<Prisma.BookingScalarRelationFilter, Prisma.BookingWhereInput>
+  supplierReference?: Prisma.XOR<Prisma.SupplierBookingReferenceNullableScalarRelationFilter, Prisma.SupplierBookingReferenceWhereInput> | null
 }
 
 export type BookingItemOrderByWithRelationInput = {
@@ -284,9 +322,14 @@ export type BookingItemOrderByWithRelationInput = {
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   quantity?: Prisma.SortOrder
   unitPrice?: Prisma.SortOrder
-  supplierBookingReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  startDate?: Prisma.SortOrder
+  endDate?: Prisma.SortOrder
+  totalAmount?: Prisma.SortOrder
+  costAmount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  booking?: Prisma.BookingOrderByWithRelationInput
+  supplierReference?: Prisma.SupplierBookingReferenceOrderByWithRelationInput
 }
 
 export type BookingItemWhereUniqueInput = Prisma.AtLeast<{
@@ -302,9 +345,14 @@ export type BookingItemWhereUniqueInput = Prisma.AtLeast<{
   description?: Prisma.StringNullableFilter<"BookingItem"> | string | null
   quantity?: Prisma.IntFilter<"BookingItem"> | number
   unitPrice?: Prisma.FloatFilter<"BookingItem"> | number
-  supplierBookingReference?: Prisma.JsonNullableFilter<"BookingItem">
+  startDate?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
+  endDate?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
+  totalAmount?: Prisma.FloatFilter<"BookingItem"> | number
+  costAmount?: Prisma.FloatFilter<"BookingItem"> | number
   createdAt?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
+  booking?: Prisma.XOR<Prisma.BookingScalarRelationFilter, Prisma.BookingWhereInput>
+  supplierReference?: Prisma.XOR<Prisma.SupplierBookingReferenceNullableScalarRelationFilter, Prisma.SupplierBookingReferenceWhereInput> | null
 }, "id">
 
 export type BookingItemOrderByWithAggregationInput = {
@@ -317,7 +365,10 @@ export type BookingItemOrderByWithAggregationInput = {
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   quantity?: Prisma.SortOrder
   unitPrice?: Prisma.SortOrder
-  supplierBookingReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  startDate?: Prisma.SortOrder
+  endDate?: Prisma.SortOrder
+  totalAmount?: Prisma.SortOrder
+  costAmount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.BookingItemCountOrderByAggregateInput
@@ -340,14 +391,16 @@ export type BookingItemScalarWhereWithAggregatesInput = {
   description?: Prisma.StringNullableWithAggregatesFilter<"BookingItem"> | string | null
   quantity?: Prisma.IntWithAggregatesFilter<"BookingItem"> | number
   unitPrice?: Prisma.FloatWithAggregatesFilter<"BookingItem"> | number
-  supplierBookingReference?: Prisma.JsonNullableWithAggregatesFilter<"BookingItem">
+  startDate?: Prisma.DateTimeWithAggregatesFilter<"BookingItem"> | Date | string
+  endDate?: Prisma.DateTimeWithAggregatesFilter<"BookingItem"> | Date | string
+  totalAmount?: Prisma.FloatWithAggregatesFilter<"BookingItem"> | number
+  costAmount?: Prisma.FloatWithAggregatesFilter<"BookingItem"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"BookingItem"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"BookingItem"> | Date | string
 }
 
 export type BookingItemCreateInput = {
   id?: string
-  bookingId: string
   kind: string
   packageId?: string | null
   inventoryItemId?: string | null
@@ -355,9 +408,14 @@ export type BookingItemCreateInput = {
   description?: string | null
   quantity: number
   unitPrice: number
-  supplierBookingReference?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  startDate: Date | string
+  endDate: Date | string
+  totalAmount: number
+  costAmount: number
   createdAt: Date | string
   updatedAt: Date | string
+  booking: Prisma.BookingCreateNestedOneWithoutItemsInput
+  supplierReference?: Prisma.SupplierBookingReferenceCreateNestedOneWithoutItemInput
 }
 
 export type BookingItemUncheckedCreateInput = {
@@ -370,14 +428,17 @@ export type BookingItemUncheckedCreateInput = {
   description?: string | null
   quantity: number
   unitPrice: number
-  supplierBookingReference?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  startDate: Date | string
+  endDate: Date | string
+  totalAmount: number
+  costAmount: number
   createdAt: Date | string
   updatedAt: Date | string
+  supplierReference?: Prisma.SupplierBookingReferenceUncheckedCreateNestedOneWithoutItemInput
 }
 
 export type BookingItemUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inventoryItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -385,9 +446,14 @@ export type BookingItemUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  supplierBookingReference?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  costAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  booking?: Prisma.BookingUpdateOneRequiredWithoutItemsNestedInput
+  supplierReference?: Prisma.SupplierBookingReferenceUpdateOneWithoutItemNestedInput
 }
 
 export type BookingItemUncheckedUpdateInput = {
@@ -400,9 +466,13 @@ export type BookingItemUncheckedUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  supplierBookingReference?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  costAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supplierReference?: Prisma.SupplierBookingReferenceUncheckedUpdateOneWithoutItemNestedInput
 }
 
 export type BookingItemCreateManyInput = {
@@ -415,14 +485,16 @@ export type BookingItemCreateManyInput = {
   description?: string | null
   quantity: number
   unitPrice: number
-  supplierBookingReference?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  startDate: Date | string
+  endDate: Date | string
+  totalAmount: number
+  costAmount: number
   createdAt: Date | string
   updatedAt: Date | string
 }
 
 export type BookingItemUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inventoryItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -430,7 +502,10 @@ export type BookingItemUpdateManyMutationInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  supplierBookingReference?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  costAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -445,9 +520,22 @@ export type BookingItemUncheckedUpdateManyInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  supplierBookingReference?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  costAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type BookingItemListRelationFilter = {
+  every?: Prisma.BookingItemWhereInput
+  some?: Prisma.BookingItemWhereInput
+  none?: Prisma.BookingItemWhereInput
+}
+
+export type BookingItemOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type BookingItemCountOrderByAggregateInput = {
@@ -460,7 +548,10 @@ export type BookingItemCountOrderByAggregateInput = {
   description?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   unitPrice?: Prisma.SortOrder
-  supplierBookingReference?: Prisma.SortOrder
+  startDate?: Prisma.SortOrder
+  endDate?: Prisma.SortOrder
+  totalAmount?: Prisma.SortOrder
+  costAmount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -468,6 +559,8 @@ export type BookingItemCountOrderByAggregateInput = {
 export type BookingItemAvgOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
   unitPrice?: Prisma.SortOrder
+  totalAmount?: Prisma.SortOrder
+  costAmount?: Prisma.SortOrder
 }
 
 export type BookingItemMaxOrderByAggregateInput = {
@@ -480,6 +573,10 @@ export type BookingItemMaxOrderByAggregateInput = {
   description?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   unitPrice?: Prisma.SortOrder
+  startDate?: Prisma.SortOrder
+  endDate?: Prisma.SortOrder
+  totalAmount?: Prisma.SortOrder
+  costAmount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -494,6 +591,10 @@ export type BookingItemMinOrderByAggregateInput = {
   description?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   unitPrice?: Prisma.SortOrder
+  startDate?: Prisma.SortOrder
+  endDate?: Prisma.SortOrder
+  totalAmount?: Prisma.SortOrder
+  costAmount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -501,6 +602,310 @@ export type BookingItemMinOrderByAggregateInput = {
 export type BookingItemSumOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
   unitPrice?: Prisma.SortOrder
+  totalAmount?: Prisma.SortOrder
+  costAmount?: Prisma.SortOrder
+}
+
+export type BookingItemScalarRelationFilter = {
+  is?: Prisma.BookingItemWhereInput
+  isNot?: Prisma.BookingItemWhereInput
+}
+
+export type BookingItemCreateNestedManyWithoutBookingInput = {
+  create?: Prisma.XOR<Prisma.BookingItemCreateWithoutBookingInput, Prisma.BookingItemUncheckedCreateWithoutBookingInput> | Prisma.BookingItemCreateWithoutBookingInput[] | Prisma.BookingItemUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.BookingItemCreateOrConnectWithoutBookingInput | Prisma.BookingItemCreateOrConnectWithoutBookingInput[]
+  createMany?: Prisma.BookingItemCreateManyBookingInputEnvelope
+  connect?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+}
+
+export type BookingItemUncheckedCreateNestedManyWithoutBookingInput = {
+  create?: Prisma.XOR<Prisma.BookingItemCreateWithoutBookingInput, Prisma.BookingItemUncheckedCreateWithoutBookingInput> | Prisma.BookingItemCreateWithoutBookingInput[] | Prisma.BookingItemUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.BookingItemCreateOrConnectWithoutBookingInput | Prisma.BookingItemCreateOrConnectWithoutBookingInput[]
+  createMany?: Prisma.BookingItemCreateManyBookingInputEnvelope
+  connect?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+}
+
+export type BookingItemUpdateManyWithoutBookingNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingItemCreateWithoutBookingInput, Prisma.BookingItemUncheckedCreateWithoutBookingInput> | Prisma.BookingItemCreateWithoutBookingInput[] | Prisma.BookingItemUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.BookingItemCreateOrConnectWithoutBookingInput | Prisma.BookingItemCreateOrConnectWithoutBookingInput[]
+  upsert?: Prisma.BookingItemUpsertWithWhereUniqueWithoutBookingInput | Prisma.BookingItemUpsertWithWhereUniqueWithoutBookingInput[]
+  createMany?: Prisma.BookingItemCreateManyBookingInputEnvelope
+  set?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  disconnect?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  delete?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  connect?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  update?: Prisma.BookingItemUpdateWithWhereUniqueWithoutBookingInput | Prisma.BookingItemUpdateWithWhereUniqueWithoutBookingInput[]
+  updateMany?: Prisma.BookingItemUpdateManyWithWhereWithoutBookingInput | Prisma.BookingItemUpdateManyWithWhereWithoutBookingInput[]
+  deleteMany?: Prisma.BookingItemScalarWhereInput | Prisma.BookingItemScalarWhereInput[]
+}
+
+export type BookingItemUncheckedUpdateManyWithoutBookingNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingItemCreateWithoutBookingInput, Prisma.BookingItemUncheckedCreateWithoutBookingInput> | Prisma.BookingItemCreateWithoutBookingInput[] | Prisma.BookingItemUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.BookingItemCreateOrConnectWithoutBookingInput | Prisma.BookingItemCreateOrConnectWithoutBookingInput[]
+  upsert?: Prisma.BookingItemUpsertWithWhereUniqueWithoutBookingInput | Prisma.BookingItemUpsertWithWhereUniqueWithoutBookingInput[]
+  createMany?: Prisma.BookingItemCreateManyBookingInputEnvelope
+  set?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  disconnect?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  delete?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  connect?: Prisma.BookingItemWhereUniqueInput | Prisma.BookingItemWhereUniqueInput[]
+  update?: Prisma.BookingItemUpdateWithWhereUniqueWithoutBookingInput | Prisma.BookingItemUpdateWithWhereUniqueWithoutBookingInput[]
+  updateMany?: Prisma.BookingItemUpdateManyWithWhereWithoutBookingInput | Prisma.BookingItemUpdateManyWithWhereWithoutBookingInput[]
+  deleteMany?: Prisma.BookingItemScalarWhereInput | Prisma.BookingItemScalarWhereInput[]
+}
+
+export type BookingItemCreateNestedOneWithoutSupplierReferenceInput = {
+  create?: Prisma.XOR<Prisma.BookingItemCreateWithoutSupplierReferenceInput, Prisma.BookingItemUncheckedCreateWithoutSupplierReferenceInput>
+  connectOrCreate?: Prisma.BookingItemCreateOrConnectWithoutSupplierReferenceInput
+  connect?: Prisma.BookingItemWhereUniqueInput
+}
+
+export type BookingItemUpdateOneRequiredWithoutSupplierReferenceNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingItemCreateWithoutSupplierReferenceInput, Prisma.BookingItemUncheckedCreateWithoutSupplierReferenceInput>
+  connectOrCreate?: Prisma.BookingItemCreateOrConnectWithoutSupplierReferenceInput
+  upsert?: Prisma.BookingItemUpsertWithoutSupplierReferenceInput
+  connect?: Prisma.BookingItemWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BookingItemUpdateToOneWithWhereWithoutSupplierReferenceInput, Prisma.BookingItemUpdateWithoutSupplierReferenceInput>, Prisma.BookingItemUncheckedUpdateWithoutSupplierReferenceInput>
+}
+
+export type BookingItemCreateWithoutBookingInput = {
+  id?: string
+  kind: string
+  packageId?: string | null
+  inventoryItemId?: string | null
+  title: string
+  description?: string | null
+  quantity: number
+  unitPrice: number
+  startDate: Date | string
+  endDate: Date | string
+  totalAmount: number
+  costAmount: number
+  createdAt: Date | string
+  updatedAt: Date | string
+  supplierReference?: Prisma.SupplierBookingReferenceCreateNestedOneWithoutItemInput
+}
+
+export type BookingItemUncheckedCreateWithoutBookingInput = {
+  id?: string
+  kind: string
+  packageId?: string | null
+  inventoryItemId?: string | null
+  title: string
+  description?: string | null
+  quantity: number
+  unitPrice: number
+  startDate: Date | string
+  endDate: Date | string
+  totalAmount: number
+  costAmount: number
+  createdAt: Date | string
+  updatedAt: Date | string
+  supplierReference?: Prisma.SupplierBookingReferenceUncheckedCreateNestedOneWithoutItemInput
+}
+
+export type BookingItemCreateOrConnectWithoutBookingInput = {
+  where: Prisma.BookingItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.BookingItemCreateWithoutBookingInput, Prisma.BookingItemUncheckedCreateWithoutBookingInput>
+}
+
+export type BookingItemCreateManyBookingInputEnvelope = {
+  data: Prisma.BookingItemCreateManyBookingInput | Prisma.BookingItemCreateManyBookingInput[]
+  skipDuplicates?: boolean
+}
+
+export type BookingItemUpsertWithWhereUniqueWithoutBookingInput = {
+  where: Prisma.BookingItemWhereUniqueInput
+  update: Prisma.XOR<Prisma.BookingItemUpdateWithoutBookingInput, Prisma.BookingItemUncheckedUpdateWithoutBookingInput>
+  create: Prisma.XOR<Prisma.BookingItemCreateWithoutBookingInput, Prisma.BookingItemUncheckedCreateWithoutBookingInput>
+}
+
+export type BookingItemUpdateWithWhereUniqueWithoutBookingInput = {
+  where: Prisma.BookingItemWhereUniqueInput
+  data: Prisma.XOR<Prisma.BookingItemUpdateWithoutBookingInput, Prisma.BookingItemUncheckedUpdateWithoutBookingInput>
+}
+
+export type BookingItemUpdateManyWithWhereWithoutBookingInput = {
+  where: Prisma.BookingItemScalarWhereInput
+  data: Prisma.XOR<Prisma.BookingItemUpdateManyMutationInput, Prisma.BookingItemUncheckedUpdateManyWithoutBookingInput>
+}
+
+export type BookingItemScalarWhereInput = {
+  AND?: Prisma.BookingItemScalarWhereInput | Prisma.BookingItemScalarWhereInput[]
+  OR?: Prisma.BookingItemScalarWhereInput[]
+  NOT?: Prisma.BookingItemScalarWhereInput | Prisma.BookingItemScalarWhereInput[]
+  id?: Prisma.StringFilter<"BookingItem"> | string
+  bookingId?: Prisma.StringFilter<"BookingItem"> | string
+  kind?: Prisma.StringFilter<"BookingItem"> | string
+  packageId?: Prisma.StringNullableFilter<"BookingItem"> | string | null
+  inventoryItemId?: Prisma.StringNullableFilter<"BookingItem"> | string | null
+  title?: Prisma.StringFilter<"BookingItem"> | string
+  description?: Prisma.StringNullableFilter<"BookingItem"> | string | null
+  quantity?: Prisma.IntFilter<"BookingItem"> | number
+  unitPrice?: Prisma.FloatFilter<"BookingItem"> | number
+  startDate?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
+  endDate?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
+  totalAmount?: Prisma.FloatFilter<"BookingItem"> | number
+  costAmount?: Prisma.FloatFilter<"BookingItem"> | number
+  createdAt?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"BookingItem"> | Date | string
+}
+
+export type BookingItemCreateWithoutSupplierReferenceInput = {
+  id?: string
+  kind: string
+  packageId?: string | null
+  inventoryItemId?: string | null
+  title: string
+  description?: string | null
+  quantity: number
+  unitPrice: number
+  startDate: Date | string
+  endDate: Date | string
+  totalAmount: number
+  costAmount: number
+  createdAt: Date | string
+  updatedAt: Date | string
+  booking: Prisma.BookingCreateNestedOneWithoutItemsInput
+}
+
+export type BookingItemUncheckedCreateWithoutSupplierReferenceInput = {
+  id?: string
+  bookingId: string
+  kind: string
+  packageId?: string | null
+  inventoryItemId?: string | null
+  title: string
+  description?: string | null
+  quantity: number
+  unitPrice: number
+  startDate: Date | string
+  endDate: Date | string
+  totalAmount: number
+  costAmount: number
+  createdAt: Date | string
+  updatedAt: Date | string
+}
+
+export type BookingItemCreateOrConnectWithoutSupplierReferenceInput = {
+  where: Prisma.BookingItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.BookingItemCreateWithoutSupplierReferenceInput, Prisma.BookingItemUncheckedCreateWithoutSupplierReferenceInput>
+}
+
+export type BookingItemUpsertWithoutSupplierReferenceInput = {
+  update: Prisma.XOR<Prisma.BookingItemUpdateWithoutSupplierReferenceInput, Prisma.BookingItemUncheckedUpdateWithoutSupplierReferenceInput>
+  create: Prisma.XOR<Prisma.BookingItemCreateWithoutSupplierReferenceInput, Prisma.BookingItemUncheckedCreateWithoutSupplierReferenceInput>
+  where?: Prisma.BookingItemWhereInput
+}
+
+export type BookingItemUpdateToOneWithWhereWithoutSupplierReferenceInput = {
+  where?: Prisma.BookingItemWhereInput
+  data: Prisma.XOR<Prisma.BookingItemUpdateWithoutSupplierReferenceInput, Prisma.BookingItemUncheckedUpdateWithoutSupplierReferenceInput>
+}
+
+export type BookingItemUpdateWithoutSupplierReferenceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
+  packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventoryItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  costAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  booking?: Prisma.BookingUpdateOneRequiredWithoutItemsNestedInput
+}
+
+export type BookingItemUncheckedUpdateWithoutSupplierReferenceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
+  packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventoryItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  costAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type BookingItemCreateManyBookingInput = {
+  id?: string
+  kind: string
+  packageId?: string | null
+  inventoryItemId?: string | null
+  title: string
+  description?: string | null
+  quantity: number
+  unitPrice: number
+  startDate: Date | string
+  endDate: Date | string
+  totalAmount: number
+  costAmount: number
+  createdAt: Date | string
+  updatedAt: Date | string
+}
+
+export type BookingItemUpdateWithoutBookingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
+  packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventoryItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  costAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supplierReference?: Prisma.SupplierBookingReferenceUpdateOneWithoutItemNestedInput
+}
+
+export type BookingItemUncheckedUpdateWithoutBookingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
+  packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventoryItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  costAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supplierReference?: Prisma.SupplierBookingReferenceUncheckedUpdateOneWithoutItemNestedInput
+}
+
+export type BookingItemUncheckedUpdateManyWithoutBookingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
+  packageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventoryItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  costAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -515,9 +920,14 @@ export type BookingItemSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   description?: boolean
   quantity?: boolean
   unitPrice?: boolean
-  supplierBookingReference?: boolean
+  startDate?: boolean
+  endDate?: boolean
+  totalAmount?: boolean
+  costAmount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+  supplierReference?: boolean | Prisma.BookingItem$supplierReferenceArgs<ExtArgs>
 }, ExtArgs["result"]["bookingItem"]>
 
 export type BookingItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -530,9 +940,13 @@ export type BookingItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   description?: boolean
   quantity?: boolean
   unitPrice?: boolean
-  supplierBookingReference?: boolean
+  startDate?: boolean
+  endDate?: boolean
+  totalAmount?: boolean
+  costAmount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["bookingItem"]>
 
 export type BookingItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -545,9 +959,13 @@ export type BookingItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   description?: boolean
   quantity?: boolean
   unitPrice?: boolean
-  supplierBookingReference?: boolean
+  startDate?: boolean
+  endDate?: boolean
+  totalAmount?: boolean
+  costAmount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["bookingItem"]>
 
 export type BookingItemSelectScalar = {
@@ -560,16 +978,32 @@ export type BookingItemSelectScalar = {
   description?: boolean
   quantity?: boolean
   unitPrice?: boolean
-  supplierBookingReference?: boolean
+  startDate?: boolean
+  endDate?: boolean
+  totalAmount?: boolean
+  costAmount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type BookingItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingId" | "kind" | "packageId" | "inventoryItemId" | "title" | "description" | "quantity" | "unitPrice" | "supplierBookingReference" | "createdAt" | "updatedAt", ExtArgs["result"]["bookingItem"]>
+export type BookingItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingId" | "kind" | "packageId" | "inventoryItemId" | "title" | "description" | "quantity" | "unitPrice" | "startDate" | "endDate" | "totalAmount" | "costAmount" | "createdAt" | "updatedAt", ExtArgs["result"]["bookingItem"]>
+export type BookingItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+  supplierReference?: boolean | Prisma.BookingItem$supplierReferenceArgs<ExtArgs>
+}
+export type BookingItemIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+}
+export type BookingItemIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+}
 
 export type $BookingItemPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "BookingItem"
-  objects: {}
+  objects: {
+    booking: Prisma.$BookingPayload<ExtArgs>
+    supplierReference: Prisma.$SupplierBookingReferencePayload<ExtArgs> | null
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     bookingId: string
@@ -580,7 +1014,10 @@ export type $BookingItemPayload<ExtArgs extends runtime.Types.Extensions.Interna
     description: string | null
     quantity: number
     unitPrice: number
-    supplierBookingReference: runtime.JsonValue | null
+    startDate: Date
+    endDate: Date
+    totalAmount: number
+    costAmount: number
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["bookingItem"]>
@@ -977,6 +1414,8 @@ readonly fields: BookingItemFieldRefs;
  */
 export interface Prisma__BookingItemClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  booking<T extends Prisma.BookingDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BookingDefaultArgs<ExtArgs>>): Prisma.Prisma__BookingClient<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  supplierReference<T extends Prisma.BookingItem$supplierReferenceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BookingItem$supplierReferenceArgs<ExtArgs>>): Prisma.Prisma__SupplierBookingReferenceClient<runtime.Types.Result.GetResult<Prisma.$SupplierBookingReferencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1015,7 +1454,10 @@ export interface BookingItemFieldRefs {
   readonly description: Prisma.FieldRef<"BookingItem", 'String'>
   readonly quantity: Prisma.FieldRef<"BookingItem", 'Int'>
   readonly unitPrice: Prisma.FieldRef<"BookingItem", 'Float'>
-  readonly supplierBookingReference: Prisma.FieldRef<"BookingItem", 'Json'>
+  readonly startDate: Prisma.FieldRef<"BookingItem", 'DateTime'>
+  readonly endDate: Prisma.FieldRef<"BookingItem", 'DateTime'>
+  readonly totalAmount: Prisma.FieldRef<"BookingItem", 'Float'>
+  readonly costAmount: Prisma.FieldRef<"BookingItem", 'Float'>
   readonly createdAt: Prisma.FieldRef<"BookingItem", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"BookingItem", 'DateTime'>
 }
@@ -1035,6 +1477,10 @@ export type BookingItemFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   omit?: Prisma.BookingItemOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingItemInclude<ExtArgs> | null
+  /**
    * Filter, which BookingItem to fetch.
    */
   where: Prisma.BookingItemWhereUniqueInput
@@ -1053,6 +1499,10 @@ export type BookingItemFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Exten
    */
   omit?: Prisma.BookingItemOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingItemInclude<ExtArgs> | null
+  /**
    * Filter, which BookingItem to fetch.
    */
   where: Prisma.BookingItemWhereUniqueInput
@@ -1070,6 +1520,10 @@ export type BookingItemFindFirstArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the BookingItem
    */
   omit?: Prisma.BookingItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingItemInclude<ExtArgs> | null
   /**
    * Filter, which BookingItem to fetch.
    */
@@ -1119,6 +1573,10 @@ export type BookingItemFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extens
    */
   omit?: Prisma.BookingItemOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingItemInclude<ExtArgs> | null
+  /**
    * Filter, which BookingItem to fetch.
    */
   where?: Prisma.BookingItemWhereInput
@@ -1166,6 +1624,10 @@ export type BookingItemFindManyArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Omit specific fields from the BookingItem
    */
   omit?: Prisma.BookingItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingItemInclude<ExtArgs> | null
   /**
    * Filter, which BookingItems to fetch.
    */
@@ -1215,6 +1677,10 @@ export type BookingItemCreateArgs<ExtArgs extends runtime.Types.Extensions.Inter
    */
   omit?: Prisma.BookingItemOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingItemInclude<ExtArgs> | null
+  /**
    * The data needed to create a BookingItem.
    */
   data: Prisma.XOR<Prisma.BookingItemCreateInput, Prisma.BookingItemUncheckedCreateInput>
@@ -1248,6 +1714,10 @@ export type BookingItemCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Ext
    */
   data: Prisma.BookingItemCreateManyInput | Prisma.BookingItemCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingItemIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1262,6 +1732,10 @@ export type BookingItemUpdateArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Omit specific fields from the BookingItem
    */
   omit?: Prisma.BookingItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingItemInclude<ExtArgs> | null
   /**
    * The data needed to update a BookingItem.
    */
@@ -1314,6 +1788,10 @@ export type BookingItemUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Ext
    * Limit how many BookingItems to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingItemIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1328,6 +1806,10 @@ export type BookingItemUpsertArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Omit specific fields from the BookingItem
    */
   omit?: Prisma.BookingItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingItemInclude<ExtArgs> | null
   /**
    * The filter to search for the BookingItem to update in case it exists.
    */
@@ -1355,6 +1837,10 @@ export type BookingItemDeleteArgs<ExtArgs extends runtime.Types.Extensions.Inter
    */
   omit?: Prisma.BookingItemOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingItemInclude<ExtArgs> | null
+  /**
    * Filter which BookingItem to delete.
    */
   where: Prisma.BookingItemWhereUniqueInput
@@ -1375,6 +1861,25 @@ export type BookingItemDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
 }
 
 /**
+ * BookingItem.supplierReference
+ */
+export type BookingItem$supplierReferenceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SupplierBookingReference
+   */
+  select?: Prisma.SupplierBookingReferenceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SupplierBookingReference
+   */
+  omit?: Prisma.SupplierBookingReferenceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SupplierBookingReferenceInclude<ExtArgs> | null
+  where?: Prisma.SupplierBookingReferenceWhereInput
+}
+
+/**
  * BookingItem without action
  */
 export type BookingItemDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1386,4 +1891,8 @@ export type BookingItemDefaultArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Omit specific fields from the BookingItem
    */
   omit?: Prisma.BookingItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingItemInclude<ExtArgs> | null
 }

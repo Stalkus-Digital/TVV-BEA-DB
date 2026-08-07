@@ -123,6 +123,7 @@ export class PackageService extends BaseService {
       isStaffPick: false,
       flightsIncluded: false,
       faqs: [],
+      content: value.content ?? null,
       createdAt: now,
       updatedAt: now,
     });

@@ -65,6 +65,13 @@ export async function POST(req: Request) {
           inventoryItemId: item.inventoryItemId ?? null,
         })),
       })),
+      content: {
+        shortDescription: pkgData.shortDescription,
+        itineraryDetails: pkgData.itineraryDetails,
+        rules: (pkgData.rules || []).join("\n"),
+        inclusions: (pkgData.inclusions || []).join("\n"),
+        exclusions: (pkgData.exclusions || []).join("\n"),
+      },
     });
 
     if (isErr(buildResult)) {

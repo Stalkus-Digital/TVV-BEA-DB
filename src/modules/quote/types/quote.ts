@@ -1,14 +1,8 @@
 import type { QuoteAdjustment } from "./quote-adjustment";
 
-export const QuoteStatus = {
-  DRAFT: "DRAFT",
-  SENT: "SENT",
-  APPROVED: "APPROVED",
-  REJECTED: "REJECTED",
-  CONVERTED: "CONVERTED",
-} as const;
+import { QuoteStatus } from "@/generated/prisma/client";
 
-export type QuoteStatus = (typeof QuoteStatus)[keyof typeof QuoteStatus];
+export { QuoteStatus };
 
 export interface LeadTraveler {
   name: string;
@@ -44,7 +38,6 @@ export interface Quote {
   status: QuoteStatus;
   destinationId: string;
   packageId: string | null;
-  travelerDetails: TravelerDetails;
   currency: string;
   adjustments: QuoteAdjustment[];
   currentVersionId: string | null;

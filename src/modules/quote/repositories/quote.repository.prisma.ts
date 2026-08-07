@@ -12,7 +12,6 @@ function toDomain(row: PrismaQuoteRow): Quote {
   return {
     ...row,
     status: row.status as Quote["status"],
-    travelerDetails: row.travelerDetails as unknown as Quote["travelerDetails"],
     adjustments: row.adjustments as unknown as Quote["adjustments"],
     validFrom: row.validFrom.toISOString(),
     validTo: row.validTo.toISOString(),
@@ -68,7 +67,6 @@ export class PrismaQuoteRepository implements QuoteRepository {
       const row = await prisma.quote.create({
         data: {
           ...data,
-          travelerDetails: data.travelerDetails as object,
           adjustments: data.adjustments as unknown as object,
           validFrom: new Date(data.validFrom),
           validTo: new Date(data.validTo),
@@ -89,7 +87,6 @@ export class PrismaQuoteRepository implements QuoteRepository {
         where: { id },
         data: {
           ...data,
-          travelerDetails: data.travelerDetails !== undefined ? (data.travelerDetails as object) : undefined,
           adjustments: data.adjustments !== undefined ? (data.adjustments as unknown as object) : undefined,
           validFrom: data.validFrom !== undefined ? new Date(data.validFrom) : undefined,
           validTo: data.validTo !== undefined ? new Date(data.validTo) : undefined,

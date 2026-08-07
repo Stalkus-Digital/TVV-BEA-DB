@@ -22,10 +22,11 @@ export function enqueueBookingEmail(input: EnqueueBookingEmailInput): void {
 
       const lead = await prisma.traveller.findFirst({
         where: { bookingId: input.bookingId, isLeadTraveller: true },
+        include: { profile: true }
       });
       const contact =
         lead ??
-        (await prisma.traveller.findFirst({ where: { bookingId: input.bookingId } }));
+        (await prisma.traveller.findFirst({ where: { bookingId: input.bookingId }, include: { profile: true } }));
 
       await getBookingEmailService().sendForBooking({
         ...input,
@@ -33,7 +34,7 @@ export function enqueueBookingEmail(input: EnqueueBookingEmailInput): void {
           bookingId: booking.id,
           bookingNumber: booking.bookingNumber,
           recipientName: contact?.fullName ?? null,
-          recipientEmail: contact?.email ?? null,
+          recipientEmail: contact?.profile?.email ?? null,
           currency: input.currency ?? booking.currency,
           amount: input.amount,
           invoiceNumber: input.invoiceNumber,

@@ -94,7 +94,7 @@ export interface SeoListItem {
 
 export interface LandingPageRow {
   id: string;
-  type: "home" | "package" | "destination" | "static";
+  type: "home" | "package" | "destination" | "static" | "custom";
   title: string;
   slug: string;
   path: string;

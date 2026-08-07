@@ -15,7 +15,10 @@ export function buildQuotePdfData(quote: Quote, items: QuoteItem[], pricing: Quo
     validTo: quote.validTo,
     isExpired: new Date(quote.validTo).getTime() < Date.now(),
     destination: { id: destination.id, name: destination.name, slug: destination.slug },
-    travelerDetails: quote.travelerDetails,
+    travelerDetails: {
+      leadTraveler: { name: "Guest", email: "", phone: "" },
+      adults: 2, children: 0, infants: 0
+    },
     lineItems: items.map((item) => ({
       title: item.title,
       description: item.description,

@@ -58,6 +58,7 @@ export interface CreatePackageInput {
   durationNights: number;
   durationText?: string | null;
   seo: PackageSeo;
+  content?: any;
 }
 
 export function validateCreatePackage(input: unknown): Result<CreatePackageInput, ValidationError> {
@@ -99,10 +100,11 @@ export function validateCreatePackage(input: unknown): Result<CreatePackageInput
     slug,
     destinationId: body.destinationId as string,
     sourceType: sourceType as PackageSourceType,
-    durationDays: body.durationDays,
-    durationNights: body.durationNights,
-    durationText: typeof body.durationText === "string" ? body.durationText : null,
+    durationDays: body.durationDays as number,
+    durationNights: body.durationNights as number,
+    durationText: (body.durationText as string | null | undefined) ?? null,
     seo: seo.value,
+    content: body.content,
   });
 }
 

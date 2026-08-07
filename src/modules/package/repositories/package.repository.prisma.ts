@@ -16,6 +16,7 @@ function toDomain(row: PrismaPackageRow): Package {
     status: row.status as Package["status"],
     seo: row.seo as unknown as Package["seo"],
     faqs: row.faqs as unknown as Package["faqs"],
+    content: row.content as any,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -69,7 +70,7 @@ export class PrismaPackageRepository implements PackageRepository {
   }
 
   async create(data: Omit<Package, "id">): Promise<Result<Package, AppError>> {
-    const row = await prisma.package.create({ data: { ...data, seo: data.seo as object, faqs: data.faqs as unknown as object } });
+    const row = await prisma.package.create({ data: { ...data, seo: data.seo as object, faqs: data.faqs as unknown as object, content: data.content ? (data.content as object) : undefined } });
     return ok(toDomain(row));
   }
 
@@ -77,7 +78,7 @@ export class PrismaPackageRepository implements PackageRepository {
     try {
       const row = await prisma.package.update({
         where: { id },
-        data: { ...data, seo: data.seo !== undefined ? (data.seo as object) : undefined, faqs: data.faqs !== undefined ? (data.faqs as unknown as object) : undefined },
+        data: { ...data, seo: data.seo !== undefined ? (data.seo as object) : undefined, faqs: data.faqs !== undefined ? (data.faqs as unknown as object) : undefined, content: data.content !== undefined ? (data.content as object) : undefined },
       });
       return ok(toDomain(row));
     } catch {

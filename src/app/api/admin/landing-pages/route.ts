@@ -27,6 +27,11 @@ export async function POST(request: NextRequest) {
       data: {
         title: body.title,
         slug,
+        destinationId: body.destinationId || null,
+        template: body.template || "destination_v1",
+        seoTitle: body.seoTitle || null,
+        seoDescription: body.seoDescription || null,
+        status: body.status || "DRAFT",
         blocks: body.blocks || [],
         seo: body.seo || {},
       },

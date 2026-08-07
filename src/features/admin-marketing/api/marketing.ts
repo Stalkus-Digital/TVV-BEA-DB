@@ -153,7 +153,7 @@ export async function fetchSeoDashboard(): Promise<SeoListItem[]> {
 }
 
 export async function fetchLandingPages(): Promise<LandingPageRow[]> {
-  const [home, websitePackages, websiteDestinations, adminPackages, adminDestinations, navigation] =
+  const [home, websitePackages, websiteDestinations, adminPackages, adminDestinations, navigation, customPagesResult] =
     await Promise.all([
       fetchWebsiteHome(),
       fetchAllWebsitePackages(),
@@ -161,6 +161,7 @@ export async function fetchLandingPages(): Promise<LandingPageRow[]> {
       fetchAllPackages(),
       fetchAllDestinations(),
       fetchWebsiteNavigation(),
+      adminApiClient.get<{ data: any[] }>("/api/admin/landing-pages"),
     ]);
 
   const staticRoutes = [
@@ -169,7 +170,7 @@ export async function fetchLandingPages(): Promise<LandingPageRow[]> {
     ...navigation.footer.columns.flatMap((column) => column.links),
   ];
 
-  return buildLandingPages(home, websitePackages, websiteDestinations, adminPackages, adminDestinations, staticRoutes);
+  return buildLandingPages(home, websitePackages, websiteDestinations, adminPackages, adminDestinations, staticRoutes, customPagesResult?.data || []);
 }
 
 export async function fetchContentPerformance() {

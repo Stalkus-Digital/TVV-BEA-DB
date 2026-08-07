@@ -16,7 +16,12 @@ import { randomUUID } from "crypto";
 export interface CreateLandingPageDto {
   title: string;
   slug: string;
-  blocks: Record<string, unknown>;
+  destinationId?: string;
+  template?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  status?: string;
+  blocks?: Record<string, unknown>;
   seo?: Record<string, unknown> | null;
 }
 
@@ -28,6 +33,7 @@ export class LandingPageService extends BaseService {
   async getAll(): Promise<Result<any[], AppError>> {
     try {
       const pages = await prisma.landingPage.findMany({
+        include: { destination: { select: { slug: true, name: true } } },
         orderBy: { createdAt: "desc" },
       });
       return ok(pages);
@@ -38,7 +44,10 @@ export class LandingPageService extends BaseService {
 
   async getBySlug(slug: string): Promise<Result<any, AppError>> {
     try {
-      const page = await prisma.landingPage.findUnique({ where: { slug } });
+      const page = await prisma.landingPage.findUnique({ 
+        where: { slug },
+        include: { destination: { select: { slug: true, name: true } } }
+      });
       if (!page) return err(new NotFoundError("Landing page not found"));
       return ok(page);
     } catch {
@@ -53,7 +62,12 @@ export class LandingPageService extends BaseService {
           id: randomUUID(),
           title: data.title,
           slug: data.slug,
-          blocks: (data.blocks ?? {}) as Prisma.InputJsonValue,
+          destinationId: data.destinationId,
+          template: data.template ?? "destination_v1",
+          seoTitle: data.seoTitle,
+          seoDescription: data.seoDescription,
+          status: data.status ?? "DRAFT",
+          blocks: data.blocks ? (data.blocks as Prisma.InputJsonValue) : Prisma.JsonNull,
           seo: data.seo ? (data.seo as Prisma.InputJsonValue) : Prisma.JsonNull,
         },
       });
@@ -68,7 +82,12 @@ export class LandingPageService extends BaseService {
       const updateData: Record<string, unknown> = {};
       if (data.title !== undefined) updateData.title = data.title;
       if (data.slug !== undefined) updateData.slug = data.slug;
-      if (data.blocks !== undefined) updateData.blocks = data.blocks as Prisma.InputJsonValue;
+      if (data.destinationId !== undefined) updateData.destinationId = data.destinationId;
+      if (data.template !== undefined) updateData.template = data.template;
+      if (data.seoTitle !== undefined) updateData.seoTitle = data.seoTitle;
+      if (data.seoDescription !== undefined) updateData.seoDescription = data.seoDescription;
+      if (data.status !== undefined) updateData.status = data.status;
+      if (data.blocks !== undefined) updateData.blocks = data.blocks ? (data.blocks as Prisma.InputJsonValue) : Prisma.JsonNull;
       if (data.seo !== undefined) updateData.seo = data.seo ? (data.seo as Prisma.InputJsonValue) : Prisma.JsonNull;
 
       const page = await prisma.landingPage.update({

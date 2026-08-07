@@ -148,8 +148,8 @@ async function resolveSearchBookingIds(search: string): Promise<{ or: Prisma.Boo
     where: {
       OR: [
         { fullName: { contains: q, mode: "insensitive" } },
-        { email: { contains: q, mode: "insensitive" } },
-        { phone: { contains: q, mode: "insensitive" } },
+        { profile: { is: { email: { contains: q, mode: "insensitive" } } } },
+        { profile: { is: { phone: { contains: q, mode: "insensitive" } } } },
       ],
     },
     select: { bookingId: true },
@@ -344,13 +344,13 @@ export class PrismaBookingRepository implements BookingRepository {
   }
 
   async create(data: Omit<Booking, "id">): Promise<Result<Booking, AppError>> {
-    const row = await prisma.booking.create({ data: data as Prisma.BookingCreateInput });
+    const row = await prisma.booking.create({ data: data as any });
     return ok(toDomain(row));
   }
 
   async update(id: string, data: Partial<Omit<Booking, "id">>): Promise<Result<Booking, AppError>> {
     try {
-      const row = await prisma.booking.update({ where: { id }, data: data as Prisma.BookingUpdateInput });
+      const row = await prisma.booking.update({ where: { id }, data: data as any });
       return ok(toDomain(row));
     } catch {
       return err(new NotFoundError(`Booking "${id}" not found`));

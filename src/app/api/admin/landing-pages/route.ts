@@ -1,43 +1,29 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { prisma } from "@/shared/database/prisma-client";
+import { LandingPageService } from "@/modules/website/services/landing-page.service";
 
-export async function GET(request: NextRequest) {
-  try {
-    const pages = await prisma.landingPage.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-    return NextResponse.json({ success: true, data: pages });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: "Failed to fetch landing pages" }, { status: 500 });
-  }
+function service() {
+  return new LandingPageService({} as any);
+}
+
+export async function GET() {
+  const result = await service().getAll();
+  if (!result.ok) return NextResponse.json({ success: false, error: result.error.message }, { status: 500 });
+  return NextResponse.json({ success: true, data: result.value });
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
-    // Ensure slug is unique or generate a default one
-    let slug = body.slug || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    const existing = await prisma.landingPage.findUnique({ where: { slug } });
-    if (existing) {
-      slug = `${slug}-${Date.now()}`;
+    if (!body.title || !body.slug) {
+      return NextResponse.json({ success: false, error: "title and slug are required" }, { status: 400 });
     }
-
-    const page = await prisma.landingPage.create({
-      data: {
-        title: body.title,
-        slug,
-        destinationId: body.destinationId || null,
-        template: body.template || "destination_v1",
-        seoTitle: body.seoTitle || null,
-        seoDescription: body.seoDescription || null,
-        status: body.status || "DRAFT",
-        blocks: body.blocks || [],
-        seo: body.seo || {},
-      },
-    });
-    return NextResponse.json({ success: true, data: page }, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: "Failed to create landing page" }, { status: 500 });
+    const result = await service().create(body);
+    if (!result.ok) {
+      const status = result.error.name === "ConflictError" ? 409 : 500;
+      return NextResponse.json({ success: false, error: result.error.message }, { status });
+    }
+    return NextResponse.json({ success: true, data: result.value }, { status: 201 });
+  } catch {
+    return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
   }
 }

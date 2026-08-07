@@ -1,51 +1,35 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { prisma } from "@/shared/database/prisma-client";
+import { LandingPageService } from "@/modules/website/services/landing-page.service";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id } = await params;
-    const page = await prisma.landingPage.findUnique({
-      where: { id },
-    });
-    if (!page) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
-    return NextResponse.json({ success: true, data: page });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: "Failed to fetch landing page" }, { status: 500 });
-  }
+function service() {
+  return new LandingPageService({} as any);
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const result = await service().getById(id);
+  if (!result.ok) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
+  return NextResponse.json({ success: true, data: result.value });
+}
+
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const page = await prisma.landingPage.update({
-      where: { id },
-      data: {
-        title: body.title,
-        slug: body.slug,
-        destinationId: body.destinationId,
-        template: body.template,
-        status: body.status,
-        seoTitle: body.seoTitle,
-        seoDescription: body.seoDescription,
-        blocks: body.blocks,
-        seo: body.seo,
-      },
-    });
-    return NextResponse.json({ success: true, data: page });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: "Failed to update landing page" }, { status: 500 });
+    const result = await service().update(id, body);
+    if (!result.ok) {
+      const status = result.error.name === "ConflictError" ? 409 : 500;
+      return NextResponse.json({ success: false, error: result.error.message }, { status });
+    }
+    return NextResponse.json({ success: true, data: result.value });
+  } catch {
+    return NextResponse.json({ success: false, error: "Invalid request" }, { status: 400 });
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id } = await params;
-    await prisma.landingPage.delete({
-      where: { id },
-    });
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: "Failed to delete landing page" }, { status: 500 });
-  }
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const result = await service().delete(id);
+  if (!result.ok) return NextResponse.json({ success: false, error: result.error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
 }

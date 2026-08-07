@@ -1,28 +1,38 @@
 import { BaseService, type ServiceContext } from "@/shared/services";
 import { ok, err, type Result } from "@/shared/types";
-import { InternalError, NotFoundError, type AppError } from "@/shared/errors";
+import { InternalError, NotFoundError, ConflictError, type AppError } from "@/shared/errors";
 import { prisma } from "@/shared/database/prisma-client";
-import { Prisma } from "@/generated/prisma/client";
 import { randomUUID } from "crypto";
 
-/**
- * DTO aligned with the actual LandingPage schema:
- *  - blocks: Json   (required — contains all page section data)
- *  - seo:    Json?  (optional — SEO metadata overrides)
- *
- * The old DTO fields (heroSection / packages / faqSection) were removed
- * when the schema was refactored to use a single flexible `blocks` column.
- */
-export interface CreateLandingPageDto {
+export interface LandingPageDto {
   title: string;
   slug: string;
-  destinationId?: string;
-  template?: string;
+  status?: string;
+  heroImage?: string;
+  heroHeadline?: string;
+  heroSubheadline?: string;
+  locationBadge?: string;
+  priceFrom?: number;
+  whatsappNumber?: string;
+  phoneNumber?: string;
+  metaPixelId?: string;
+  googleAdsTag?: string;
+  googleAdsConversionId?: string;
+  packageSlugs?: string[];
+  activities?: { name: string }[];
+  faqs?: { q: string; a: string }[];
+  usps?: string[];
+  testimonials?: any;
   seoTitle?: string;
   seoDescription?: string;
-  status?: string;
-  blocks?: Record<string, unknown>;
-  seo?: Record<string, unknown> | null;
+  campaignTag?: string;
+  canonicalUrl?: string;
+  advancedSchema?: any;
+  mobileHeroImage?: string;
+  videoUrl?: string;
+  offerEndDate?: Date;
+  remainingSlots?: number;
+  discountPercentage?: number;
 }
 
 export class LandingPageService extends BaseService {
@@ -33,7 +43,6 @@ export class LandingPageService extends BaseService {
   async getAll(): Promise<Result<any[], AppError>> {
     try {
       const pages = await prisma.landingPage.findMany({
-        include: { destination: { select: { slug: true, name: true } } },
         orderBy: { createdAt: "desc" },
       });
       return ok(pages);
@@ -44,10 +53,7 @@ export class LandingPageService extends BaseService {
 
   async getBySlug(slug: string): Promise<Result<any, AppError>> {
     try {
-      const page = await prisma.landingPage.findUnique({ 
-        where: { slug },
-        include: { destination: { select: { slug: true, name: true } } }
-      });
+      const page = await prisma.landingPage.findUnique({ where: { slug } });
       if (!page) return err(new NotFoundError("Landing page not found"));
       return ok(page);
     } catch {
@@ -55,44 +61,76 @@ export class LandingPageService extends BaseService {
     }
   }
 
-  async create(data: CreateLandingPageDto): Promise<Result<any, AppError>> {
+  async getById(id: string): Promise<Result<any, AppError>> {
     try {
+      const page = await prisma.landingPage.findUnique({ where: { id } });
+      if (!page) return err(new NotFoundError("Landing page not found"));
+      return ok(page);
+    } catch {
+      return err(new InternalError("Failed to fetch landing page"));
+    }
+  }
+
+  async create(data: LandingPageDto): Promise<Result<any, AppError>> {
+    try {
+      // Enforce unique slug with a friendly error
+      const existing = await prisma.landingPage.findUnique({ where: { slug: data.slug } });
+      if (existing) {
+        return err(new ConflictError(`Slug "/${data.slug}" is already in use. Choose a different slug.`));
+      }
       const page = await prisma.landingPage.create({
         data: {
           id: randomUUID(),
           title: data.title,
           slug: data.slug,
-          destinationId: data.destinationId,
-          template: data.template ?? "destination_v1",
+          status: data.status ?? "DRAFT",
+          heroImage: data.heroImage,
+          heroHeadline: data.heroHeadline,
+          heroSubheadline: data.heroSubheadline,
+          locationBadge: data.locationBadge,
+          priceFrom: data.priceFrom,
+          whatsappNumber: data.whatsappNumber,
+          phoneNumber: data.phoneNumber,
+          metaPixelId: data.metaPixelId,
+          googleAdsTag: data.googleAdsTag,
+          googleAdsConversionId: data.googleAdsConversionId,
+          packageSlugs: data.packageSlugs ?? [],
+          activities: data.activities ?? [],
+          faqs: data.faqs ?? [],
+          usps: data.usps ?? [],
+          testimonials: data.testimonials ?? [],
           seoTitle: data.seoTitle,
           seoDescription: data.seoDescription,
-          status: data.status ?? "DRAFT",
-          blocks: data.blocks ? (data.blocks as Prisma.InputJsonValue) : Prisma.JsonNull,
-          seo: data.seo ? (data.seo as Prisma.InputJsonValue) : Prisma.JsonNull,
-        },
+          campaignTag: data.campaignTag,
+          canonicalUrl: data.canonicalUrl,
+          advancedSchema: data.advancedSchema,
+          mobileHeroImage: data.mobileHeroImage,
+          videoUrl: data.videoUrl,
+          offerEndDate: data.offerEndDate ? new Date(data.offerEndDate) : null,
+          remainingSlots: data.remainingSlots ? Number(data.remainingSlots) : null,
+          discountPercentage: data.discountPercentage ? Number(data.discountPercentage) : null,
+        } as any,
       });
       return ok(page);
-    } catch {
+    } catch (e) {
       return err(new InternalError("Failed to create landing page"));
     }
   }
 
-  async update(id: string, data: Partial<CreateLandingPageDto>): Promise<Result<any, AppError>> {
+  async update(id: string, data: Partial<LandingPageDto>): Promise<Result<any, AppError>> {
     try {
-      const updateData: Record<string, unknown> = {};
-      if (data.title !== undefined) updateData.title = data.title;
-      if (data.slug !== undefined) updateData.slug = data.slug;
-      if (data.destinationId !== undefined) updateData.destinationId = data.destinationId;
-      if (data.template !== undefined) updateData.template = data.template;
-      if (data.seoTitle !== undefined) updateData.seoTitle = data.seoTitle;
-      if (data.seoDescription !== undefined) updateData.seoDescription = data.seoDescription;
-      if (data.status !== undefined) updateData.status = data.status;
-      if (data.blocks !== undefined) updateData.blocks = data.blocks ? (data.blocks as Prisma.InputJsonValue) : Prisma.JsonNull;
-      if (data.seo !== undefined) updateData.seo = data.seo ? (data.seo as Prisma.InputJsonValue) : Prisma.JsonNull;
-
+      // If slug is being changed, check it doesn't conflict with another page
+      if (data.slug) {
+        const conflict = await prisma.landingPage.findFirst({
+          where: { slug: data.slug, id: { not: id } },
+        });
+        if (conflict) {
+          return err(new ConflictError(`Slug "/${data.slug}" is already used by another page.`));
+        }
+      }
       const page = await prisma.landingPage.update({
         where: { id },
-        data: updateData,
+        data: data as any,
       });
       return ok(page);
     } catch {
@@ -100,33 +138,42 @@ export class LandingPageService extends BaseService {
     }
   }
 
-  async compileToHtml(slugOrId: string): Promise<Result<string, AppError>> {
+  /** Duplicate an existing page — new slug gets a -copy suffix */
+  async duplicate(id: string): Promise<Result<any, AppError>> {
     try {
-      const pageResult = await this.getBySlug(slugOrId);
-      if (!pageResult.ok) return pageResult;
-      const page = pageResult.value;
+      const original = await prisma.landingPage.findUnique({ where: { id } });
+      if (!original) return err(new NotFoundError("Landing page not found"));
 
-      // blocks is a flexible JSON column — render a lightweight preview
-      const blocks = Array.isArray(page.blocks) ? page.blocks : [];
-      const blocksHtml = blocks
-        .map((block: any) => `<section data-type="${block.type ?? "unknown"}">${block.title ?? ""}</section>`)
-        .join("");
+      const baseSlug = `${original.slug}-copy`;
+      let slug = baseSlug;
+      let attempt = 0;
+      while (await prisma.landingPage.findUnique({ where: { slug } })) {
+        attempt++;
+        slug = `${baseSlug}-${attempt}`;
+      }
 
-      const html = `<!DOCTYPE html>
-<html>
-<head>
-  <title>${page.title}</title>
-  <meta charset="utf-8">
-  <style>body { font-family: sans-serif; }</style>
-</head>
-<body>
-  ${blocksHtml}
-</body>
-</html>`;
-
-      return ok(html);
+      const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = original as any;
+      const copy = await prisma.landingPage.create({
+        data: {
+          ...rest,
+          id: randomUUID(),
+          slug,
+          title: `${original.title} (Copy)`,
+          status: "DRAFT", // copies always start as draft
+        } as any,
+      });
+      return ok(copy);
     } catch {
-      return err(new InternalError("Failed to compile landing page"));
+      return err(new InternalError("Failed to duplicate landing page"));
+    }
+  }
+
+  async delete(id: string): Promise<Result<void, AppError>> {
+    try {
+      await prisma.landingPage.delete({ where: { id } });
+      return ok(undefined);
+    } catch {
+      return err(new InternalError("Failed to delete landing page"));
     }
   }
 }

@@ -927,13 +927,49 @@ model LandingPage {
   id             String   @id @default(uuid())
   slug           String   @unique
   title          String
+  status         String   @default("DRAFT") // "DRAFT" | "PUBLISHED"
+
+  // ── Hero Section ──────────────────────────────────────────────────────
+  heroImage        String?
+  mobileHeroImage  String?
+  videoUrl         String?
+  heroHeadline     String?
+  heroSubheadline  String?
+  locationBadge    String?   // e.g. "Andaman Islands"
+  priceFrom        Int?      // e.g. 10500
+
+  // ── Scarcity & Urgency ────────────────────────────────────────────────
+  offerEndDate       DateTime?
+  remainingSlots     Int?
+  discountPercentage Int?
+
+  // ── Contact & Tracking ────────────────────────────────────────────────
+  whatsappNumber          String?  // e.g. "916297919122"
+  phoneNumber             String?  // e.g. "+916297919122"
+  metaPixelId             String?
+  googleAdsTag            String?  // e.g. "AW-16668991299"
+  googleAdsConversionId   String?
+
+  // ── Content (JSON arrays) ─────────────────────────────────────────────
+  packageSlugs   Json?  // string[] — package slugs to feature
+  activities     Json?  // [{ name: string }]
+  faqs           Json?  // [{ q: string, a: string }]
+  usps           Json?  // string[]
+  testimonials   Json?  // [{ author: string, text: string, rating: number, role: string }]
+
+  // ── SEO ───────────────────────────────────────────────────────────────
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+  campaignTag    String?
+  advancedSchema Json?
+
+  // ── Legacy fields (kept for backward compat, no longer used by builder) ──
   blocks         Json?
   seo            Json?
   destinationId  String?
   template       String   @default("destination_v1")
-  seoTitle       String?
-  seoDescription String?
-  status         String   @default("DRAFT")
+
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -941,6 +977,7 @@ model LandingPage {
 
   @@map("landing_pages")
 }
+
 
 // ── CMS Engine ─────────────────────────────────────────────────────────
 

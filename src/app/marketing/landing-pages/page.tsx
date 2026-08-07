@@ -1,6 +1,9 @@
-import { redirect } from "next/navigation";
+import { LandingPageBuilderPage } from "@/features/admin-marketing/components/LandingPageBuilderPage";
 
-/** Landing Pages moved from Marketing to CMS. */
+export const metadata = {
+  title: "Landing Pages | TVV Admin",
+};
+
 export default function Page() {
-  redirect("/cms/landing-pages");
+  return <LandingPageBuilderPage />;
 }

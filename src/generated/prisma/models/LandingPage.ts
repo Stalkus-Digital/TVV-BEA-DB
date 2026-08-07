@@ -20,19 +20,50 @@ export type LandingPageModel = runtime.Types.Result.DefaultSelection<Prisma.$Lan
 
 export type AggregateLandingPage = {
   _count: LandingPageCountAggregateOutputType | null
+  _avg: LandingPageAvgAggregateOutputType | null
+  _sum: LandingPageSumAggregateOutputType | null
   _min: LandingPageMinAggregateOutputType | null
   _max: LandingPageMaxAggregateOutputType | null
+}
+
+export type LandingPageAvgAggregateOutputType = {
+  priceFrom: number | null
+  remainingSlots: number | null
+  discountPercentage: number | null
+}
+
+export type LandingPageSumAggregateOutputType = {
+  priceFrom: number | null
+  remainingSlots: number | null
+  discountPercentage: number | null
 }
 
 export type LandingPageMinAggregateOutputType = {
   id: string | null
   slug: string | null
   title: string | null
-  destinationId: string | null
-  template: string | null
+  status: string | null
+  heroImage: string | null
+  mobileHeroImage: string | null
+  videoUrl: string | null
+  heroHeadline: string | null
+  heroSubheadline: string | null
+  locationBadge: string | null
+  priceFrom: number | null
+  offerEndDate: Date | null
+  remainingSlots: number | null
+  discountPercentage: number | null
+  whatsappNumber: string | null
+  phoneNumber: string | null
+  metaPixelId: string | null
+  googleAdsTag: string | null
+  googleAdsConversionId: string | null
   seoTitle: string | null
   seoDescription: string | null
-  status: string | null
+  canonicalUrl: string | null
+  campaignTag: string | null
+  destinationId: string | null
+  template: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -41,11 +72,28 @@ export type LandingPageMaxAggregateOutputType = {
   id: string | null
   slug: string | null
   title: string | null
-  destinationId: string | null
-  template: string | null
+  status: string | null
+  heroImage: string | null
+  mobileHeroImage: string | null
+  videoUrl: string | null
+  heroHeadline: string | null
+  heroSubheadline: string | null
+  locationBadge: string | null
+  priceFrom: number | null
+  offerEndDate: Date | null
+  remainingSlots: number | null
+  discountPercentage: number | null
+  whatsappNumber: string | null
+  phoneNumber: string | null
+  metaPixelId: string | null
+  googleAdsTag: string | null
+  googleAdsConversionId: string | null
   seoTitle: string | null
   seoDescription: string | null
-  status: string | null
+  canonicalUrl: string | null
+  campaignTag: string | null
+  destinationId: string | null
+  template: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -54,28 +102,80 @@ export type LandingPageCountAggregateOutputType = {
   id: number
   slug: number
   title: number
+  status: number
+  heroImage: number
+  mobileHeroImage: number
+  videoUrl: number
+  heroHeadline: number
+  heroSubheadline: number
+  locationBadge: number
+  priceFrom: number
+  offerEndDate: number
+  remainingSlots: number
+  discountPercentage: number
+  whatsappNumber: number
+  phoneNumber: number
+  metaPixelId: number
+  googleAdsTag: number
+  googleAdsConversionId: number
+  packageSlugs: number
+  activities: number
+  faqs: number
+  usps: number
+  testimonials: number
+  seoTitle: number
+  seoDescription: number
+  canonicalUrl: number
+  campaignTag: number
+  advancedSchema: number
   blocks: number
   seo: number
   destinationId: number
   template: number
-  seoTitle: number
-  seoDescription: number
-  status: number
   createdAt: number
   updatedAt: number
   _all: number
 }
 
 
+export type LandingPageAvgAggregateInputType = {
+  priceFrom?: true
+  remainingSlots?: true
+  discountPercentage?: true
+}
+
+export type LandingPageSumAggregateInputType = {
+  priceFrom?: true
+  remainingSlots?: true
+  discountPercentage?: true
+}
+
 export type LandingPageMinAggregateInputType = {
   id?: true
   slug?: true
   title?: true
-  destinationId?: true
-  template?: true
+  status?: true
+  heroImage?: true
+  mobileHeroImage?: true
+  videoUrl?: true
+  heroHeadline?: true
+  heroSubheadline?: true
+  locationBadge?: true
+  priceFrom?: true
+  offerEndDate?: true
+  remainingSlots?: true
+  discountPercentage?: true
+  whatsappNumber?: true
+  phoneNumber?: true
+  metaPixelId?: true
+  googleAdsTag?: true
+  googleAdsConversionId?: true
   seoTitle?: true
   seoDescription?: true
-  status?: true
+  canonicalUrl?: true
+  campaignTag?: true
+  destinationId?: true
+  template?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -84,11 +184,28 @@ export type LandingPageMaxAggregateInputType = {
   id?: true
   slug?: true
   title?: true
-  destinationId?: true
-  template?: true
+  status?: true
+  heroImage?: true
+  mobileHeroImage?: true
+  videoUrl?: true
+  heroHeadline?: true
+  heroSubheadline?: true
+  locationBadge?: true
+  priceFrom?: true
+  offerEndDate?: true
+  remainingSlots?: true
+  discountPercentage?: true
+  whatsappNumber?: true
+  phoneNumber?: true
+  metaPixelId?: true
+  googleAdsTag?: true
+  googleAdsConversionId?: true
   seoTitle?: true
   seoDescription?: true
-  status?: true
+  canonicalUrl?: true
+  campaignTag?: true
+  destinationId?: true
+  template?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -97,13 +214,36 @@ export type LandingPageCountAggregateInputType = {
   id?: true
   slug?: true
   title?: true
+  status?: true
+  heroImage?: true
+  mobileHeroImage?: true
+  videoUrl?: true
+  heroHeadline?: true
+  heroSubheadline?: true
+  locationBadge?: true
+  priceFrom?: true
+  offerEndDate?: true
+  remainingSlots?: true
+  discountPercentage?: true
+  whatsappNumber?: true
+  phoneNumber?: true
+  metaPixelId?: true
+  googleAdsTag?: true
+  googleAdsConversionId?: true
+  packageSlugs?: true
+  activities?: true
+  faqs?: true
+  usps?: true
+  testimonials?: true
+  seoTitle?: true
+  seoDescription?: true
+  canonicalUrl?: true
+  campaignTag?: true
+  advancedSchema?: true
   blocks?: true
   seo?: true
   destinationId?: true
   template?: true
-  seoTitle?: true
-  seoDescription?: true
-  status?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -147,6 +287,18 @@ export type LandingPageAggregateArgs<ExtArgs extends runtime.Types.Extensions.In
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: LandingPageAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: LandingPageSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: LandingPageMinAggregateInputType
@@ -177,6 +329,8 @@ export type LandingPageGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   _count?: LandingPageCountAggregateInputType | true
+  _avg?: LandingPageAvgAggregateInputType
+  _sum?: LandingPageSumAggregateInputType
   _min?: LandingPageMinAggregateInputType
   _max?: LandingPageMaxAggregateInputType
 }
@@ -185,16 +339,41 @@ export type LandingPageGroupByOutputType = {
   id: string
   slug: string
   title: string
+  status: string
+  heroImage: string | null
+  mobileHeroImage: string | null
+  videoUrl: string | null
+  heroHeadline: string | null
+  heroSubheadline: string | null
+  locationBadge: string | null
+  priceFrom: number | null
+  offerEndDate: Date | null
+  remainingSlots: number | null
+  discountPercentage: number | null
+  whatsappNumber: string | null
+  phoneNumber: string | null
+  metaPixelId: string | null
+  googleAdsTag: string | null
+  googleAdsConversionId: string | null
+  packageSlugs: runtime.JsonValue | null
+  activities: runtime.JsonValue | null
+  faqs: runtime.JsonValue | null
+  usps: runtime.JsonValue | null
+  testimonials: runtime.JsonValue | null
+  seoTitle: string | null
+  seoDescription: string | null
+  canonicalUrl: string | null
+  campaignTag: string | null
+  advancedSchema: runtime.JsonValue | null
   blocks: runtime.JsonValue | null
   seo: runtime.JsonValue | null
   destinationId: string | null
   template: string
-  seoTitle: string | null
-  seoDescription: string | null
-  status: string
   createdAt: Date
   updatedAt: Date
   _count: LandingPageCountAggregateOutputType | null
+  _avg: LandingPageAvgAggregateOutputType | null
+  _sum: LandingPageSumAggregateOutputType | null
   _min: LandingPageMinAggregateOutputType | null
   _max: LandingPageMaxAggregateOutputType | null
 }
@@ -221,13 +400,36 @@ export type LandingPageWhereInput = {
   id?: Prisma.StringFilter<"LandingPage"> | string
   slug?: Prisma.StringFilter<"LandingPage"> | string
   title?: Prisma.StringFilter<"LandingPage"> | string
+  status?: Prisma.StringFilter<"LandingPage"> | string
+  heroImage?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  mobileHeroImage?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  videoUrl?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  heroHeadline?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  heroSubheadline?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  locationBadge?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  priceFrom?: Prisma.IntNullableFilter<"LandingPage"> | number | null
+  offerEndDate?: Prisma.DateTimeNullableFilter<"LandingPage"> | Date | string | null
+  remainingSlots?: Prisma.IntNullableFilter<"LandingPage"> | number | null
+  discountPercentage?: Prisma.IntNullableFilter<"LandingPage"> | number | null
+  whatsappNumber?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  phoneNumber?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  metaPixelId?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  googleAdsTag?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  googleAdsConversionId?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  packageSlugs?: Prisma.JsonNullableFilter<"LandingPage">
+  activities?: Prisma.JsonNullableFilter<"LandingPage">
+  faqs?: Prisma.JsonNullableFilter<"LandingPage">
+  usps?: Prisma.JsonNullableFilter<"LandingPage">
+  testimonials?: Prisma.JsonNullableFilter<"LandingPage">
+  seoTitle?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  seoDescription?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  canonicalUrl?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  campaignTag?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  advancedSchema?: Prisma.JsonNullableFilter<"LandingPage">
   blocks?: Prisma.JsonNullableFilter<"LandingPage">
   seo?: Prisma.JsonNullableFilter<"LandingPage">
   destinationId?: Prisma.StringNullableFilter<"LandingPage"> | string | null
   template?: Prisma.StringFilter<"LandingPage"> | string
-  seoTitle?: Prisma.StringNullableFilter<"LandingPage"> | string | null
-  seoDescription?: Prisma.StringNullableFilter<"LandingPage"> | string | null
-  status?: Prisma.StringFilter<"LandingPage"> | string
   createdAt?: Prisma.DateTimeFilter<"LandingPage"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LandingPage"> | Date | string
   destination?: Prisma.XOR<Prisma.DestinationNullableScalarRelationFilter, Prisma.DestinationWhereInput> | null
@@ -237,13 +439,36 @@ export type LandingPageOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  heroImage?: Prisma.SortOrderInput | Prisma.SortOrder
+  mobileHeroImage?: Prisma.SortOrderInput | Prisma.SortOrder
+  videoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  heroHeadline?: Prisma.SortOrderInput | Prisma.SortOrder
+  heroSubheadline?: Prisma.SortOrderInput | Prisma.SortOrder
+  locationBadge?: Prisma.SortOrderInput | Prisma.SortOrder
+  priceFrom?: Prisma.SortOrderInput | Prisma.SortOrder
+  offerEndDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  remainingSlots?: Prisma.SortOrderInput | Prisma.SortOrder
+  discountPercentage?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatsappNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  metaPixelId?: Prisma.SortOrderInput | Prisma.SortOrder
+  googleAdsTag?: Prisma.SortOrderInput | Prisma.SortOrder
+  googleAdsConversionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  packageSlugs?: Prisma.SortOrderInput | Prisma.SortOrder
+  activities?: Prisma.SortOrderInput | Prisma.SortOrder
+  faqs?: Prisma.SortOrderInput | Prisma.SortOrder
+  usps?: Prisma.SortOrderInput | Prisma.SortOrder
+  testimonials?: Prisma.SortOrderInput | Prisma.SortOrder
+  seoTitle?: Prisma.SortOrderInput | Prisma.SortOrder
+  seoDescription?: Prisma.SortOrderInput | Prisma.SortOrder
+  canonicalUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  campaignTag?: Prisma.SortOrderInput | Prisma.SortOrder
+  advancedSchema?: Prisma.SortOrderInput | Prisma.SortOrder
   blocks?: Prisma.SortOrderInput | Prisma.SortOrder
   seo?: Prisma.SortOrderInput | Prisma.SortOrder
   destinationId?: Prisma.SortOrderInput | Prisma.SortOrder
   template?: Prisma.SortOrder
-  seoTitle?: Prisma.SortOrderInput | Prisma.SortOrder
-  seoDescription?: Prisma.SortOrderInput | Prisma.SortOrder
-  status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   destination?: Prisma.DestinationOrderByWithRelationInput
@@ -256,13 +481,36 @@ export type LandingPageWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.LandingPageWhereInput[]
   NOT?: Prisma.LandingPageWhereInput | Prisma.LandingPageWhereInput[]
   title?: Prisma.StringFilter<"LandingPage"> | string
+  status?: Prisma.StringFilter<"LandingPage"> | string
+  heroImage?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  mobileHeroImage?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  videoUrl?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  heroHeadline?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  heroSubheadline?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  locationBadge?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  priceFrom?: Prisma.IntNullableFilter<"LandingPage"> | number | null
+  offerEndDate?: Prisma.DateTimeNullableFilter<"LandingPage"> | Date | string | null
+  remainingSlots?: Prisma.IntNullableFilter<"LandingPage"> | number | null
+  discountPercentage?: Prisma.IntNullableFilter<"LandingPage"> | number | null
+  whatsappNumber?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  phoneNumber?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  metaPixelId?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  googleAdsTag?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  googleAdsConversionId?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  packageSlugs?: Prisma.JsonNullableFilter<"LandingPage">
+  activities?: Prisma.JsonNullableFilter<"LandingPage">
+  faqs?: Prisma.JsonNullableFilter<"LandingPage">
+  usps?: Prisma.JsonNullableFilter<"LandingPage">
+  testimonials?: Prisma.JsonNullableFilter<"LandingPage">
+  seoTitle?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  seoDescription?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  canonicalUrl?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  campaignTag?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  advancedSchema?: Prisma.JsonNullableFilter<"LandingPage">
   blocks?: Prisma.JsonNullableFilter<"LandingPage">
   seo?: Prisma.JsonNullableFilter<"LandingPage">
   destinationId?: Prisma.StringNullableFilter<"LandingPage"> | string | null
   template?: Prisma.StringFilter<"LandingPage"> | string
-  seoTitle?: Prisma.StringNullableFilter<"LandingPage"> | string | null
-  seoDescription?: Prisma.StringNullableFilter<"LandingPage"> | string | null
-  status?: Prisma.StringFilter<"LandingPage"> | string
   createdAt?: Prisma.DateTimeFilter<"LandingPage"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LandingPage"> | Date | string
   destination?: Prisma.XOR<Prisma.DestinationNullableScalarRelationFilter, Prisma.DestinationWhereInput> | null
@@ -272,18 +520,43 @@ export type LandingPageOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  heroImage?: Prisma.SortOrderInput | Prisma.SortOrder
+  mobileHeroImage?: Prisma.SortOrderInput | Prisma.SortOrder
+  videoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  heroHeadline?: Prisma.SortOrderInput | Prisma.SortOrder
+  heroSubheadline?: Prisma.SortOrderInput | Prisma.SortOrder
+  locationBadge?: Prisma.SortOrderInput | Prisma.SortOrder
+  priceFrom?: Prisma.SortOrderInput | Prisma.SortOrder
+  offerEndDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  remainingSlots?: Prisma.SortOrderInput | Prisma.SortOrder
+  discountPercentage?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatsappNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  metaPixelId?: Prisma.SortOrderInput | Prisma.SortOrder
+  googleAdsTag?: Prisma.SortOrderInput | Prisma.SortOrder
+  googleAdsConversionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  packageSlugs?: Prisma.SortOrderInput | Prisma.SortOrder
+  activities?: Prisma.SortOrderInput | Prisma.SortOrder
+  faqs?: Prisma.SortOrderInput | Prisma.SortOrder
+  usps?: Prisma.SortOrderInput | Prisma.SortOrder
+  testimonials?: Prisma.SortOrderInput | Prisma.SortOrder
+  seoTitle?: Prisma.SortOrderInput | Prisma.SortOrder
+  seoDescription?: Prisma.SortOrderInput | Prisma.SortOrder
+  canonicalUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  campaignTag?: Prisma.SortOrderInput | Prisma.SortOrder
+  advancedSchema?: Prisma.SortOrderInput | Prisma.SortOrder
   blocks?: Prisma.SortOrderInput | Prisma.SortOrder
   seo?: Prisma.SortOrderInput | Prisma.SortOrder
   destinationId?: Prisma.SortOrderInput | Prisma.SortOrder
   template?: Prisma.SortOrder
-  seoTitle?: Prisma.SortOrderInput | Prisma.SortOrder
-  seoDescription?: Prisma.SortOrderInput | Prisma.SortOrder
-  status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.LandingPageCountOrderByAggregateInput
+  _avg?: Prisma.LandingPageAvgOrderByAggregateInput
   _max?: Prisma.LandingPageMaxOrderByAggregateInput
   _min?: Prisma.LandingPageMinOrderByAggregateInput
+  _sum?: Prisma.LandingPageSumOrderByAggregateInput
 }
 
 export type LandingPageScalarWhereWithAggregatesInput = {
@@ -293,13 +566,36 @@ export type LandingPageScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"LandingPage"> | string
   slug?: Prisma.StringWithAggregatesFilter<"LandingPage"> | string
   title?: Prisma.StringWithAggregatesFilter<"LandingPage"> | string
+  status?: Prisma.StringWithAggregatesFilter<"LandingPage"> | string
+  heroImage?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
+  mobileHeroImage?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
+  videoUrl?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
+  heroHeadline?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
+  heroSubheadline?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
+  locationBadge?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
+  priceFrom?: Prisma.IntNullableWithAggregatesFilter<"LandingPage"> | number | null
+  offerEndDate?: Prisma.DateTimeNullableWithAggregatesFilter<"LandingPage"> | Date | string | null
+  remainingSlots?: Prisma.IntNullableWithAggregatesFilter<"LandingPage"> | number | null
+  discountPercentage?: Prisma.IntNullableWithAggregatesFilter<"LandingPage"> | number | null
+  whatsappNumber?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
+  phoneNumber?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
+  metaPixelId?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
+  googleAdsTag?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
+  googleAdsConversionId?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
+  packageSlugs?: Prisma.JsonNullableWithAggregatesFilter<"LandingPage">
+  activities?: Prisma.JsonNullableWithAggregatesFilter<"LandingPage">
+  faqs?: Prisma.JsonNullableWithAggregatesFilter<"LandingPage">
+  usps?: Prisma.JsonNullableWithAggregatesFilter<"LandingPage">
+  testimonials?: Prisma.JsonNullableWithAggregatesFilter<"LandingPage">
+  seoTitle?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
+  seoDescription?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
+  canonicalUrl?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
+  campaignTag?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
+  advancedSchema?: Prisma.JsonNullableWithAggregatesFilter<"LandingPage">
   blocks?: Prisma.JsonNullableWithAggregatesFilter<"LandingPage">
   seo?: Prisma.JsonNullableWithAggregatesFilter<"LandingPage">
   destinationId?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
   template?: Prisma.StringWithAggregatesFilter<"LandingPage"> | string
-  seoTitle?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
-  seoDescription?: Prisma.StringNullableWithAggregatesFilter<"LandingPage"> | string | null
-  status?: Prisma.StringWithAggregatesFilter<"LandingPage"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"LandingPage"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"LandingPage"> | Date | string
 }
@@ -308,12 +604,35 @@ export type LandingPageCreateInput = {
   id?: string
   slug: string
   title: string
+  status?: string
+  heroImage?: string | null
+  mobileHeroImage?: string | null
+  videoUrl?: string | null
+  heroHeadline?: string | null
+  heroSubheadline?: string | null
+  locationBadge?: string | null
+  priceFrom?: number | null
+  offerEndDate?: Date | string | null
+  remainingSlots?: number | null
+  discountPercentage?: number | null
+  whatsappNumber?: string | null
+  phoneNumber?: string | null
+  metaPixelId?: string | null
+  googleAdsTag?: string | null
+  googleAdsConversionId?: string | null
+  packageSlugs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  activities?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  usps?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  testimonials?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seoTitle?: string | null
+  seoDescription?: string | null
+  canonicalUrl?: string | null
+  campaignTag?: string | null
+  advancedSchema?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   blocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   template?: string
-  seoTitle?: string | null
-  seoDescription?: string | null
-  status?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   destination?: Prisma.DestinationCreateNestedOneWithoutLandingPagesInput
@@ -323,13 +642,36 @@ export type LandingPageUncheckedCreateInput = {
   id?: string
   slug: string
   title: string
+  status?: string
+  heroImage?: string | null
+  mobileHeroImage?: string | null
+  videoUrl?: string | null
+  heroHeadline?: string | null
+  heroSubheadline?: string | null
+  locationBadge?: string | null
+  priceFrom?: number | null
+  offerEndDate?: Date | string | null
+  remainingSlots?: number | null
+  discountPercentage?: number | null
+  whatsappNumber?: string | null
+  phoneNumber?: string | null
+  metaPixelId?: string | null
+  googleAdsTag?: string | null
+  googleAdsConversionId?: string | null
+  packageSlugs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  activities?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  usps?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  testimonials?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seoTitle?: string | null
+  seoDescription?: string | null
+  canonicalUrl?: string | null
+  campaignTag?: string | null
+  advancedSchema?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   blocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   destinationId?: string | null
   template?: string
-  seoTitle?: string | null
-  seoDescription?: string | null
-  status?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -338,12 +680,35 @@ export type LandingPageUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  heroImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobileHeroImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroHeadline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroSubheadline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationBadge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priceFrom?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  offerEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remainingSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discountPercentage?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metaPixelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleAdsTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleAdsConversionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  packageSlugs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  activities?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  usps?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  testimonials?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  campaignTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  advancedSchema?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   blocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   template?: Prisma.StringFieldUpdateOperationsInput | string
-  seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  seoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   destination?: Prisma.DestinationUpdateOneWithoutLandingPagesNestedInput
@@ -353,13 +718,36 @@ export type LandingPageUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  heroImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobileHeroImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroHeadline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroSubheadline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationBadge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priceFrom?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  offerEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remainingSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discountPercentage?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metaPixelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleAdsTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleAdsConversionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  packageSlugs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  activities?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  usps?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  testimonials?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  campaignTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  advancedSchema?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   blocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   destinationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   template?: Prisma.StringFieldUpdateOperationsInput | string
-  seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  seoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -368,13 +756,36 @@ export type LandingPageCreateManyInput = {
   id?: string
   slug: string
   title: string
+  status?: string
+  heroImage?: string | null
+  mobileHeroImage?: string | null
+  videoUrl?: string | null
+  heroHeadline?: string | null
+  heroSubheadline?: string | null
+  locationBadge?: string | null
+  priceFrom?: number | null
+  offerEndDate?: Date | string | null
+  remainingSlots?: number | null
+  discountPercentage?: number | null
+  whatsappNumber?: string | null
+  phoneNumber?: string | null
+  metaPixelId?: string | null
+  googleAdsTag?: string | null
+  googleAdsConversionId?: string | null
+  packageSlugs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  activities?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  usps?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  testimonials?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seoTitle?: string | null
+  seoDescription?: string | null
+  canonicalUrl?: string | null
+  campaignTag?: string | null
+  advancedSchema?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   blocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   destinationId?: string | null
   template?: string
-  seoTitle?: string | null
-  seoDescription?: string | null
-  status?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -383,12 +794,35 @@ export type LandingPageUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  heroImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobileHeroImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroHeadline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroSubheadline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationBadge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priceFrom?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  offerEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remainingSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discountPercentage?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metaPixelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleAdsTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleAdsConversionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  packageSlugs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  activities?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  usps?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  testimonials?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  campaignTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  advancedSchema?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   blocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   template?: Prisma.StringFieldUpdateOperationsInput | string
-  seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  seoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -397,13 +831,36 @@ export type LandingPageUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  heroImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobileHeroImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroHeadline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroSubheadline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationBadge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priceFrom?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  offerEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remainingSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discountPercentage?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metaPixelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleAdsTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleAdsConversionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  packageSlugs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  activities?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  usps?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  testimonials?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  campaignTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  advancedSchema?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   blocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   destinationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   template?: Prisma.StringFieldUpdateOperationsInput | string
-  seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  seoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -422,26 +879,72 @@ export type LandingPageCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  heroImage?: Prisma.SortOrder
+  mobileHeroImage?: Prisma.SortOrder
+  videoUrl?: Prisma.SortOrder
+  heroHeadline?: Prisma.SortOrder
+  heroSubheadline?: Prisma.SortOrder
+  locationBadge?: Prisma.SortOrder
+  priceFrom?: Prisma.SortOrder
+  offerEndDate?: Prisma.SortOrder
+  remainingSlots?: Prisma.SortOrder
+  discountPercentage?: Prisma.SortOrder
+  whatsappNumber?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  metaPixelId?: Prisma.SortOrder
+  googleAdsTag?: Prisma.SortOrder
+  googleAdsConversionId?: Prisma.SortOrder
+  packageSlugs?: Prisma.SortOrder
+  activities?: Prisma.SortOrder
+  faqs?: Prisma.SortOrder
+  usps?: Prisma.SortOrder
+  testimonials?: Prisma.SortOrder
+  seoTitle?: Prisma.SortOrder
+  seoDescription?: Prisma.SortOrder
+  canonicalUrl?: Prisma.SortOrder
+  campaignTag?: Prisma.SortOrder
+  advancedSchema?: Prisma.SortOrder
   blocks?: Prisma.SortOrder
   seo?: Prisma.SortOrder
   destinationId?: Prisma.SortOrder
   template?: Prisma.SortOrder
-  seoTitle?: Prisma.SortOrder
-  seoDescription?: Prisma.SortOrder
-  status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type LandingPageAvgOrderByAggregateInput = {
+  priceFrom?: Prisma.SortOrder
+  remainingSlots?: Prisma.SortOrder
+  discountPercentage?: Prisma.SortOrder
 }
 
 export type LandingPageMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  destinationId?: Prisma.SortOrder
-  template?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  heroImage?: Prisma.SortOrder
+  mobileHeroImage?: Prisma.SortOrder
+  videoUrl?: Prisma.SortOrder
+  heroHeadline?: Prisma.SortOrder
+  heroSubheadline?: Prisma.SortOrder
+  locationBadge?: Prisma.SortOrder
+  priceFrom?: Prisma.SortOrder
+  offerEndDate?: Prisma.SortOrder
+  remainingSlots?: Prisma.SortOrder
+  discountPercentage?: Prisma.SortOrder
+  whatsappNumber?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  metaPixelId?: Prisma.SortOrder
+  googleAdsTag?: Prisma.SortOrder
+  googleAdsConversionId?: Prisma.SortOrder
   seoTitle?: Prisma.SortOrder
   seoDescription?: Prisma.SortOrder
-  status?: Prisma.SortOrder
+  canonicalUrl?: Prisma.SortOrder
+  campaignTag?: Prisma.SortOrder
+  destinationId?: Prisma.SortOrder
+  template?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -450,13 +953,36 @@ export type LandingPageMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  destinationId?: Prisma.SortOrder
-  template?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  heroImage?: Prisma.SortOrder
+  mobileHeroImage?: Prisma.SortOrder
+  videoUrl?: Prisma.SortOrder
+  heroHeadline?: Prisma.SortOrder
+  heroSubheadline?: Prisma.SortOrder
+  locationBadge?: Prisma.SortOrder
+  priceFrom?: Prisma.SortOrder
+  offerEndDate?: Prisma.SortOrder
+  remainingSlots?: Prisma.SortOrder
+  discountPercentage?: Prisma.SortOrder
+  whatsappNumber?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  metaPixelId?: Prisma.SortOrder
+  googleAdsTag?: Prisma.SortOrder
+  googleAdsConversionId?: Prisma.SortOrder
   seoTitle?: Prisma.SortOrder
   seoDescription?: Prisma.SortOrder
-  status?: Prisma.SortOrder
+  canonicalUrl?: Prisma.SortOrder
+  campaignTag?: Prisma.SortOrder
+  destinationId?: Prisma.SortOrder
+  template?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type LandingPageSumOrderByAggregateInput = {
+  priceFrom?: Prisma.SortOrder
+  remainingSlots?: Prisma.SortOrder
+  discountPercentage?: Prisma.SortOrder
 }
 
 export type LandingPageCreateNestedManyWithoutDestinationInput = {
@@ -505,12 +1031,35 @@ export type LandingPageCreateWithoutDestinationInput = {
   id?: string
   slug: string
   title: string
+  status?: string
+  heroImage?: string | null
+  mobileHeroImage?: string | null
+  videoUrl?: string | null
+  heroHeadline?: string | null
+  heroSubheadline?: string | null
+  locationBadge?: string | null
+  priceFrom?: number | null
+  offerEndDate?: Date | string | null
+  remainingSlots?: number | null
+  discountPercentage?: number | null
+  whatsappNumber?: string | null
+  phoneNumber?: string | null
+  metaPixelId?: string | null
+  googleAdsTag?: string | null
+  googleAdsConversionId?: string | null
+  packageSlugs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  activities?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  usps?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  testimonials?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seoTitle?: string | null
+  seoDescription?: string | null
+  canonicalUrl?: string | null
+  campaignTag?: string | null
+  advancedSchema?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   blocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   template?: string
-  seoTitle?: string | null
-  seoDescription?: string | null
-  status?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -519,12 +1068,35 @@ export type LandingPageUncheckedCreateWithoutDestinationInput = {
   id?: string
   slug: string
   title: string
+  status?: string
+  heroImage?: string | null
+  mobileHeroImage?: string | null
+  videoUrl?: string | null
+  heroHeadline?: string | null
+  heroSubheadline?: string | null
+  locationBadge?: string | null
+  priceFrom?: number | null
+  offerEndDate?: Date | string | null
+  remainingSlots?: number | null
+  discountPercentage?: number | null
+  whatsappNumber?: string | null
+  phoneNumber?: string | null
+  metaPixelId?: string | null
+  googleAdsTag?: string | null
+  googleAdsConversionId?: string | null
+  packageSlugs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  activities?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  usps?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  testimonials?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seoTitle?: string | null
+  seoDescription?: string | null
+  canonicalUrl?: string | null
+  campaignTag?: string | null
+  advancedSchema?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   blocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   template?: string
-  seoTitle?: string | null
-  seoDescription?: string | null
-  status?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -562,13 +1134,36 @@ export type LandingPageScalarWhereInput = {
   id?: Prisma.StringFilter<"LandingPage"> | string
   slug?: Prisma.StringFilter<"LandingPage"> | string
   title?: Prisma.StringFilter<"LandingPage"> | string
+  status?: Prisma.StringFilter<"LandingPage"> | string
+  heroImage?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  mobileHeroImage?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  videoUrl?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  heroHeadline?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  heroSubheadline?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  locationBadge?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  priceFrom?: Prisma.IntNullableFilter<"LandingPage"> | number | null
+  offerEndDate?: Prisma.DateTimeNullableFilter<"LandingPage"> | Date | string | null
+  remainingSlots?: Prisma.IntNullableFilter<"LandingPage"> | number | null
+  discountPercentage?: Prisma.IntNullableFilter<"LandingPage"> | number | null
+  whatsappNumber?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  phoneNumber?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  metaPixelId?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  googleAdsTag?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  googleAdsConversionId?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  packageSlugs?: Prisma.JsonNullableFilter<"LandingPage">
+  activities?: Prisma.JsonNullableFilter<"LandingPage">
+  faqs?: Prisma.JsonNullableFilter<"LandingPage">
+  usps?: Prisma.JsonNullableFilter<"LandingPage">
+  testimonials?: Prisma.JsonNullableFilter<"LandingPage">
+  seoTitle?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  seoDescription?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  canonicalUrl?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  campaignTag?: Prisma.StringNullableFilter<"LandingPage"> | string | null
+  advancedSchema?: Prisma.JsonNullableFilter<"LandingPage">
   blocks?: Prisma.JsonNullableFilter<"LandingPage">
   seo?: Prisma.JsonNullableFilter<"LandingPage">
   destinationId?: Prisma.StringNullableFilter<"LandingPage"> | string | null
   template?: Prisma.StringFilter<"LandingPage"> | string
-  seoTitle?: Prisma.StringNullableFilter<"LandingPage"> | string | null
-  seoDescription?: Prisma.StringNullableFilter<"LandingPage"> | string | null
-  status?: Prisma.StringFilter<"LandingPage"> | string
   createdAt?: Prisma.DateTimeFilter<"LandingPage"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LandingPage"> | Date | string
 }
@@ -577,12 +1172,35 @@ export type LandingPageCreateManyDestinationInput = {
   id?: string
   slug: string
   title: string
+  status?: string
+  heroImage?: string | null
+  mobileHeroImage?: string | null
+  videoUrl?: string | null
+  heroHeadline?: string | null
+  heroSubheadline?: string | null
+  locationBadge?: string | null
+  priceFrom?: number | null
+  offerEndDate?: Date | string | null
+  remainingSlots?: number | null
+  discountPercentage?: number | null
+  whatsappNumber?: string | null
+  phoneNumber?: string | null
+  metaPixelId?: string | null
+  googleAdsTag?: string | null
+  googleAdsConversionId?: string | null
+  packageSlugs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  activities?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  usps?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  testimonials?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seoTitle?: string | null
+  seoDescription?: string | null
+  canonicalUrl?: string | null
+  campaignTag?: string | null
+  advancedSchema?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   blocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   template?: string
-  seoTitle?: string | null
-  seoDescription?: string | null
-  status?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -591,12 +1209,35 @@ export type LandingPageUpdateWithoutDestinationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  heroImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobileHeroImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroHeadline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroSubheadline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationBadge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priceFrom?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  offerEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remainingSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discountPercentage?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metaPixelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleAdsTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleAdsConversionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  packageSlugs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  activities?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  usps?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  testimonials?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  campaignTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  advancedSchema?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   blocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   template?: Prisma.StringFieldUpdateOperationsInput | string
-  seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  seoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -605,12 +1246,35 @@ export type LandingPageUncheckedUpdateWithoutDestinationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  heroImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobileHeroImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroHeadline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroSubheadline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationBadge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priceFrom?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  offerEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remainingSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discountPercentage?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metaPixelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleAdsTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleAdsConversionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  packageSlugs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  activities?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  usps?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  testimonials?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  campaignTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  advancedSchema?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   blocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   template?: Prisma.StringFieldUpdateOperationsInput | string
-  seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  seoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -619,12 +1283,35 @@ export type LandingPageUncheckedUpdateManyWithoutDestinationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  heroImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mobileHeroImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroHeadline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroSubheadline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationBadge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priceFrom?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  offerEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remainingSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discountPercentage?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metaPixelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleAdsTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleAdsConversionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  packageSlugs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  activities?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  usps?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  testimonials?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  campaignTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  advancedSchema?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   blocks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   template?: Prisma.StringFieldUpdateOperationsInput | string
-  seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  seoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -635,13 +1322,36 @@ export type LandingPageSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   id?: boolean
   slug?: boolean
   title?: boolean
+  status?: boolean
+  heroImage?: boolean
+  mobileHeroImage?: boolean
+  videoUrl?: boolean
+  heroHeadline?: boolean
+  heroSubheadline?: boolean
+  locationBadge?: boolean
+  priceFrom?: boolean
+  offerEndDate?: boolean
+  remainingSlots?: boolean
+  discountPercentage?: boolean
+  whatsappNumber?: boolean
+  phoneNumber?: boolean
+  metaPixelId?: boolean
+  googleAdsTag?: boolean
+  googleAdsConversionId?: boolean
+  packageSlugs?: boolean
+  activities?: boolean
+  faqs?: boolean
+  usps?: boolean
+  testimonials?: boolean
+  seoTitle?: boolean
+  seoDescription?: boolean
+  canonicalUrl?: boolean
+  campaignTag?: boolean
+  advancedSchema?: boolean
   blocks?: boolean
   seo?: boolean
   destinationId?: boolean
   template?: boolean
-  seoTitle?: boolean
-  seoDescription?: boolean
-  status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   destination?: boolean | Prisma.LandingPage$destinationArgs<ExtArgs>
@@ -651,13 +1361,36 @@ export type LandingPageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   id?: boolean
   slug?: boolean
   title?: boolean
+  status?: boolean
+  heroImage?: boolean
+  mobileHeroImage?: boolean
+  videoUrl?: boolean
+  heroHeadline?: boolean
+  heroSubheadline?: boolean
+  locationBadge?: boolean
+  priceFrom?: boolean
+  offerEndDate?: boolean
+  remainingSlots?: boolean
+  discountPercentage?: boolean
+  whatsappNumber?: boolean
+  phoneNumber?: boolean
+  metaPixelId?: boolean
+  googleAdsTag?: boolean
+  googleAdsConversionId?: boolean
+  packageSlugs?: boolean
+  activities?: boolean
+  faqs?: boolean
+  usps?: boolean
+  testimonials?: boolean
+  seoTitle?: boolean
+  seoDescription?: boolean
+  canonicalUrl?: boolean
+  campaignTag?: boolean
+  advancedSchema?: boolean
   blocks?: boolean
   seo?: boolean
   destinationId?: boolean
   template?: boolean
-  seoTitle?: boolean
-  seoDescription?: boolean
-  status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   destination?: boolean | Prisma.LandingPage$destinationArgs<ExtArgs>
@@ -667,13 +1400,36 @@ export type LandingPageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   id?: boolean
   slug?: boolean
   title?: boolean
+  status?: boolean
+  heroImage?: boolean
+  mobileHeroImage?: boolean
+  videoUrl?: boolean
+  heroHeadline?: boolean
+  heroSubheadline?: boolean
+  locationBadge?: boolean
+  priceFrom?: boolean
+  offerEndDate?: boolean
+  remainingSlots?: boolean
+  discountPercentage?: boolean
+  whatsappNumber?: boolean
+  phoneNumber?: boolean
+  metaPixelId?: boolean
+  googleAdsTag?: boolean
+  googleAdsConversionId?: boolean
+  packageSlugs?: boolean
+  activities?: boolean
+  faqs?: boolean
+  usps?: boolean
+  testimonials?: boolean
+  seoTitle?: boolean
+  seoDescription?: boolean
+  canonicalUrl?: boolean
+  campaignTag?: boolean
+  advancedSchema?: boolean
   blocks?: boolean
   seo?: boolean
   destinationId?: boolean
   template?: boolean
-  seoTitle?: boolean
-  seoDescription?: boolean
-  status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   destination?: boolean | Prisma.LandingPage$destinationArgs<ExtArgs>
@@ -683,18 +1439,41 @@ export type LandingPageSelectScalar = {
   id?: boolean
   slug?: boolean
   title?: boolean
+  status?: boolean
+  heroImage?: boolean
+  mobileHeroImage?: boolean
+  videoUrl?: boolean
+  heroHeadline?: boolean
+  heroSubheadline?: boolean
+  locationBadge?: boolean
+  priceFrom?: boolean
+  offerEndDate?: boolean
+  remainingSlots?: boolean
+  discountPercentage?: boolean
+  whatsappNumber?: boolean
+  phoneNumber?: boolean
+  metaPixelId?: boolean
+  googleAdsTag?: boolean
+  googleAdsConversionId?: boolean
+  packageSlugs?: boolean
+  activities?: boolean
+  faqs?: boolean
+  usps?: boolean
+  testimonials?: boolean
+  seoTitle?: boolean
+  seoDescription?: boolean
+  canonicalUrl?: boolean
+  campaignTag?: boolean
+  advancedSchema?: boolean
   blocks?: boolean
   seo?: boolean
   destinationId?: boolean
   template?: boolean
-  seoTitle?: boolean
-  seoDescription?: boolean
-  status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type LandingPageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "title" | "blocks" | "seo" | "destinationId" | "template" | "seoTitle" | "seoDescription" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["landingPage"]>
+export type LandingPageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "title" | "status" | "heroImage" | "mobileHeroImage" | "videoUrl" | "heroHeadline" | "heroSubheadline" | "locationBadge" | "priceFrom" | "offerEndDate" | "remainingSlots" | "discountPercentage" | "whatsappNumber" | "phoneNumber" | "metaPixelId" | "googleAdsTag" | "googleAdsConversionId" | "packageSlugs" | "activities" | "faqs" | "usps" | "testimonials" | "seoTitle" | "seoDescription" | "canonicalUrl" | "campaignTag" | "advancedSchema" | "blocks" | "seo" | "destinationId" | "template" | "createdAt" | "updatedAt", ExtArgs["result"]["landingPage"]>
 export type LandingPageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   destination?: boolean | Prisma.LandingPage$destinationArgs<ExtArgs>
 }
@@ -714,13 +1493,36 @@ export type $LandingPagePayload<ExtArgs extends runtime.Types.Extensions.Interna
     id: string
     slug: string
     title: string
+    status: string
+    heroImage: string | null
+    mobileHeroImage: string | null
+    videoUrl: string | null
+    heroHeadline: string | null
+    heroSubheadline: string | null
+    locationBadge: string | null
+    priceFrom: number | null
+    offerEndDate: Date | null
+    remainingSlots: number | null
+    discountPercentage: number | null
+    whatsappNumber: string | null
+    phoneNumber: string | null
+    metaPixelId: string | null
+    googleAdsTag: string | null
+    googleAdsConversionId: string | null
+    packageSlugs: runtime.JsonValue | null
+    activities: runtime.JsonValue | null
+    faqs: runtime.JsonValue | null
+    usps: runtime.JsonValue | null
+    testimonials: runtime.JsonValue | null
+    seoTitle: string | null
+    seoDescription: string | null
+    canonicalUrl: string | null
+    campaignTag: string | null
+    advancedSchema: runtime.JsonValue | null
     blocks: runtime.JsonValue | null
     seo: runtime.JsonValue | null
     destinationId: string | null
     template: string
-    seoTitle: string | null
-    seoDescription: string | null
-    status: string
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["landingPage"]>
@@ -1150,13 +1952,36 @@ export interface LandingPageFieldRefs {
   readonly id: Prisma.FieldRef<"LandingPage", 'String'>
   readonly slug: Prisma.FieldRef<"LandingPage", 'String'>
   readonly title: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly status: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly heroImage: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly mobileHeroImage: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly videoUrl: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly heroHeadline: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly heroSubheadline: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly locationBadge: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly priceFrom: Prisma.FieldRef<"LandingPage", 'Int'>
+  readonly offerEndDate: Prisma.FieldRef<"LandingPage", 'DateTime'>
+  readonly remainingSlots: Prisma.FieldRef<"LandingPage", 'Int'>
+  readonly discountPercentage: Prisma.FieldRef<"LandingPage", 'Int'>
+  readonly whatsappNumber: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly phoneNumber: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly metaPixelId: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly googleAdsTag: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly googleAdsConversionId: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly packageSlugs: Prisma.FieldRef<"LandingPage", 'Json'>
+  readonly activities: Prisma.FieldRef<"LandingPage", 'Json'>
+  readonly faqs: Prisma.FieldRef<"LandingPage", 'Json'>
+  readonly usps: Prisma.FieldRef<"LandingPage", 'Json'>
+  readonly testimonials: Prisma.FieldRef<"LandingPage", 'Json'>
+  readonly seoTitle: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly seoDescription: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly canonicalUrl: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly campaignTag: Prisma.FieldRef<"LandingPage", 'String'>
+  readonly advancedSchema: Prisma.FieldRef<"LandingPage", 'Json'>
   readonly blocks: Prisma.FieldRef<"LandingPage", 'Json'>
   readonly seo: Prisma.FieldRef<"LandingPage", 'Json'>
   readonly destinationId: Prisma.FieldRef<"LandingPage", 'String'>
   readonly template: Prisma.FieldRef<"LandingPage", 'String'>
-  readonly seoTitle: Prisma.FieldRef<"LandingPage", 'String'>
-  readonly seoDescription: Prisma.FieldRef<"LandingPage", 'String'>
-  readonly status: Prisma.FieldRef<"LandingPage", 'String'>
   readonly createdAt: Prisma.FieldRef<"LandingPage", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"LandingPage", 'DateTime'>
 }

@@ -1,7 +1,7 @@
 import type { HealthCheck, HealthCheckResult } from "../health.types";
 
 /**
- * RedisHealthCheck — pings the Redis instance using ioredis and reports
+ * RedisHealthCheck â€” pings the Redis instance using ioredis and reports
  * its latency. If Redis is unavailable, the check is "degraded" (not
  * "unhealthy"), so the system still serves requests but the ops team is alerted.
  */
@@ -41,7 +41,7 @@ export class RedisHealthCheck implements HealthCheck {
     } catch (error) {
       return {
         name: this.name,
-        status: "degraded", // degraded, not unhealthy — Redis is optional for read path
+        status: "degraded", // degraded, not unhealthy â€” Redis is optional for read path
         details: {
           error: error instanceof Error ? error.message : String(error),
           latencyMs: Date.now() - start,

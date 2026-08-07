@@ -33,9 +33,9 @@ export function LandingPagesPage() {
     if (page.type === "custom") {
       alert("Editing custom landing pages directly from here is not yet implemented. Please recreate or edit in DB.");
     } else if (page.type === "destination") {
-      router.push(`/destinations/builder/${page.id}`);
+      router.push(`/destinations/new?id=${page.id}`);
     } else if (page.type === "package") {
-      router.push(`/packages/${page.id}`);
+      router.push(`/packages/new?id=${page.id}`);
     } else if (page.type === "home") {
       router.push("/cms/home");
     } else {

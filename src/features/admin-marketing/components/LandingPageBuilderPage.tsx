@@ -83,8 +83,8 @@ export function LandingPageBuilderPage() {
   const pagesQuery = useQuery({
     queryKey: ["admin", "landing-pages"],
     queryFn: async () => {
-      const res = await adminApiClient.get<{ data: LandingPage[] }>("/api/admin/landing-pages");
-      return res?.data ?? [];
+      const res = await adminApiClient.get<LandingPage[]>("/api/admin/landing-pages");
+      return Array.isArray(res) ? res : [];
     },
   });
 
@@ -438,7 +438,12 @@ function BuilderView({ form, setForm, activeTab, setActiveTab, isSaving, saveErr
           <p className="text-xs text-muted-foreground mb-2">Adding these elements creates FOMO and boosts conversion rates.</p>
           <div className="grid grid-cols-3 gap-4">
             <Field label="Offer End Date" hint="YYYY-MM-DD or leave blank">
-              <input type="date" value={form.offerEndDate ? String(form.offerEndDate).split("T")[0] : ""} onChange={e => setForm(p => ({ ...p, offerEndDate: e.target.value ? new Date(e.target.value) : undefined }))} className={input} />
+              <input
+                type="date"
+                value={form.offerEndDate ? (form.offerEndDate instanceof Date ? form.offerEndDate.toISOString() : String(form.offerEndDate)).split("T")[0] : ""}
+                onChange={e => setForm(p => ({ ...p, offerEndDate: e.target.value ? new Date(e.target.value).toISOString() : undefined }))}
+                className={input}
+              />
             </Field>
             <Field label="Remaining Slots" hint="e.g. 5">
               <input type="number" value={form.remainingSlots ?? ""} onChange={e => setForm(p => ({ ...p, remainingSlots: e.target.value ? Number(e.target.value) : undefined }))} className={input} placeholder="5" />

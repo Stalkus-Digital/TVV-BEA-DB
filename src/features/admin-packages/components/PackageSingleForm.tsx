@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -113,19 +113,56 @@ export function PackageSingleForm() {
 
       if (rawDays.length > 0) {
         const flatRows: HotelEntry[] = [];
+        const isAiGenerated = packageData.sourceType === "AI_GENERATED";
+
         rawDays.forEach((d: any) => {
           const hotelItems = (d.items || []).filter((it: any) => it.kind === "HOTEL");
-          if (hotelItems.length > 0) {
-            hotelItems.forEach((it: any) => {
+
+          if (isAiGenerated) {
+            // AI Logic: Combine all item descriptions from the AI into a single daily description
+            const aiDayDescription = (d.items || [])
+              .map((it: any) => it.description)
+              .filter(Boolean)
+              .join("\n");
+            
+            const finalDescription = aiDayDescription || d.description || "";
+
+            if (hotelItems.length > 0) {
+              hotelItems.forEach((it: any) => {
+                flatRows.push({
+                  dayNumber: d.dayNumber,
+                  location: d.title || "", // AI outputs day title e.g. 'Arrival in Port Blair'
+                  hotelName: it.title || "",
+                  description: finalDescription,
+                });
+              });
+            } else {
               flatRows.push({
                 dayNumber: d.dayNumber,
-                location: it.description || "",
-                hotelName: it.title || "",
+                location: d.title || "",
+                hotelName: "",
+                description: finalDescription,
+              });
+            }
+          } else {
+            // Manual/Standard Logic: Location is stored in item.description
+            if (hotelItems.length > 0) {
+              hotelItems.forEach((it: any) => {
+                flatRows.push({
+                  dayNumber: d.dayNumber,
+                  location: it.description || "",
+                  hotelName: it.title || "",
+                  description: d.description || "",
+                });
+              });
+            } else {
+              flatRows.push({
+                dayNumber: d.dayNumber,
+                location: "",
+                hotelName: "",
                 description: d.description || "",
               });
-            });
-          } else {
-            flatRows.push({ dayNumber: d.dayNumber, location: "", hotelName: "", description: d.description || "" });
+            }
           }
         });
         setDays(flatRows);

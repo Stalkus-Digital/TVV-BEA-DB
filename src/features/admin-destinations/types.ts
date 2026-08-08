@@ -97,6 +97,7 @@ export interface City {
 export interface DestinationListRow extends Destination {
   countryName: string;
   stateName: string;
+  cityName: string;
   regionName: string;
   categoryLabel: string;
 }

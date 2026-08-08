@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useDestinationsQuery } from "@/features/admin-quotes/hooks/useDestinationsQuery";
 import { DescriptionEditor } from "@/features/admin-hotels/components/DescriptionEditor";
@@ -13,6 +14,7 @@ import { ArrowLeft } from "lucide-react";
 
 export function ActivityForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const editId = searchParams.get("id");
   const destinationsQuery = useDestinationsQuery();
@@ -83,8 +85,9 @@ export function ActivityForm() {
 
       if (!res) throw new Error(`Failed to ${editId ? "update" : "create"} activity`);
 
+      // Invalidate the cache so the activities list page re-fetches automatically
+      await queryClient.invalidateQueries({ queryKey: ["admin", "inventory", "ACTIVITY"] });
       router.push("/itinerary/activities");
-      // Optional success toast here
     } catch (error) {
       console.error(error);
       alert(`Error ${editId ? "updating" : "creating"} activity`);

@@ -213,12 +213,18 @@ function OverviewTab({
         </div>
         <div>
           <dt className="text-muted-foreground">State</dt>
-          <dd className="font-medium">{resolveGeoName(destination.stateId, geo?.statesById ?? new Map())}</dd>
+          <dd className="font-medium">{resolveGeoName(destination.stateId, geo?.statesById ?? new Map()) || "—"}</dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Region</dt>
-          <dd className="font-medium">{resolveGeoName(destination.regionId, geo?.regionsById ?? new Map())}</dd>
+          <dt className="text-muted-foreground">City</dt>
+          <dd className="font-medium">{destination.cityId || "—"}</dd>
         </div>
+        {destination.regionId && (
+          <div>
+            <dt className="text-muted-foreground">Region</dt>
+            <dd className="font-medium">{resolveGeoName(destination.regionId, geo?.regionsById ?? new Map())}</dd>
+          </div>
+        )}
         <div>
           <dt className="text-muted-foreground">Category</dt>
           <dd className="font-medium">

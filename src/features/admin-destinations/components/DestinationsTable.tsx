@@ -142,7 +142,7 @@ export function DestinationsTable({
               <th className="text-left font-medium px-4 py-3">Name</th>
               <th className="text-left font-medium px-4 py-3">Country</th>
               <th className="text-left font-medium px-4 py-3">State</th>
-              <th className="text-left font-medium px-4 py-3">Region</th>
+              <th className="text-left font-medium px-4 py-3">City</th>
               <th className="text-left font-medium px-4 py-3">Category</th>
               <th className="text-left font-medium px-4 py-3">Status</th>
               <th className="text-left font-medium px-4 py-3">Slug</th>
@@ -172,8 +172,8 @@ export function DestinationsTable({
                   )}
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">{row.countryName}</td>
-                <td className="px-4 py-3 text-muted-foreground">{row.stateName}</td>
-                <td className="px-4 py-3 text-muted-foreground">{row.regionName}</td>
+                <td className="px-4 py-3 text-muted-foreground">{row.stateName || "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{row.cityName || "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{row.categoryLabel}</td>
                 <td className="px-4 py-3">
                   <DestinationStatusBadge status={row.status} />

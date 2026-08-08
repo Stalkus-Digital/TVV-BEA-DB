@@ -60,10 +60,13 @@ export function enrichDestinationRows(
     ...dest,
     countryName: resolveGeoName(dest.countryId, countriesById),
     stateName: resolveGeoName(dest.stateId, statesById),
+    // cityId is stored as a plain name string in the DB (e.g. "Badagara"), use directly
+    cityName: dest.cityId ?? "",
     regionName: resolveGeoName(dest.regionId, regionsById),
     categoryLabel: resolveCategoryLabel(dest.categoryIds, categoriesById),
   }));
 }
+
 
 export function sortDestinations(
   items: DestinationListRow[],

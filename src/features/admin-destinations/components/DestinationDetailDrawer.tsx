@@ -213,7 +213,7 @@ function OverviewTab({
         </div>
         <div>
           <dt className="text-muted-foreground">State</dt>
-          <dd className="font-medium">{resolveGeoName(destination.stateId, geo?.statesById ?? new Map()) || "—"}</dd>
+          <dd className="font-medium">{resolveGeoName(`${destination.countryId}_${destination.stateId}`, geo?.statesById ?? new Map()) || "—"}</dd>
         </div>
         <div>
           <dt className="text-muted-foreground">City</dt>

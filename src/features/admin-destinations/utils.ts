@@ -59,7 +59,8 @@ export function enrichDestinationRows(
   return destinations.map((dest) => ({
     ...dest,
     countryName: resolveGeoName(dest.countryId, countriesById),
-    stateName: resolveGeoName(dest.stateId, statesById),
+    // Use composite key to resolve state to avoid cross-country isoCode collisions
+    stateName: resolveGeoName(`${dest.countryId}_${dest.stateId}`, statesById),
     // cityId is stored as a plain name string in the DB (e.g. "Badagara"), use directly
     cityName: dest.cityId ?? "",
     regionName: resolveGeoName(dest.regionId, regionsById),
@@ -119,7 +120,9 @@ export function needsClientDestinationFiltering(filters: DestinationListFilters)
 export function buildGeographyLookups(countries: Country[], states: State[], regions: Region[], cities: City[]) {
   return {
     countriesById: new Map(countries.map((c) => [c.id, c])),
-    statesById: new Map(states.map((s) => [s.id, s])),
+    // Use composite key "countryId_isoCode" to avoid collisions
+    // (e.g. both India and Senegal have a state with isoCode "KL")
+    statesById: new Map(states.map((s) => [`${s.countryId}_${s.id}`, s])),
     regionsById: new Map(regions.map((r) => [r.id, r])),
     citiesById: new Map(cities.map((c) => [c.id, c])),
   };

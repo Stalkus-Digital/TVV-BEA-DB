@@ -7,17 +7,20 @@ import { State } from "country-state-city";
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const countryId = searchParams.get("countryId") || undefined;
-  
-  if (!countryId) {
-    return jsonSuccess([]);
-  }
 
-  const states = State.getStatesOfCountry(countryId).map((s) => ({
-    id: s.isoCode, // Use isoCode as ID to cascade to cities
-    countryId: s.countryCode,
-    name: s.name,
-    isoCode: s.isoCode,
-  }));
+  const states = countryId
+    ? State.getStatesOfCountry(countryId).map((s) => ({
+        id: s.isoCode,
+        countryId: s.countryCode,
+        name: s.name,
+        isoCode: s.isoCode,
+      }))
+    : State.getAllStates().map((s) => ({
+        id: s.isoCode,
+        countryId: s.countryCode,
+        name: s.name,
+        isoCode: s.isoCode,
+      }));
 
   return jsonSuccess(states);
 }

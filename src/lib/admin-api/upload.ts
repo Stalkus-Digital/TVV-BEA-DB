@@ -8,13 +8,14 @@ export interface UploadResult {
   sizeBytes: number;
 }
 
-const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4"]);
 const EXT_TO_MIME: Record<string, string> = {
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
   png: "image/png",
   webp: "image/webp",
   gif: "image/gif",
+  mp4: "video/mp4",
 };
 
 function resolveClientImageType(file: File): string {
@@ -34,7 +35,7 @@ function assertUploadableImage(file: File): void {
   }
   if (!ALLOWED_IMAGE_TYPES.has(type)) {
     throw new Error(
-      `"${file.name}" is not a supported image type. Use JPG, PNG, WEBP, or GIF.`
+      `"${file.name}" is not a supported image type. Use JPG, PNG, WEBP, GIF, or MP4.`
     );
   }
   if (file.size > 5 * 1024 * 1024) {
@@ -71,5 +72,16 @@ export async function uploadFile(file: File, category: string = "general", owner
 }
 
 export async function uploadFiles(files: File[], category: string = "general", ownerId?: string): Promise<UploadResult[]> {
-  return Promise.all(files.map((file) => uploadFile(file, category, ownerId)));
+  const results: UploadResult[] = [];
+  const batchSize = 3; // Prevent Serverless timeouts by chunking uploads
+
+  for (let i = 0; i < files.length; i += batchSize) {
+    const batch = files.slice(i, i + batchSize);
+    const batchResults = await Promise.all(
+      batch.map((file) => uploadFile(file, category, ownerId))
+    );
+    results.push(...batchResults);
+  }
+
+  return results;
 }

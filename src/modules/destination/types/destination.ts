@@ -47,6 +47,7 @@ export interface Destination {
   stateId: string | null;
   cityId: string | null;
   regionId: string | null;
+  continent: string | null;
   parentDestinationId: string | null;
   categoryIds: string[];
   description: string | null;

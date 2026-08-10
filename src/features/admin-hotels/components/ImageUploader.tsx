@@ -4,6 +4,7 @@ import { UploadCloud } from "lucide-react";
 interface ImageUploaderProps {
   label: string;
   multiple?: boolean;
+  acceptVideo?: boolean;
   maxFiles?: number;
   hint?: string;
   value?: (File | string)[];
@@ -14,6 +15,7 @@ interface ImageUploaderProps {
 export function ImageUploader({
   label,
   multiple = false,
+  acceptVideo = false,
   maxFiles,
   hint,
   value = [],
@@ -30,9 +32,8 @@ export function ImageUploader({
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       <label
         htmlFor={atLimit ? undefined : id}
-        className={`border border-border border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-slate-50/50 transition-colors group ${
-          atLimit ? "opacity-60 cursor-not-allowed" : "hover:bg-slate-50 cursor-pointer"
-        }`}
+        className={`border border-border border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-slate-50/50 transition-colors group ${atLimit ? "opacity-60 cursor-not-allowed" : "hover:bg-slate-50 cursor-pointer"
+          }`}
       >
         <UploadCloud className="h-8 w-8 text-muted-foreground mb-3 group-hover:text-primary transition-colors" />
         <div className="text-sm">
@@ -52,7 +53,7 @@ export function ImageUploader({
           </span>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          JPG, PNG, WEBP, or GIF up to 5MB (no HEIC)
+          {acceptVideo ? "JPG, PNG, GIF up to 2MB, MP4 up to 100MB" : "JPG, PNG, WEBP, or GIF up to 2MB (no HEIC)"}
           {typeof maxFiles === "number" ? ` · max ${maxFiles}` : ""}
         </p>
       </label>
@@ -65,7 +66,17 @@ export function ImageUploader({
         disabled={atLimit}
         onChange={(e) => {
           if (!e.target.files) return;
-          const newFiles = Array.from(e.target.files);
+          const newFiles = Array.from(e.target.files).filter(file => {
+            if (file.size > 2 * 1024 * 1024) {
+              alert(`File ${file.name} is too large. Max size is 2MB.`);
+              return false;
+            }
+            return true;
+          });
+          if (newFiles.length === 0) {
+            e.target.value = "";
+            return;
+          }
           const merged = multiple ? [...currentValues, ...newFiles] : newFiles;
           onChange(typeof maxFiles === "number" ? merged.slice(0, maxFiles) : merged);
           e.target.value = "";

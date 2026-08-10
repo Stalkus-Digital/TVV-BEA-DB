@@ -140,7 +140,13 @@ export function StorageOperationsPage() {
           <div className="flex items-end">
             <input ref={fileRef} type="file" className="hidden" onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) void handleUpload(file);
+              if (file) {
+                if (file.size > 2 * 1024 * 1024) {
+                  alert(`File ${file.name} is too large. Max size is 2MB.`);
+                } else {
+                  void handleUpload(file);
+                }
+              }
               e.target.value = "";
             }} />
             <button

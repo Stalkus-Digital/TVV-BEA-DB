@@ -28,6 +28,7 @@ export type CountryMinAggregateOutputType = {
   id: string | null
   name: string | null
   isoCode: string | null
+  continent: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -36,6 +37,7 @@ export type CountryMaxAggregateOutputType = {
   id: string | null
   name: string | null
   isoCode: string | null
+  continent: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -44,6 +46,7 @@ export type CountryCountAggregateOutputType = {
   id: number
   name: number
   isoCode: number
+  continent: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -54,6 +57,7 @@ export type CountryMinAggregateInputType = {
   id?: true
   name?: true
   isoCode?: true
+  continent?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -62,6 +66,7 @@ export type CountryMaxAggregateInputType = {
   id?: true
   name?: true
   isoCode?: true
+  continent?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -70,6 +75,7 @@ export type CountryCountAggregateInputType = {
   id?: true
   name?: true
   isoCode?: true
+  continent?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -151,6 +157,7 @@ export type CountryGroupByOutputType = {
   id: string
   name: string
   isoCode: string
+  continent: string | null
   createdAt: Date
   updatedAt: Date
   _count: CountryCountAggregateOutputType | null
@@ -180,6 +187,7 @@ export type CountryWhereInput = {
   id?: Prisma.StringFilter<"Country"> | string
   name?: Prisma.StringFilter<"Country"> | string
   isoCode?: Prisma.StringFilter<"Country"> | string
+  continent?: Prisma.StringNullableFilter<"Country"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Country"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Country"> | Date | string
 }
@@ -188,6 +196,7 @@ export type CountryOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   isoCode?: Prisma.SortOrder
+  continent?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -199,6 +208,7 @@ export type CountryWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.CountryWhereInput | Prisma.CountryWhereInput[]
   name?: Prisma.StringFilter<"Country"> | string
   isoCode?: Prisma.StringFilter<"Country"> | string
+  continent?: Prisma.StringNullableFilter<"Country"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Country"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Country"> | Date | string
 }, "id">
@@ -207,6 +217,7 @@ export type CountryOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   isoCode?: Prisma.SortOrder
+  continent?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.CountryCountOrderByAggregateInput
@@ -221,6 +232,7 @@ export type CountryScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Country"> | string
   name?: Prisma.StringWithAggregatesFilter<"Country"> | string
   isoCode?: Prisma.StringWithAggregatesFilter<"Country"> | string
+  continent?: Prisma.StringNullableWithAggregatesFilter<"Country"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Country"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Country"> | Date | string
 }
@@ -229,6 +241,7 @@ export type CountryCreateInput = {
   id?: string
   name: string
   isoCode: string
+  continent?: string | null
   createdAt: Date | string
   updatedAt: Date | string
 }
@@ -237,6 +250,7 @@ export type CountryUncheckedCreateInput = {
   id?: string
   name: string
   isoCode: string
+  continent?: string | null
   createdAt: Date | string
   updatedAt: Date | string
 }
@@ -245,6 +259,7 @@ export type CountryUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isoCode?: Prisma.StringFieldUpdateOperationsInput | string
+  continent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -253,6 +268,7 @@ export type CountryUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isoCode?: Prisma.StringFieldUpdateOperationsInput | string
+  continent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -261,6 +277,7 @@ export type CountryCreateManyInput = {
   id?: string
   name: string
   isoCode: string
+  continent?: string | null
   createdAt: Date | string
   updatedAt: Date | string
 }
@@ -269,6 +286,7 @@ export type CountryUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isoCode?: Prisma.StringFieldUpdateOperationsInput | string
+  continent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -277,6 +295,7 @@ export type CountryUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isoCode?: Prisma.StringFieldUpdateOperationsInput | string
+  continent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -285,6 +304,7 @@ export type CountryCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   isoCode?: Prisma.SortOrder
+  continent?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -293,6 +313,7 @@ export type CountryMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   isoCode?: Prisma.SortOrder
+  continent?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -301,6 +322,7 @@ export type CountryMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   isoCode?: Prisma.SortOrder
+  continent?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -311,6 +333,7 @@ export type CountrySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   id?: boolean
   name?: boolean
   isoCode?: boolean
+  continent?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["country"]>
@@ -319,6 +342,7 @@ export type CountrySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   id?: boolean
   name?: boolean
   isoCode?: boolean
+  continent?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["country"]>
@@ -327,6 +351,7 @@ export type CountrySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   id?: boolean
   name?: boolean
   isoCode?: boolean
+  continent?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["country"]>
@@ -335,11 +360,12 @@ export type CountrySelectScalar = {
   id?: boolean
   name?: boolean
   isoCode?: boolean
+  continent?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CountryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "isoCode" | "createdAt" | "updatedAt", ExtArgs["result"]["country"]>
+export type CountryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "isoCode" | "continent" | "createdAt" | "updatedAt", ExtArgs["result"]["country"]>
 
 export type $CountryPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Country"
@@ -348,6 +374,7 @@ export type $CountryPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     id: string
     name: string
     isoCode: string
+    continent: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["country"]>
@@ -776,6 +803,7 @@ export interface CountryFieldRefs {
   readonly id: Prisma.FieldRef<"Country", 'String'>
   readonly name: Prisma.FieldRef<"Country", 'String'>
   readonly isoCode: Prisma.FieldRef<"Country", 'String'>
+  readonly continent: Prisma.FieldRef<"Country", 'String'>
   readonly createdAt: Prisma.FieldRef<"Country", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Country", 'DateTime'>
 }

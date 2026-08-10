@@ -82,6 +82,7 @@ model Country {
   id        String   @id @default(uuid())
   name      String
   isoCode   String
+  continent String?
   createdAt DateTime
   updatedAt DateTime
 
@@ -153,6 +154,7 @@ model Destination {
   stateId             String?
   cityId              String?
   regionId            String?
+  continent           String?
   parentDestinationId String?
   categoryIds         String[]
   description         String?

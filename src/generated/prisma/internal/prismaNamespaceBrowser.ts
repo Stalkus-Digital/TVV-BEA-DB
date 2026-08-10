@@ -176,6 +176,7 @@ export const CountryScalarFieldEnum = {
   id: 'id',
   name: 'name',
   isoCode: 'isoCode',
+  continent: 'continent',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -248,6 +249,7 @@ export const DestinationScalarFieldEnum = {
   stateId: 'stateId',
   cityId: 'cityId',
   regionId: 'regionId',
+  continent: 'continent',
   parentDestinationId: 'parentDestinationId',
   categoryIds: 'categoryIds',
   description: 'description',

@@ -321,11 +321,11 @@ export function HotelForm() {
 
             <HotelRoomFields rooms={roomTypes} onChange={setRoomTypes} />
 
-            <div className="pt-4">
+            <div className="sticky bottom-0 z-10 bg-white border-t border-border p-4 mt-8 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] -mx-6 -mb-6 md:-mx-8 md:-mb-8 flex justify-end">
               <button
                 type="submit"
                 disabled={isSubmitting || !name || !location}
-                className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg disabled:opacity-50 transition-colors"
+                className="w-full md:w-auto min-w-[200px] py-3 px-6 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg disabled:opacity-50 transition-colors"
               >
                 {isSubmitting ? "Saving..." : editId ? "Update Hotel" : "Create Hotel"}
               </button>

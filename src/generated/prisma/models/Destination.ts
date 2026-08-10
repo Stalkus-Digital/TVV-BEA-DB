@@ -44,6 +44,7 @@ export type DestinationMinAggregateOutputType = {
   stateId: string | null
   cityId: string | null
   regionId: string | null
+  continent: string | null
   parentDestinationId: string | null
   description: string | null
   isFeatured: boolean | null
@@ -62,6 +63,7 @@ export type DestinationMaxAggregateOutputType = {
   stateId: string | null
   cityId: string | null
   regionId: string | null
+  continent: string | null
   parentDestinationId: string | null
   description: string | null
   isFeatured: boolean | null
@@ -80,6 +82,7 @@ export type DestinationCountAggregateOutputType = {
   stateId: number
   cityId: number
   regionId: number
+  continent: number
   parentDestinationId: number
   categoryIds: number
   description: number
@@ -115,6 +118,7 @@ export type DestinationMinAggregateInputType = {
   stateId?: true
   cityId?: true
   regionId?: true
+  continent?: true
   parentDestinationId?: true
   description?: true
   isFeatured?: true
@@ -133,6 +137,7 @@ export type DestinationMaxAggregateInputType = {
   stateId?: true
   cityId?: true
   regionId?: true
+  continent?: true
   parentDestinationId?: true
   description?: true
   isFeatured?: true
@@ -151,6 +156,7 @@ export type DestinationCountAggregateInputType = {
   stateId?: true
   cityId?: true
   regionId?: true
+  continent?: true
   parentDestinationId?: true
   categoryIds?: true
   description?: true
@@ -261,6 +267,7 @@ export type DestinationGroupByOutputType = {
   stateId: string | null
   cityId: string | null
   regionId: string | null
+  continent: string | null
   parentDestinationId: string | null
   categoryIds: string[]
   description: string | null
@@ -307,6 +314,7 @@ export type DestinationWhereInput = {
   stateId?: Prisma.StringNullableFilter<"Destination"> | string | null
   cityId?: Prisma.StringNullableFilter<"Destination"> | string | null
   regionId?: Prisma.StringNullableFilter<"Destination"> | string | null
+  continent?: Prisma.StringNullableFilter<"Destination"> | string | null
   parentDestinationId?: Prisma.StringNullableFilter<"Destination"> | string | null
   categoryIds?: Prisma.StringNullableListFilter<"Destination">
   description?: Prisma.StringNullableFilter<"Destination"> | string | null
@@ -332,6 +340,7 @@ export type DestinationOrderByWithRelationInput = {
   stateId?: Prisma.SortOrderInput | Prisma.SortOrder
   cityId?: Prisma.SortOrderInput | Prisma.SortOrder
   regionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  continent?: Prisma.SortOrderInput | Prisma.SortOrder
   parentDestinationId?: Prisma.SortOrderInput | Prisma.SortOrder
   categoryIds?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -360,6 +369,7 @@ export type DestinationWhereUniqueInput = Prisma.AtLeast<{
   stateId?: Prisma.StringNullableFilter<"Destination"> | string | null
   cityId?: Prisma.StringNullableFilter<"Destination"> | string | null
   regionId?: Prisma.StringNullableFilter<"Destination"> | string | null
+  continent?: Prisma.StringNullableFilter<"Destination"> | string | null
   parentDestinationId?: Prisma.StringNullableFilter<"Destination"> | string | null
   categoryIds?: Prisma.StringNullableListFilter<"Destination">
   description?: Prisma.StringNullableFilter<"Destination"> | string | null
@@ -385,6 +395,7 @@ export type DestinationOrderByWithAggregationInput = {
   stateId?: Prisma.SortOrderInput | Prisma.SortOrder
   cityId?: Prisma.SortOrderInput | Prisma.SortOrder
   regionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  continent?: Prisma.SortOrderInput | Prisma.SortOrder
   parentDestinationId?: Prisma.SortOrderInput | Prisma.SortOrder
   categoryIds?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -416,6 +427,7 @@ export type DestinationScalarWhereWithAggregatesInput = {
   stateId?: Prisma.StringNullableWithAggregatesFilter<"Destination"> | string | null
   cityId?: Prisma.StringNullableWithAggregatesFilter<"Destination"> | string | null
   regionId?: Prisma.StringNullableWithAggregatesFilter<"Destination"> | string | null
+  continent?: Prisma.StringNullableWithAggregatesFilter<"Destination"> | string | null
   parentDestinationId?: Prisma.StringNullableWithAggregatesFilter<"Destination"> | string | null
   categoryIds?: Prisma.StringNullableListFilter<"Destination">
   description?: Prisma.StringNullableWithAggregatesFilter<"Destination"> | string | null
@@ -439,6 +451,7 @@ export type DestinationCreateInput = {
   stateId?: string | null
   cityId?: string | null
   regionId?: string | null
+  continent?: string | null
   parentDestinationId?: string | null
   categoryIds?: Prisma.DestinationCreatecategoryIdsInput | string[]
   description?: string | null
@@ -464,6 +477,7 @@ export type DestinationUncheckedCreateInput = {
   stateId?: string | null
   cityId?: string | null
   regionId?: string | null
+  continent?: string | null
   parentDestinationId?: string | null
   categoryIds?: Prisma.DestinationCreatecategoryIdsInput | string[]
   description?: string | null
@@ -489,6 +503,7 @@ export type DestinationUpdateInput = {
   stateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   regionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  continent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentDestinationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   categoryIds?: Prisma.DestinationUpdatecategoryIdsInput | string[]
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -514,6 +529,7 @@ export type DestinationUncheckedUpdateInput = {
   stateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   regionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  continent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentDestinationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   categoryIds?: Prisma.DestinationUpdatecategoryIdsInput | string[]
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -539,6 +555,7 @@ export type DestinationCreateManyInput = {
   stateId?: string | null
   cityId?: string | null
   regionId?: string | null
+  continent?: string | null
   parentDestinationId?: string | null
   categoryIds?: Prisma.DestinationCreatecategoryIdsInput | string[]
   description?: string | null
@@ -562,6 +579,7 @@ export type DestinationUpdateManyMutationInput = {
   stateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   regionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  continent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentDestinationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   categoryIds?: Prisma.DestinationUpdatecategoryIdsInput | string[]
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -585,6 +603,7 @@ export type DestinationUncheckedUpdateManyInput = {
   stateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   regionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  continent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentDestinationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   categoryIds?: Prisma.DestinationUpdatecategoryIdsInput | string[]
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -608,6 +627,7 @@ export type DestinationCountOrderByAggregateInput = {
   stateId?: Prisma.SortOrder
   cityId?: Prisma.SortOrder
   regionId?: Prisma.SortOrder
+  continent?: Prisma.SortOrder
   parentDestinationId?: Prisma.SortOrder
   categoryIds?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -636,6 +656,7 @@ export type DestinationMaxOrderByAggregateInput = {
   stateId?: Prisma.SortOrder
   cityId?: Prisma.SortOrder
   regionId?: Prisma.SortOrder
+  continent?: Prisma.SortOrder
   parentDestinationId?: Prisma.SortOrder
   description?: Prisma.SortOrder
   isFeatured?: Prisma.SortOrder
@@ -654,6 +675,7 @@ export type DestinationMinOrderByAggregateInput = {
   stateId?: Prisma.SortOrder
   cityId?: Prisma.SortOrder
   regionId?: Prisma.SortOrder
+  continent?: Prisma.SortOrder
   parentDestinationId?: Prisma.SortOrder
   description?: Prisma.SortOrder
   isFeatured?: Prisma.SortOrder
@@ -747,6 +769,7 @@ export type DestinationCreateWithoutBookingsInput = {
   stateId?: string | null
   cityId?: string | null
   regionId?: string | null
+  continent?: string | null
   parentDestinationId?: string | null
   categoryIds?: Prisma.DestinationCreatecategoryIdsInput | string[]
   description?: string | null
@@ -771,6 +794,7 @@ export type DestinationUncheckedCreateWithoutBookingsInput = {
   stateId?: string | null
   cityId?: string | null
   regionId?: string | null
+  continent?: string | null
   parentDestinationId?: string | null
   categoryIds?: Prisma.DestinationCreatecategoryIdsInput | string[]
   description?: string | null
@@ -811,6 +835,7 @@ export type DestinationUpdateWithoutBookingsInput = {
   stateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   regionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  continent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentDestinationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   categoryIds?: Prisma.DestinationUpdatecategoryIdsInput | string[]
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -835,6 +860,7 @@ export type DestinationUncheckedUpdateWithoutBookingsInput = {
   stateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   regionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  continent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentDestinationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   categoryIds?: Prisma.DestinationUpdatecategoryIdsInput | string[]
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -859,6 +885,7 @@ export type DestinationCreateWithoutLandingPagesInput = {
   stateId?: string | null
   cityId?: string | null
   regionId?: string | null
+  continent?: string | null
   parentDestinationId?: string | null
   categoryIds?: Prisma.DestinationCreatecategoryIdsInput | string[]
   description?: string | null
@@ -883,6 +910,7 @@ export type DestinationUncheckedCreateWithoutLandingPagesInput = {
   stateId?: string | null
   cityId?: string | null
   regionId?: string | null
+  continent?: string | null
   parentDestinationId?: string | null
   categoryIds?: Prisma.DestinationCreatecategoryIdsInput | string[]
   description?: string | null
@@ -923,6 +951,7 @@ export type DestinationUpdateWithoutLandingPagesInput = {
   stateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   regionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  continent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentDestinationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   categoryIds?: Prisma.DestinationUpdatecategoryIdsInput | string[]
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -947,6 +976,7 @@ export type DestinationUncheckedUpdateWithoutLandingPagesInput = {
   stateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   regionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  continent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentDestinationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   categoryIds?: Prisma.DestinationUpdatecategoryIdsInput | string[]
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1011,6 +1041,7 @@ export type DestinationSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   stateId?: boolean
   cityId?: boolean
   regionId?: boolean
+  continent?: boolean
   parentDestinationId?: boolean
   categoryIds?: boolean
   description?: boolean
@@ -1037,6 +1068,7 @@ export type DestinationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   stateId?: boolean
   cityId?: boolean
   regionId?: boolean
+  continent?: boolean
   parentDestinationId?: boolean
   categoryIds?: boolean
   description?: boolean
@@ -1060,6 +1092,7 @@ export type DestinationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   stateId?: boolean
   cityId?: boolean
   regionId?: boolean
+  continent?: boolean
   parentDestinationId?: boolean
   categoryIds?: boolean
   description?: boolean
@@ -1083,6 +1116,7 @@ export type DestinationSelectScalar = {
   stateId?: boolean
   cityId?: boolean
   regionId?: boolean
+  continent?: boolean
   parentDestinationId?: boolean
   categoryIds?: boolean
   description?: boolean
@@ -1098,7 +1132,7 @@ export type DestinationSelectScalar = {
   updatedAt?: boolean
 }
 
-export type DestinationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "countryId" | "stateId" | "cityId" | "regionId" | "parentDestinationId" | "categoryIds" | "description" | "isFeatured" | "latitude" | "longitude" | "seo" | "gallery" | "faqs" | "guideReferenceIds" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["destination"]>
+export type DestinationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "countryId" | "stateId" | "cityId" | "regionId" | "continent" | "parentDestinationId" | "categoryIds" | "description" | "isFeatured" | "latitude" | "longitude" | "seo" | "gallery" | "faqs" | "guideReferenceIds" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["destination"]>
 export type DestinationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   landingPages?: boolean | Prisma.Destination$landingPagesArgs<ExtArgs>
   bookings?: boolean | Prisma.Destination$bookingsArgs<ExtArgs>
@@ -1121,6 +1155,7 @@ export type $DestinationPayload<ExtArgs extends runtime.Types.Extensions.Interna
     stateId: string | null
     cityId: string | null
     regionId: string | null
+    continent: string | null
     parentDestinationId: string | null
     categoryIds: string[]
     description: string | null
@@ -1566,6 +1601,7 @@ export interface DestinationFieldRefs {
   readonly stateId: Prisma.FieldRef<"Destination", 'String'>
   readonly cityId: Prisma.FieldRef<"Destination", 'String'>
   readonly regionId: Prisma.FieldRef<"Destination", 'String'>
+  readonly continent: Prisma.FieldRef<"Destination", 'String'>
   readonly parentDestinationId: Prisma.FieldRef<"Destination", 'String'>
   readonly categoryIds: Prisma.FieldRef<"Destination", 'String[]'>
   readonly description: Prisma.FieldRef<"Destination", 'String'>

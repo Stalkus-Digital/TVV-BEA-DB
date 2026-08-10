@@ -48,6 +48,7 @@ export interface CreateDestinationInput {
   stateId: string | null;
   cityId: string | null;
   regionId: string | null;
+  continent: string | null;
   parentDestinationId: string | null;
   categoryIds: string[];
   description: string | null;
@@ -75,6 +76,8 @@ export function validateCreateDestination(input: unknown): Result<CreateDestinat
   if (!cityId.ok) return cityId;
   const regionId = validateOptionalString(body.regionId, "regionId");
   if (!regionId.ok) return regionId;
+  const continent = validateOptionalString(body.continent, "continent");
+  if (!continent.ok) return continent;
   const parentDestinationId = validateOptionalString(body.parentDestinationId, "parentDestinationId");
   if (!parentDestinationId.ok) return parentDestinationId;
   const description = validateOptionalString(body.description, "description");
@@ -100,6 +103,7 @@ export function validateCreateDestination(input: unknown): Result<CreateDestinat
     stateId: stateId.value,
     cityId: cityId.value,
     regionId: regionId.value,
+    continent: continent.value,
     parentDestinationId: parentDestinationId.value,
     categoryIds: (body.categoryIds as string[] | undefined) ?? [],
     description: description.value,
@@ -116,6 +120,7 @@ export interface UpdateDestinationInput {
   stateId?: string | null;
   cityId?: string | null;
   regionId?: string | null;
+  continent?: string | null;
   parentDestinationId?: string | null;
   description?: string | null;
   categoryIds?: string[];
@@ -156,6 +161,11 @@ export function validateUpdateDestination(input: unknown): Result<UpdateDestinat
     const regionId = validateOptionalString(body.regionId, "regionId");
     if (!regionId.ok) return regionId;
     output.regionId = regionId.value;
+  }
+  if (body.continent !== undefined) {
+    const continent = validateOptionalString(body.continent, "continent");
+    if (!continent.ok) return continent;
+    output.continent = continent.value;
   }
   if (body.parentDestinationId !== undefined) {
     const parentDestinationId = validateOptionalString(body.parentDestinationId, "parentDestinationId");

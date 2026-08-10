@@ -17,7 +17,7 @@ export function NavigationPage() {
   const navigationQuery = useWebsiteNavigationQuery();
   const configMutation = useUpdateCmsConfigMutation();
   const [isEditing, setIsEditing] = useState(false);
-  const [menuForm, setMenuForm] = useState<{ label: string; url: string }[]>([]);
+  const [menuForm, setMenuForm] = useState<{ label: string; url: string; children?: { label: string; url: string }[] }[]>([]);
   const [publishedPages, setPublishedPages] = useState<PublishedPage[]>([]);
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export function NavigationPage() {
           <button
             type="button"
             onClick={() => {
-              setMenuForm(navigationQuery.data?.menu?.map((m) => ({ label: m.label, url: m.url })) ?? []);
+              setMenuForm(navigationQuery.data?.menu?.map((m) => ({ label: m.label, url: m.url, children: m.children?.map(c => ({ label: c.label, url: c.url })) ?? [] })) ?? []);
               setIsEditing(true);
             }}
             className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:opacity-90"
@@ -107,36 +107,90 @@ export function NavigationPage() {
           ) : null}
 
           {menuForm.map((item, idx) => (
-            <div key={idx} className="flex gap-2">
-              <input
-                required
-                placeholder="Label"
-                value={item.label}
-                onChange={(e) => {
-                  const newMenu = [...menuForm];
-                  newMenu[idx].label = e.target.value;
-                  setMenuForm(newMenu);
-                }}
-                className="flex-1 bg-background border border-input rounded-md px-3 py-2 text-sm"
-              />
-              <input
-                required
-                placeholder="URL"
-                value={item.url}
-                onChange={(e) => {
-                  const newMenu = [...menuForm];
-                  newMenu[idx].url = e.target.value;
-                  setMenuForm(newMenu);
-                }}
-                className="flex-1 bg-background border border-input rounded-md px-3 py-2 text-sm"
-              />
-              <button
-                type="button"
-                onClick={() => setMenuForm(menuForm.filter((_, i) => i !== idx))}
-                className="px-3 py-2 bg-destructive text-destructive-foreground rounded-md text-sm"
-              >
-                X
-              </button>
+            <div key={idx} className="border border-border rounded-md p-3 bg-white space-y-3">
+              <div className="flex gap-2">
+                <input
+                  required
+                  placeholder="Label"
+                  value={item.label}
+                  onChange={(e) => {
+                    const newMenu = [...menuForm];
+                    newMenu[idx].label = e.target.value;
+                    setMenuForm(newMenu);
+                  }}
+                  className="flex-1 bg-background border border-input rounded-md px-3 py-2 text-sm"
+                />
+                <input
+                  required
+                  placeholder="URL (e.g. /destinations)"
+                  value={item.url}
+                  onChange={(e) => {
+                    const newMenu = [...menuForm];
+                    newMenu[idx].url = e.target.value;
+                    setMenuForm(newMenu);
+                  }}
+                  className="flex-1 bg-background border border-input rounded-md px-3 py-2 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setMenuForm(menuForm.filter((_, i) => i !== idx))}
+                  className="px-3 py-2 bg-destructive text-destructive-foreground rounded-md text-sm"
+                >
+                  X
+                </button>
+              </div>
+
+              {/* Children */}
+              <div className="pl-6 border-l-2 border-border space-y-2">
+                {(item.children || []).map((child, cIdx) => (
+                  <div key={cIdx} className="flex gap-2">
+                    <input
+                      required
+                      placeholder="Sub-link Label"
+                      value={child.label}
+                      onChange={(e) => {
+                        const newMenu = [...menuForm];
+                        newMenu[idx].children![cIdx].label = e.target.value;
+                        setMenuForm(newMenu);
+                      }}
+                      className="flex-1 bg-background border border-input rounded-md px-3 py-1 text-sm"
+                    />
+                    <input
+                      required
+                      placeholder="URL"
+                      value={child.url}
+                      onChange={(e) => {
+                        const newMenu = [...menuForm];
+                        newMenu[idx].children![cIdx].url = e.target.value;
+                        setMenuForm(newMenu);
+                      }}
+                      className="flex-1 bg-background border border-input rounded-md px-3 py-1 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newMenu = [...menuForm];
+                        newMenu[idx].children = newMenu[idx].children!.filter((_, i) => i !== cIdx);
+                        setMenuForm(newMenu);
+                      }}
+                      className="px-2 py-1 bg-muted hover:bg-destructive hover:text-destructive-foreground rounded-md text-sm"
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newMenu = [...menuForm];
+                    newMenu[idx].children = [...(newMenu[idx].children || []), { label: "", url: "" }];
+                    setMenuForm(newMenu);
+                  }}
+                  className="text-xs text-primary hover:underline font-medium"
+                >
+                  + Add Sub-link
+                </button>
+              </div>
             </div>
           ))}
           <button

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { adminApiClient } from "@/lib/admin-api/client";
+import { uploadFiles } from "@/lib/admin-api/upload";
+import { ImageUploader } from "@/features/admin-hotels/components/ImageUploader";
 import { MarketingPageShell } from "./MarketingPageShell";
 import { ExternalLink, Edit2, Trash2, Plus, X, Check, Globe, Copy, Eye } from "lucide-react";
 
@@ -116,6 +118,20 @@ export function LandingPageBuilderPage() {
     setIsSaving(true);
     try {
       const payload = { ...form };
+      
+      if ((payload.heroImage as any) instanceof File) {
+        const [res] = await uploadFiles([payload.heroImage as unknown as File], "MARKETING_IMAGE");
+        payload.heroImage = res.url;
+      }
+      if ((payload.mobileHeroImage as any) instanceof File) {
+        const [res] = await uploadFiles([payload.mobileHeroImage as unknown as File], "MARKETING_IMAGE");
+        payload.mobileHeroImage = res.url;
+      }
+      if ((payload.videoUrl as any) instanceof File) {
+        const [res] = await uploadFiles([payload.videoUrl as unknown as File], "MARKETING_VIDEO");
+        payload.videoUrl = res.url;
+      }
+
       let res: any;
       if (editingId) {
         res = await adminApiClient.put(`/api/admin/landing-pages/${editingId}`, payload);
@@ -391,19 +407,26 @@ function BuilderView({ form, setForm, activeTab, setActiveTab, isSaving, saveErr
       {activeTab === 1 && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Hero Image URL (Desktop) *" hint="Landscape image">
-              <input value={form.heroImage ?? ""} onChange={f("heroImage")} className={input} placeholder="https://..." />
-            </Field>
-            <Field label="Mobile Hero Image URL" hint="Portrait image (optimizes mobile load)">
-              <input value={form.mobileHeroImage ?? ""} onChange={f("mobileHeroImage")} className={input} placeholder="https://..." />
-            </Field>
+            <ImageUploader
+              label="Hero Image (Desktop) *"
+              hint="Landscape image"
+              value={form.heroImage ? [form.heroImage] : []}
+              onChange={(files) => setForm(p => ({ ...p, heroImage: files[0] }))}
+            />
+            <ImageUploader
+              label="Mobile Hero Image"
+              hint="Portrait image (optimizes mobile load)"
+              value={form.mobileHeroImage ? [form.mobileHeroImage] : []}
+              onChange={(files) => setForm(p => ({ ...p, mobileHeroImage: files[0] }))}
+            />
           </div>
-          {form.heroImage && (
-            <img src={form.heroImage} alt="Hero preview" className="mt-2 rounded-lg w-full max-h-48 object-cover border border-border" />
-          )}
-          <Field label="Background Video URL (Optional)" hint="Provide an MP4 URL to autoplay in the background">
-            <input value={form.videoUrl ?? ""} onChange={f("videoUrl")} className={input} placeholder="https://.../video.mp4" />
-          </Field>
+          <ImageUploader
+            label="Background Video (Optional)"
+            hint="Upload an MP4 to autoplay in the background"
+            acceptVideo={true}
+            value={form.videoUrl ? [form.videoUrl] : []}
+            onChange={(files) => setForm(p => ({ ...p, videoUrl: files[0] }))}
+          />
           <Field label="Location Badge" hint="Small tag shown above headline — e.g. 'Andaman Islands'">
             <input value={form.locationBadge ?? ""} onChange={f("locationBadge")} className={input} placeholder="Andaman Islands" />
           </Field>

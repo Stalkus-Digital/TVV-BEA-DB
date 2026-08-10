@@ -41,7 +41,7 @@ const navGroups = [
     links: [
       { name: "CRM & Leads", href: "/crm", icon: Users },
       { name: "Customers", href: "/customers", icon: UserCircle },
-      { name: "Quotes", href: "/quotes", icon: Receipt },
+      // { name: "Quotes", href: "/quotes", icon: Receipt },
     ]
   },
   {

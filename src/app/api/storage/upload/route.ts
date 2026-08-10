@@ -14,6 +14,10 @@ export async function POST(request: NextRequest) {
   const file = formData.get("file");
   if (!(file instanceof File)) return jsonError(new ValidationError('A "file" field is required'));
 
+  if (file.size > 2 * 1024 * 1024) {
+    return jsonError(new ValidationError('Image upload should be 2MB max for each upload.'));
+  }
+
   const fileBuffer = Buffer.from(await file.arrayBuffer());
   const fileNameField = formData.get("fileName");
   const fileName = typeof fileNameField === "string" && fileNameField.length > 0 ? fileNameField : file.name;

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { prisma } from "@/shared/database/prisma-client";
 import { err, isErr, ok, type PaginatedResult, type Result } from "@/shared/types";
 import { BaseService, type ServiceContext } from "@/shared/services";
 import { ConflictError, NotFoundError, ValidationError, type AppError } from "@/shared/errors";
@@ -14,6 +15,8 @@ import {
 import type { AuditLogService } from "@/modules/auth/audit/audit-log.service";
 
 const MAX_HIERARCHY_DEPTH = 20;
+
+
 
 export class DestinationService extends BaseService {
   constructor(
@@ -98,6 +101,15 @@ export class DestinationService extends BaseService {
 
     const parentCheck = await this.assertNoCycle(validated.value.parentDestinationId, null);
     if (isErr(parentCheck)) return parentCheck;
+
+        if (!validated.value.continent && validated.value.countryId) {
+      try {
+        const country = await prisma.country.findUnique({ where: { id: validated.value.countryId } });
+        if (country?.continent) {
+          validated.value.continent = country.continent;
+        }
+      } catch (e) {}
+    }
 
     this.logger.info("Creating destination", { slug: validated.value.slug });
     const now = new Date().toISOString();
@@ -428,6 +440,7 @@ export class DestinationService extends BaseService {
       regionId: source.regionId,
       cityId: source.cityId,
       categoryIds: source.categoryIds,
+      continent: source.continent,
       latitude: source.latitude,
       longitude: source.longitude,
       isFeatured: false,

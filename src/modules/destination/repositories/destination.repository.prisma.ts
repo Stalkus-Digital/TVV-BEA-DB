@@ -14,6 +14,7 @@ function toDomain(row: PrismaDestinationRow): Destination {
     description: row.description,
     latitude: row.latitude,
     longitude: row.longitude,
+    continent: row.continent,
     seo: row.seo as unknown as Destination["seo"],
     gallery: row.gallery as unknown as Destination["gallery"],
     faqs: row.faqs as unknown as Destination["faqs"],

@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { archivePackage } from "../api/packages";
+import { archivePackage, unpublishPackage, restorePackage } from "../api/packages";
 import { useDebouncedValue } from "@/features/admin-enquiries/hooks/useDebouncedValue";
 import { ToastContainer } from "@/features/admin-destinations/components/ToastContainer";
 import { useToast } from "@/features/admin-destinations/hooks/useToast";
@@ -17,6 +17,7 @@ export function PackagesPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [filters, setFilters] = useState<PackageListFilters>({
     page: 1,
     pageSize: 20,
@@ -26,6 +27,7 @@ export function PackagesPage() {
   const [searchInput, setSearchInput] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(searchParams.get("selected"));
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
+  const [isUpdatingId, setIsUpdatingId] = useState<string | null>(null);
   const debouncedSearch = useDebouncedValue(searchInput);
   const toast = useToast();
 
@@ -39,6 +41,20 @@ export function PackagesPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => archivePackage(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "packages"] });
+    },
+  });
+
+  const unpublishMutation = useMutation({
+    mutationFn: (id: string) => unpublishPackage(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "packages"] });
+    },
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: (id: string) => restorePackage(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "packages"] });
     },
@@ -60,6 +76,46 @@ export function PackagesPage() {
         setIsDeletingId(null);
       }
     }
+  };
+
+  const handleHide = async (id: string) => {
+    if (window.confirm("Unpublish this package? It will revert to Draft status and be hidden from the website.")) {
+      setIsUpdatingId(id);
+      try {
+        await unpublishMutation.mutateAsync(id);
+        toast.success("Package hidden", "It has been reverted to draft status.");
+      } catch (error) {
+        toast.error("Hide failed", error instanceof Error ? error.message : undefined);
+      } finally {
+        setIsUpdatingId(null);
+      }
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    if (window.confirm("Restore this package? It will be moved out of the archive as a Draft.")) {
+      setIsUpdatingId(id);
+      try {
+        await restoreMutation.mutateAsync(id);
+        toast.success("Package restored", "It is now back in draft status.");
+      } catch (error) {
+        toast.error("Restore failed", error instanceof Error ? error.message : undefined);
+      } finally {
+        setIsUpdatingId(null);
+      }
+    }
+  };
+
+  const handleSelect = (id: string | null) => {
+    const next = new URLSearchParams(searchParams.toString());
+    if (id) {
+      next.set("selected", id);
+    } else {
+      next.delete("selected");
+    }
+    const qs = next.toString();
+    router.replace(qs ? `?${qs}` : pathname || "?", { scroll: false });
+    setSelectedId(id);
   };
 
   return (
@@ -92,10 +148,13 @@ export function PackagesPage() {
           isError={packagesQuery.isError}
           errorMessage={packagesQuery.error instanceof Error ? packagesQuery.error.message : undefined}
           onRetry={() => void packagesQuery.refetch()}
-          onSelect={setSelectedId}
+          onSelect={handleSelect}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onHide={handleHide}
+          onRestore={handleRestore}
           isDeleting={isDeletingId}
+          isUpdating={isUpdatingId}
           page={filters.page ?? 1}
           onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
         />
@@ -104,7 +163,7 @@ export function PackagesPage() {
       <PackageDetailDrawer
         packageId={selectedId}
         destinations={packagesQuery.destinations}
-        onClose={() => setSelectedId(null)}
+        onClose={() => handleSelect(null)}
       />
 
       <ToastContainer />

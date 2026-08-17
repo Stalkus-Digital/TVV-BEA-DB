@@ -95,11 +95,11 @@ export default function FerryRatesPage() {
   const openAddModal = () => {
     setEditingRateId(null);
     setNewRate({
-      route: "Port Blair ➔ Havelock",
-      provider: "Makruzz",
-      class: "Premium",
-      basePrice: 1000,
-      markupPrice: 100,
+      route: "",
+      provider: "",
+      class: "",
+      basePrice: "" as any,
+      markupPrice: "" as any,
     });
     setIsModalOpen(true);
   };

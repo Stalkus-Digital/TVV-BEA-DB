@@ -8,6 +8,7 @@ import { prisma } from "@/shared/database/prisma-client";
 
 export interface PackageListFilter extends PaginationParams {
   destinationId?: string;
+  destinationIds?: string[];
   status?: PackageStatus;
   sourceType?: PackageSourceType;
   tripType?: PackageTripType;
@@ -44,6 +45,9 @@ export class PrismaPackageRepository extends PrismaStore<any> implements Package
     }
     
     if (filter.destinationId) items = items.filter(( p: any ) => p.destinationId === filter.destinationId);
+    if (filter.destinationIds && filter.destinationIds.length > 0) {
+      items = items.filter(( p: any ) => filter.destinationIds!.includes(p.destinationId));
+    }
     if (filter.sourceType) items = items.filter(( p: any ) => p.sourceType === filter.sourceType);
     if (filter.tripType) items = items.filter(( p: any ) => p.tripType === filter.tripType);
     if (filter.isTemplate !== undefined) items = items.filter(( p: any ) => p.isTemplate === filter.isTemplate);

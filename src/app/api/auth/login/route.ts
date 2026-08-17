@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   if (!limit.allowed) {
     const retryAfterSec = Math.ceil(limit.retryAfterMs / 1000);
     return NextResponse.json(
-      { success: false, error: "Too many login attempts. Please try again later." },
+      { success: false, error: { code: "RATE_LIMITED", message: "Too many login attempts. Please try again later." } },
       {
         status: 429,
         headers: {

@@ -147,7 +147,12 @@ export class AdminCustomerService extends BaseService {
       const phoneUserIds = new Set(profiles.map((p) => p.userId));
       if (phoneUserIds.size > 0) {
         const extraUsers = await prisma.user.findMany({
-          where: { id: { in: [...phoneUserIds], notIn: items.map((u) => u.id) } },
+          where: {
+            id: { in: [...phoneUserIds], notIn: items.map((u) => u.id) },
+            ...(query.isActive !== undefined ? { isActive: query.isActive } : {}),
+            ...(query.emailVerified === "verified" ? { emailVerifiedAt: { not: null } } : {}),
+            ...(query.emailVerified === "unverified" ? { emailVerifiedAt: null } : {}),
+          },
         });
         items = [
           ...items,

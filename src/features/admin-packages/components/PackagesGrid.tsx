@@ -1,6 +1,6 @@
 "use client";
 
-import { EyeOff, Edit, ImageIcon } from "lucide-react";
+import { EyeOff, Edit, ImageIcon, RotateCcw } from "lucide-react";
 import { WidgetEmpty, WidgetError, WidgetLoading } from "@/features/admin-dashboard/components/WidgetState";
 import type { PaginatedPackages } from "../types";
 import { formatDuration, formatPackageDate, formatPackageMoney } from "../utils";
@@ -16,7 +16,10 @@ interface PackagesGridProps {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onSelect: (id: string) => void;
+  onHide: (id: string) => void;
+  onRestore: (id: string) => void;
   isDeleting?: string | null;
+  isUpdating?: string | null;
 }
 
 export function PackagesGrid({
@@ -29,8 +32,11 @@ export function PackagesGrid({
   onPageChange,
   onEdit,
   onDelete,
+  onHide,
+  onRestore,
   onSelect,
   isDeleting,
+  isUpdating,
 }: PackagesGridProps) {
   if (isLoading && !data) {
     return <WidgetLoading label="Loading packages…" />;
@@ -60,9 +66,25 @@ export function PackagesGrid({
                 <div className="flex items-start justify-between gap-2 mb-4">
                   <h3 className="font-bold text-lg text-slate-900 leading-tight line-clamp-2">{row.title}</h3>
                   <div className="flex items-center gap-2 text-slate-600 shrink-0 mt-0.5">
-                    <button title={row.status === "ARCHIVED" ? "Archived" : "Hide"} className="hover:text-slate-900 transition-colors">
-                      <EyeOff className="h-4 w-4" />
-                    </button>
+                    {row.status === "ARCHIVED" ? (
+                      <button 
+                        title="Restore" 
+                        onClick={(e) => { e.stopPropagation(); onRestore(row.id); }} 
+                        className="hover:text-emerald-600 transition-colors"
+                        disabled={isUpdating === row.id}
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                      </button>
+                    ) : row.status === "PUBLISHED" ? (
+                      <button 
+                        title="Hide (Unpublish)" 
+                        onClick={(e) => { e.stopPropagation(); onHide(row.id); }} 
+                        className="hover:text-amber-600 transition-colors"
+                        disabled={isUpdating === row.id}
+                      >
+                        <EyeOff className="h-4 w-4" />
+                      </button>
+                    ) : null}
                     <button onClick={(e) => { e.stopPropagation(); onEdit(row.id); }} className="hover:text-slate-900 transition-colors">
                       <Edit className="h-4 w-4" />
                     </button>

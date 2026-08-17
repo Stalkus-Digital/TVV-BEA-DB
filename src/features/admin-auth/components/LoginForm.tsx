@@ -25,10 +25,9 @@ export function LoginForm() {
 
   if (status === "authenticated") return null;
 
-  const serverError = loginMutation.error
-    ? loginMutation.error instanceof Error
-      ? loginMutation.error.message
-      : "Sign-in failed"
+  const errorObj = loginMutation.error as any;
+  const serverError = errorObj
+    ? errorObj.message || "Sign-in failed"
     : null;
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -74,7 +73,6 @@ export function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                placeholder="admin@tvv-travel-os.local"
               />
             </div>
 

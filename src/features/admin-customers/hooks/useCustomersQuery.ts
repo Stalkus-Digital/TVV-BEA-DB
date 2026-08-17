@@ -10,6 +10,7 @@ import { adminQueryKeys } from "@/shared/lib/query-client";
 function serializeFilters(filters: CustomerListFilters) {
   return {
     search: filters.search ?? "",
+    emailVerified: filters.emailVerified ?? "all",
     sortBy: filters.sortBy ?? "lastActivity",
     sortDir: filters.sortDir ?? "desc",
     page: filters.page ?? 1,

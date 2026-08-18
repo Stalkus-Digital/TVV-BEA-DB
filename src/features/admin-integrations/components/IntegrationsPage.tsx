@@ -99,7 +99,7 @@ export function IntegrationsPage() {
             type="button"
             onClick={() => setTab(t.id)}
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-              tab === t.id ? "bg-ink text-white" : "bg-muted text-muted-foreground hover:bg-muted/80"
+              tab === t.id ? "bg-slate-200 text-slate-900 font-bold" : "bg-muted text-muted-foreground hover:bg-muted/80"
             }`}
           >
             {t.label}
@@ -118,10 +118,10 @@ export function IntegrationsPage() {
         <div className="mt-4 rounded-lg border border-border bg-card p-4 space-y-3">
           <h2 className="text-sm font-semibold">Active payment gateway</h2>
           <p className="text-xs text-muted-foreground">
-            Website checkout uses exactly one gateway at a time. Configure both providers below, then choose which is active.
+            Website checkout uses exactly one gateway at a time. Choose which provider is active.
           </p>
           <div className="flex flex-wrap gap-3">
-            {(["razorpay", "phonepe"] as const).map((provider) => (
+            {(["phonepe"] as const).map((provider) => (
               <label
                 key={provider}
                 className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm ${
@@ -140,7 +140,7 @@ export function IntegrationsPage() {
                     });
                   }}
                 />
-                {provider === "razorpay" ? "Razorpay" : "PhonePe"}
+                PhonePe
               </label>
             ))}
           </div>

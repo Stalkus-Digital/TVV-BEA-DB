@@ -59,8 +59,8 @@ export function BookingsTable({
   if (isError) return <WidgetError message={errorMessage ?? "Failed to load bookings"} onRetry={onRetry} />;
 
   const items = data?.items ?? [];
-  if (!items.length) {
-    return <WidgetEmpty message="No bookings match your filters. Try clearing filters or create from an approved quote." />;
+  if (!data?.items.length) {
+    return <WidgetEmpty message="No bookings found." />;
   }
 
   return (

@@ -23,7 +23,7 @@ export function KindDetailsFields({ kind, details, onChange, destinations, count
               type="number"
               min={1}
               max={5}
-              value={d.starRating}
+              value={d.starRating ?? 3}
               onChange={(e) => onChange({ ...d, starRating: Number(e.target.value) })}
               className="w-full px-3 py-2 border border-border rounded-md text-sm"
             />
@@ -31,7 +31,7 @@ export function KindDetailsFields({ kind, details, onChange, destinations, count
           <div className="col-span-2">
             <label className="block text-sm font-medium mb-1">Address</label>
             <input
-              value={d.address}
+              value={d.address ?? ""}
               onChange={(e) => onChange({ ...d, address: e.target.value })}
               className="w-full px-3 py-2 border border-border rounded-md text-sm"
             />

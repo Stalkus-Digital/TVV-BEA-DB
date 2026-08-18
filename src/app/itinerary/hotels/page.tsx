@@ -48,18 +48,33 @@ export default function HotelsPage() {
     queryFn: async () => {
       const res = await adminApiClient.get<any>(adminEndpoints.inventory, { params: { kind: "HOTEL", pageSize: 100 } });
       if (!res) return [];
-      return res.items.map((item: any) => ({
-        id: item.id,
-        name: item.title,
-        location: item.details?.address || "",
-        stars: item.details?.rating || item.details?.starRating || 3,
-        rooms: item.details?.rooms || 0,
-        avgRate: item.details?.avgRate || 0,
-        status: item.status,
-        destinationId: item.destinationId || null,
-        image: item.details?.images?.[0] || item.details?.bannerImage?.[0] || null,
-        shortDescription: item.details?.shortDescription || "",
-      })) as (HotelProperty & { shortDescription?: string })[];
+      return res.items.map((item: any) => {
+        const roomTypes = item.details?.roomTypes || [];
+        let rooms = item.details?.rooms || 0;
+        let avgRate = item.details?.avgRate || 0;
+
+        if (avgRate === 0 && roomTypes.length > 0) {
+          const sum = roomTypes.reduce((acc: number, rt: any) => acc + (rt.price || 0), 0);
+          avgRate = sum / roomTypes.length;
+        }
+
+        if (rooms === 0 && roomTypes.length > 0) {
+          rooms = roomTypes.reduce((acc: number, rt: any) => acc + (rt.capacity || 0), 0); // fallback heuristic
+        }
+
+        return {
+          id: item.id,
+          name: item.title,
+          location: item.details?.address || "",
+          stars: item.details?.rating || item.details?.starRating || 3,
+          rooms,
+          avgRate,
+          status: item.status,
+          destinationId: item.destinationId || null,
+          image: item.details?.images?.[0] || item.details?.bannerImage?.[0] || null,
+          shortDescription: item.details?.shortDescription || "",
+        };
+      }) as (HotelProperty & { shortDescription?: string })[];
     }
   });
 
@@ -212,8 +227,9 @@ export default function HotelsPage() {
   // Stats Calculations
   const activeContracts = hotels.filter(h => h.status === "ACTIVE").length;
   const totalRooms = hotels.reduce((acc, h) => acc + h.rooms, 0);
-  const avgRoomRate = hotels.length
-    ? hotels.reduce((acc, h) => acc + h.avgRate, 0) / hotels.length
+  const hotelsWithRate = hotels.filter(h => h.avgRate > 0);
+  const avgRoomRate = hotelsWithRate.length
+    ? hotelsWithRate.reduce((acc, h) => acc + h.avgRate, 0) / hotelsWithRate.length
     : 0;
 
   return (
@@ -351,7 +367,7 @@ export default function HotelsPage() {
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
               <p className="text-sm font-medium text-slate-500">Total Allotted Rooms</p>
               <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-2xl font-bold text-slate-900">{totalRooms} Rooms</span>
+                <span className="text-2xl font-bold text-slate-900">{totalRooms > 0 ? `${totalRooms} Rooms` : "—"}</span>
               </div>
             </div>
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -364,7 +380,7 @@ export default function HotelsPage() {
               <p className="text-sm font-medium text-slate-500">Avg. Room Rate</p>
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-2xl font-bold text-slate-900">
-                  ₹{avgRoomRate.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  {avgRoomRate > 0 ? `₹${avgRoomRate.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "—"}
                 </span>
               </div>
             </div>

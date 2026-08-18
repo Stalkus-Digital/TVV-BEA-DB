@@ -20,11 +20,11 @@ export default function FerryRatesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCustomRoute, setIsCustomRoute] = useState(false);
   const [newRate, setNewRate] = useState<Partial<FerryRate>>({
-    route: "Port Blair ➔ Havelock",
-    provider: "Makruzz",
-    class: "Premium",
-    basePrice: 1000,
-    markupPrice: 100,
+    route: "",
+    provider: "",
+    class: "",
+    basePrice: "" as any,
+    markupPrice: "" as any,
   });
   const [editingRateId, setEditingRateId] = useState<string | null>(null);
 

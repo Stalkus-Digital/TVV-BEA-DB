@@ -126,17 +126,17 @@ export function MediaBrowserPage() {
             {uploads.map((item) => (
               <tr key={item.key} className="border-b border-border last:border-0">
                 <td className="px-4 py-3">
-                  {item.contentType.startsWith("image/") ? (
+                  {(item.contentType || item.mimeType || "").startsWith("image/") ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={item.url} alt="" className="h-10 w-10 object-cover rounded border border-border" />
                   ) : (
-                    <span className="text-xs text-muted-foreground">{item.contentType}</span>
+                    <span className="text-xs text-muted-foreground">{item.contentType || item.mimeType || "Unknown"}</span>
                   )}
                 </td>
                 <td className="px-4 py-3 font-mono text-xs max-w-[200px] truncate">{item.key}</td>
                 <td className="px-4 py-3 text-muted-foreground">{item.category}</td>
                 <td className="px-4 py-3">{formatBytes(item.sizeBytes || item.size || 0)}</td>
-                <td className="px-4 py-3 text-muted-foreground">{formatDate(item.createdAt || item.uploadedAt)}</td>
+                <td className="px-4 py-3 text-muted-foreground" suppressHydrationWarning>{formatDate(item.createdAt || item.uploadedAt)}</td>
                 <td className="px-4 py-3 text-right space-x-2">
                   <button
                     type="button"

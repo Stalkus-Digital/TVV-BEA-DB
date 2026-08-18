@@ -520,7 +520,7 @@ function GeographyStep({
           <select
             value={regionId}
             onChange={(e) => onRegionChange(e.target.value)}
-            disabled={isLoading.regions || !countryId}
+            disabled={isLoading.regions}
             className="w-full px-3 py-2 border border-border rounded-md text-sm disabled:opacity-60"
           >
             <option value="">Select region</option>

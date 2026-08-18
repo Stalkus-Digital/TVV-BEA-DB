@@ -213,16 +213,6 @@ export default function ActivitiesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => {
-              setIsSearchMode(!isSearchMode);
-              setSearchResults(null);
-            }}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-800 font-semibold rounded-md shadow-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-          >
-            <Search className="h-4 w-4" />
-            {isSearchMode ? "Back to Managed Activities" : "Live API Search"}
-          </button>
           <Link
             href="/inventory/activities/new"
             className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-md shadow-sm hover:bg-primary-hover transition-colors"

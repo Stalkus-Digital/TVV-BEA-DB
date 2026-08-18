@@ -69,12 +69,14 @@ export function IntegrationsPage() {
 
   const items = listQuery.data ?? [];
   const paymentsSystem = items.find((i) => i.key === "payments");
-  const activeProvider =
+  const serverActiveProvider =
     (paymentsSystem?.config?.activeProvider as string | undefined) === "phonepe" ? "phonepe" : "razorpay";
+  const [optimisticProvider, setOptimisticProvider] = useState<string | null>(null);
+  const activeProvider = optimisticProvider ?? serverActiveProvider;
 
   const filtered = useMemo(() => {
     if (tab === "ALL") return items.filter((i) => i.key !== "payments");
-    if (tab === "WEBHOOKS") return items.filter((i) => (i.config && false) || i.key === "razorpay" || i.key === "phonepe" || i.key === "sembark");
+    if (tab === "WEBHOOKS") return items.filter((i) => (i.config && false) || i.key === "razorpay" || i.key === "phonepe");
     if (tab === "PAYMENTS") return items.filter((i) => i.category === "PAYMENTS" && i.key !== "payments");
     return items.filter((i) => i.category === tab);
   }, [items, tab]);
@@ -130,8 +132,13 @@ export function IntegrationsPage() {
                   type="radio"
                   name="activePayment"
                   checked={activeProvider === provider}
-                  disabled={setActivePayment.isPending}
-                  onChange={() => setActivePayment.mutate(provider)}
+                  disabled={setActivePayment.isPending && !optimisticProvider}
+                  onChange={() => {
+                    setOptimisticProvider(provider);
+                    setActivePayment.mutate(provider, {
+                      onSettled: () => setOptimisticProvider(null),
+                    });
+                  }}
                 />
                 {provider === "razorpay" ? "Razorpay" : "PhonePe"}
               </label>
@@ -196,9 +203,7 @@ export function IntegrationsPage() {
                   ? ["/api/webhooks/razorpay"]
                   : p.key === "phonepe"
                     ? ["/api/webhooks/phonepe"]
-                    : p.key === "sembark"
-                      ? ["/api/webhooks/sembark"]
-                      : []
+                    : []
                 ).map((path) => (
                   <li key={`${p.key}-${path}`} className="flex items-center justify-between gap-2 font-mono text-xs">
                     <span>
@@ -271,7 +276,7 @@ function ProviderCard({
   const health = useHealthStatusQuery(provider.key, expanded);
   const history = useConnectionHistoryQuery(provider.key, 5);
 
-  const isBuiltin = provider.key === "payments" || ["openai", "razorpay", "phonepe", "tripjack", "smtp", "recaptcha", "sembark", "cloudinary"].includes(provider.key);
+  const isBuiltin = provider.key === "payments" || ["openai", "razorpay", "phonepe", "tripjack", "smtp", "recaptcha", "cloudinary"].includes(provider.key);
   const isDisabled = provider.status === "DISABLED";
 
   const lastTestTime = provider.lastTestedAt ? new Date(provider.lastTestedAt) : null;

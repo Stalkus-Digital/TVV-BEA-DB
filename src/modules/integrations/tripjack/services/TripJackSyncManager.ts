@@ -87,7 +87,7 @@ export class TripJackSyncManager {
     
     await prisma.tjSyncExecution.update({
       where: { id: active.id },
-      data: { status: 'FAILED', errorDetails: 'Stopped manually by admin.' }
+      data: { status: 'PAUSED', errorDetails: 'Stopped manually by admin.' }
     });
   }
 

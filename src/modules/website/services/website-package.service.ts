@@ -150,6 +150,7 @@ export class WebsitePackageService extends BaseService {
     if (isErr(root)) return root;
 
     const ids = new Set<string>();
+    ids.add(root.value.id);
     const queue = [root.value.id];
     let safety = 0;
 

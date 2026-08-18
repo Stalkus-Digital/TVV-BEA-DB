@@ -38,7 +38,7 @@ export class PrismaInventoryRepository extends PrismaStore<any> implements Inven
     kind: InventoryKind,
     params: PaginationParams = {}
   ): Promise<Result<PaginatedResult<InventoryItem>, AppError>> {
-    const items = (await this.delegate.findMany()).filter(( item: any ) => item.kind === kind && item.status !== "ARCHIVED");
+    const items = (await this.delegate.findMany()).filter(( item: any ) => item.kind === kind);
     return ok(this.paginate(items, params));
   }
 

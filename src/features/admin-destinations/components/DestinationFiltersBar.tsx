@@ -82,7 +82,7 @@ export function DestinationFiltersBar({
           title="Client-side filter — no regionId on list API"
         >
           <option value="">All regions</option>
-          {regions.map((r) => (
+          {regions.filter(r => r.name.toLowerCase() !== "all region" && r.name.toLowerCase() !== "all regions").map((r) => (
             <option key={r.id} value={r.id}>
               {r.name}
             </option>

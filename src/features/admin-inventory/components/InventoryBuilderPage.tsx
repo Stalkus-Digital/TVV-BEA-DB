@@ -238,10 +238,14 @@ export function InventoryBuilderPage() {
                 {createMutation.isPending ? "Creating…" : "Create & continue"}
               </button>
             )}
-            {currentStep < STEPS.length && (
+            {currentStep < STEPS.length ? (
               <button type="button" onClick={nextStep} className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md">
                 Next
               </button>
+            ) : (
+              <Link href="/inventory" className="px-4 py-2 text-sm bg-primary text-primary-foreground font-bold rounded-md flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4" /> Finish & Exit
+              </Link>
             )}
           </div>
         </div>

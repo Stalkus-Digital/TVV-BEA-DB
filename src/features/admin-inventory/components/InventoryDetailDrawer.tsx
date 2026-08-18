@@ -110,8 +110,8 @@ export function InventoryDetailDrawer({ itemId, destinations, onClose }: Invento
                   loading={suppliersQuery.isLoading}
                 />
               )}
-              {tab === "pricing" && <PricingTab item={itemQuery.data} />}
-              {tab === "availability" && <AvailabilityTab item={itemQuery.data} />}
+              {tab === "pricing" && <PricingTab item={itemQuery.data} itemId={itemId} />}
+              {tab === "availability" && <AvailabilityTab item={itemQuery.data} itemId={itemId} />}
               {tab === "gallery" && <GalleryTab item={itemQuery.data} />}
               {tab === "activity" && (
                 <EntityActivityTimeline
@@ -205,7 +205,46 @@ function OverviewTab({
           <dt className="text-muted-foreground">Updated</dt>
           <dd>{formatInventoryDate(item.updatedAt)}</dd>
         </div>
+        {((item.details as any).description || (item.details as any).shortDescription) && (
+          <div className="col-span-2 mt-4">
+            <dt className="text-muted-foreground">Description</dt>
+            <dd className="mt-1 whitespace-pre-wrap">{(item.details as any).description || (item.details as any).shortDescription}</dd>
+          </div>
+        )}
+        {(item.details as any).amenities && (item.details as any).amenities.length > 0 && (
+          <div className="col-span-2 mt-2">
+            <dt className="text-muted-foreground">Amenities</dt>
+            <dd className="mt-1 flex flex-wrap gap-1">
+              {(item.details as any).amenities.map((am: string, idx: number) => (
+                <span key={idx} className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs">
+                  {am}
+                </span>
+              ))}
+            </dd>
+          </div>
+        )}
       </dl>
+
+      {(item.kind === "HOTEL" || item.kind === "ACTIVITY") && (
+        <div className="border-t border-border pt-4">
+          <dl className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt className="text-muted-foreground">Base Price / Avg Rate</dt>
+              <dd>
+                {(item.details as any).avgRate || (item.details as any).adultPrice
+                  ? `₹${((item.details as any).avgRate || (item.details as any).adultPrice || 0).toLocaleString()}`
+                  : "Not configured"}
+              </dd>
+            </div>
+            {item.kind === "HOTEL" && (
+              <div>
+                <dt className="text-muted-foreground">Total Rooms</dt>
+                <dd>{(item.details as any).rooms ? `${(item.details as any).rooms} Rooms` : "Not configured"}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      )}
 
       {editable && (
         <div className="space-y-3 border-t border-border pt-4">
@@ -366,8 +405,10 @@ function SuppliersTab({
   );
 }
 
-function PricingTab({ item }: { item: InventoryItem }) {
-  const details = item.details as any;
+function PricingTab({ item, itemId }: { item: InventoryItem, itemId: string }) {
+  const [details, setDetails] = useState(item.details as any);
+  const updateMutation = useUpdateInventoryMutation(itemId);
+
   return (
     <div className="space-y-4 text-sm">
       <h4 className="font-semibold text-lg border-b pb-2">Pricing Information</h4>
@@ -375,7 +416,16 @@ function PricingTab({ item }: { item: InventoryItem }) {
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
             <p className="text-muted-foreground text-xs mb-1">Average Nightly Rate</p>
-            <p className="font-bold text-xl">₹{details?.avgRate?.toLocaleString() || "—"}</p>
+            <div className="flex gap-2 items-center mt-1">
+              <span className="font-bold text-xl">₹</span>
+              <input
+                type="number"
+                min={0}
+                value={details?.avgRate ?? 0}
+                onChange={(e) => setDetails({ ...details, avgRate: Number(e.target.value) })}
+                className="w-full px-2 py-1 border border-slate-300 rounded-md text-sm font-semibold"
+              />
+            </div>
           </div>
         </div>
       )}
@@ -383,25 +433,79 @@ function PricingTab({ item }: { item: InventoryItem }) {
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
             <p className="text-muted-foreground text-xs mb-1">Adult Rate</p>
-            <p className="font-bold text-xl">₹{details?.adultPrice?.toLocaleString() || "—"}</p>
+            <div className="flex gap-2 items-center mt-1">
+              <span className="font-bold text-xl">₹</span>
+              <input
+                type="number"
+                min={0}
+                value={details?.adultPrice ?? 0}
+                onChange={(e) => setDetails({ ...details, adultPrice: Number(e.target.value) })}
+                className="w-full px-2 py-1 border border-slate-300 rounded-md text-sm font-semibold"
+              />
+            </div>
           </div>
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
             <p className="text-muted-foreground text-xs mb-1">Child Rate</p>
-            <p className="font-bold text-xl">₹{details?.childPrice?.toLocaleString() || "—"}</p>
+            <div className="flex gap-2 items-center mt-1">
+              <span className="font-bold text-xl">₹</span>
+              <input
+                type="number"
+                min={0}
+                value={details?.childPrice ?? 0}
+                onChange={(e) => setDetails({ ...details, childPrice: Number(e.target.value) })}
+                className="w-full px-2 py-1 border border-slate-300 rounded-md text-sm font-semibold"
+              />
+            </div>
           </div>
         </div>
       )}
       {item.kind !== "HOTEL" && item.kind !== "ACTIVITY" && (
         <p className="text-muted-foreground">No specific pricing configured for this item kind.</p>
       )}
+
+      {(item.kind === "HOTEL" || item.kind === "ACTIVITY") && (
+        <button
+          type="button"
+          disabled={updateMutation.isPending}
+          onClick={() => void updateMutation.mutateAsync({ details })}
+          className="px-4 py-2 mt-4 text-sm bg-primary text-slate-600-foreground rounded-md disabled:opacity-50"
+        >
+          Save pricing
+        </button>
+      )}
     </div>
   );
 }
 
-function AvailabilityTab({ item }: { item: InventoryItem }) {
+function AvailabilityTab({ item, itemId }: { item: InventoryItem, itemId: string }) {
+  const [details, setDetails] = useState(item.details as any);
+  const updateMutation = useUpdateInventoryMutation(itemId);
+
   return (
     <div className="space-y-4 text-sm">
       <h4 className="font-semibold text-lg border-b pb-2">Availability Settings</h4>
+      
+      {item.kind === "HOTEL" && (
+        <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg mb-4">
+          <label className="block text-sm font-medium mb-1 text-slate-700">Total Allotted Rooms</label>
+          <input
+            type="number"
+            min={0}
+            value={details?.rooms ?? 0}
+            onChange={(e) => setDetails({ ...details, rooms: Number(e.target.value) })}
+            className="w-full max-w-xs px-3 py-2 border border-slate-300 rounded-md text-sm"
+          />
+          <button
+            type="button"
+            disabled={updateMutation.isPending}
+            onClick={() => void updateMutation.mutateAsync({ details })}
+            className="px-4 py-2 mt-3 text-sm bg-primary text-slate-600-foreground rounded-md disabled:opacity-50 block"
+          >
+            Save rooms
+          </button>
+        </div>
+      )}
+
       <div className="p-4 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-100 flex items-start gap-3">
         <div className="p-2 bg-emerald-100 rounded-full mt-0.5">
           <div className="h-2 w-2 rounded-full bg-emerald-500"></div>

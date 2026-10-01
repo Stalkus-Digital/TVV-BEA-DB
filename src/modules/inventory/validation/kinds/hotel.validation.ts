@@ -63,6 +63,16 @@ function validateRoomType(input: unknown, index: number): Result<HotelRoomType, 
     return err(new ValidationError(`roomTypes[${index}].extraPersonCharge must be a number`));
   }
 
+  const childPrice = asNumber(row.childPrice);
+  if (
+    row.childPrice !== undefined &&
+    row.childPrice !== null &&
+    row.childPrice !== "" &&
+    childPrice === undefined
+  ) {
+    return err(new ValidationError(`roomTypes[${index}].childPrice must be a number`));
+  }
+
   const images = asStringArray(row.images);
   if (row.images !== undefined && row.images !== null && images === undefined) {
     return err(new ValidationError(`roomTypes[${index}].images must be an array of strings`));
@@ -83,6 +93,7 @@ function validateRoomType(input: unknown, index: number): Result<HotelRoomType, 
     price,
     discountPrice: discountPrice ?? null,
     extraPersonCharge: extraPersonCharge ?? null,
+    childPrice: childPrice ?? null,
     refundable: asBoolean(row.refundable, false),
     description: asString(row.description) ?? undefined,
     rules: asString(row.rules) ?? undefined,

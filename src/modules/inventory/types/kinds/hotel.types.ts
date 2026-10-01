@@ -6,6 +6,7 @@ export interface HotelRoomType {
   price: number;
   discountPrice?: number | null;
   extraPersonCharge?: number | null;
+  childPrice?: number | null;
   refundable: boolean;
   description?: string;
   rules?: string;

@@ -12,6 +12,7 @@ interface FerryRate {
   class: string;
   basePrice: number;
   markupPrice: number;
+  childPrice: number;
 }
 
 export default function FerryRatesPage() {
@@ -25,6 +26,7 @@ export default function FerryRatesPage() {
     class: "",
     basePrice: "" as any,
     markupPrice: "" as any,
+    childPrice: "" as any,
   });
   const [editingRateId, setEditingRateId] = useState<string | null>(null);
 
@@ -83,6 +85,7 @@ export default function FerryRatesPage() {
       class: newRate.class || "",
       basePrice: Number(newRate.basePrice) || 0,
       markupPrice: Number(newRate.markupPrice) || 0,
+      childPrice: Number(newRate.childPrice) || 0,
     };
 
     if (editingRateId) {
@@ -100,6 +103,7 @@ export default function FerryRatesPage() {
       class: "",
       basePrice: "" as any,
       markupPrice: "" as any,
+      childPrice: "" as any,
     });
     setIsModalOpen(true);
   };
@@ -376,10 +380,23 @@ export default function FerryRatesPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Total Cost (₹) - Auto Calculated</label>
-                <div className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-900">
-                  ₹{((Number(newRate.basePrice) || 0) + (Number(newRate.markupPrice) || 0)).toLocaleString()}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Child Fare (4-16 yrs) (₹)</label>
+                  <input
+                    required
+                    type="number"
+                    min="0"
+                    value={newRate.childPrice}
+                    onChange={(e) => setNewRate({ ...newRate, childPrice: Number(e.target.value) })}
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Total Cost (Adult) (₹)</label>
+                  <div className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-900">
+                    ₹{((Number(newRate.basePrice) || 0) + (Number(newRate.markupPrice) || 0)).toLocaleString()}
+                  </div>
                 </div>
               </div>
 

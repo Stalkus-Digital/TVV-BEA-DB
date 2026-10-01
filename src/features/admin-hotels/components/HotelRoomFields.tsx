@@ -12,6 +12,7 @@ export interface HotelRoomDraft {
   price: number;
   discountPrice: number;
   extraPersonCharge: number;
+  childPrice: number;
   refundable: boolean;
   description: string;
   rules: string;
@@ -42,6 +43,7 @@ export function createEmptyRoomDraft(): HotelRoomDraft {
     price: 0,
     discountPrice: 0,
     extraPersonCharge: 0,
+    childPrice: 0,
     refundable: false,
     description: "",
     rules: "",
@@ -164,7 +166,7 @@ export function HotelRoomFields({ rooms, onChange }: HotelRoomFieldsProps) {
                     className="w-full px-4 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary"
                   />
                 </div>
-                <div className="space-y-2 md:col-span-2">
+                <div className="space-y-2">
                   <label className="text-sm font-medium">Extra person charge (₹)</label>
                   <input
                     type="number"
@@ -172,6 +174,17 @@ export function HotelRoomFields({ rooms, onChange }: HotelRoomFieldsProps) {
                     value={room.extraPersonCharge ?? ""}
                     onChange={(e) => updateRoom(index, { extraPersonCharge: Number(e.target.value) || 0 })}
                     placeholder="2016"
+                    className="w-full px-4 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Child charge 4-16 yrs (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={room.childPrice ?? ""}
+                    onChange={(e) => updateRoom(index, { childPrice: Number(e.target.value) || 0 })}
+                    placeholder="1000"
                     className="w-full px-4 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary"
                   />
                 </div>

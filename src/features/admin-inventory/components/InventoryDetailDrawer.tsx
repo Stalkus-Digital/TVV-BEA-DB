@@ -481,31 +481,97 @@ function AvailabilityTab({ item, itemId }: { item: InventoryItem, itemId: string
   const [details, setDetails] = useState(item.details as any);
   const updateMutation = useUpdateInventoryMutation(itemId);
 
-  return (
-    <div className="space-y-4 text-sm">
-      <h4 className="font-semibold text-lg border-b pb-2">Availability Settings</h4>
-      
-      {item.kind === "HOTEL" && (
-        <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg mb-4">
-          <label className="block text-sm font-medium mb-1 text-slate-700">Total Allotted Rooms</label>
-          <input
-            type="number"
-            min={0}
-            value={details?.rooms ?? 0}
-            onChange={(e) => setDetails({ ...details, rooms: Number(e.target.value) })}
-            className="w-full max-w-xs px-3 py-2 border border-slate-300 rounded-md text-sm"
-          />
+  if (item.kind === "HOTEL") {
+    const rooms = details?.roomTypes || [];
+    return (
+      <div className="space-y-4">
+        <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg mb-4 flex gap-4 items-end">
+          <div className="flex-1 max-w-xs">
+            <label className="block text-sm font-medium mb-1 text-slate-700">Property Total Allotted Rooms</label>
+            <input
+              type="number"
+              min={0}
+              value={details?.rooms ?? 0}
+              onChange={(e) => setDetails({ ...details, rooms: Number(e.target.value) })}
+              className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm bg-white"
+            />
+          </div>
           <button
             type="button"
             disabled={updateMutation.isPending}
             onClick={() => void updateMutation.mutateAsync({ details })}
-            className="px-4 py-2 mt-3 text-sm bg-primary text-slate-600-foreground rounded-md disabled:opacity-50 block"
+            className="px-4 py-2 text-sm bg-primary text-slate-600-foreground rounded-md disabled:opacity-50"
           >
-            Save rooms
+            Save room count
           </button>
         </div>
-      )}
 
+        <div className="space-y-4">
+          <h5 className="font-medium text-slate-800">Configured Rooms & Rates</h5>
+          {rooms.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No rooms configured.</p>
+          ) : (
+            <div className="space-y-3">
+              {rooms.map((r: any, i: number) => (
+                <div key={i} className="p-4 border border-slate-200 rounded-lg bg-white shadow-sm space-y-3">
+                  <div className="flex justify-between items-start border-b border-slate-100 pb-2">
+                    <div>
+                      <h6 className="font-semibold text-slate-800 text-base">{r.name}</h6>
+                      <p className="text-xs text-muted-foreground">{r.category || "Standard"} • Cap: {r.capacity} • {r.rateplanType}</p>
+                    </div>
+                    {r.validityStartDate && r.validityEndDate && (
+                      <div className="text-right">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Validity</span>
+                        <span className="text-xs font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded">
+                          {r.validityStartDate} to {r.validityEndDate}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                    <div className="bg-slate-50 p-2 rounded border border-slate-100 text-center">
+                      <p className="text-[10px] text-slate-500 uppercase font-semibold">Single</p>
+                      <p className="text-sm font-bold text-slate-800">₹{r.sellRateSingle || 0}</p>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded border border-slate-100 text-center">
+                      <p className="text-[10px] text-slate-500 uppercase font-semibold">Double</p>
+                      <p className="text-sm font-bold text-slate-800">₹{r.sellRateDouble || 0}</p>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded border border-slate-100 text-center">
+                      <p className="text-[10px] text-slate-500 uppercase font-semibold">Triple</p>
+                      <p className="text-sm font-bold text-slate-800">₹{r.sellRateTriple || 0}</p>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded border border-slate-100 text-center">
+                      <p className="text-[10px] text-slate-500 uppercase font-semibold">Quad</p>
+                      <p className="text-sm font-bold text-slate-800">₹{r.sellRateQuad || 0}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 pt-2 text-xs text-slate-600">
+                    <span className="flex items-center gap-1">
+                      <strong className="text-slate-800">Extra Adult:</strong> ₹{r.extraAdultRate || 0}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <strong className="text-slate-800">Extra Child:</strong> ₹{r.extraChildRate || 0}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <strong className="text-slate-800">Valid Days:</strong> {Array.isArray(r.validityDays) && r.validityDays.length > 0 ? r.validityDays.join(", ") : "All"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 text-sm">
+      <h4 className="font-semibold text-lg border-b pb-2">Availability Settings</h4>
+      
       <div className="p-4 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-100 flex items-start gap-3">
         <div className="p-2 bg-emerald-100 rounded-full mt-0.5">
           <div className="h-2 w-2 rounded-full bg-emerald-500"></div>

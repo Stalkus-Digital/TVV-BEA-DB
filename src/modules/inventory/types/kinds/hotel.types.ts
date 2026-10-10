@@ -7,6 +7,19 @@ export interface HotelRoomType {
   discountPrice?: number | null;
   extraPersonCharge?: number | null;
   childPrice?: number | null;
+  
+  rateplanType?: string;
+  validityStartDate?: string | null;
+  validityEndDate?: string | null;
+  validityDays?: string[];
+  sellRateSingle?: number | null;
+  sellRateDouble?: number | null;
+  sellRateTriple?: number | null;
+  sellRateQuad?: number | null;
+  extraAdultRate?: number | null;
+  extraChildRate?: number | null;
+  infantRate?: number | null;
+
   refundable: boolean;
   description?: string;
   rules?: string;

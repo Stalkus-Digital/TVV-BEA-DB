@@ -269,7 +269,7 @@ export function HotelRoomFields({ rooms, onChange }: HotelRoomFieldsProps) {
                               : [...(room.validityDays || []), day];
                             updateRoom(index, { validityDays: newDays });
                           }}
-                          className={`px-3 py-1.5 text-xs font-medium border-r border-border last:border-r-0 ${isSelected ? 'bg-slate-100 text-slate-900' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
+                          className={`px-3 py-1.5 text-xs font-medium border-r border-border last:border-r-0 transition-colors ${isSelected ? 'bg-blue-700 text-white hover:bg-blue-800' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
                         >
                           {day}
                         </button>
@@ -323,12 +323,6 @@ export function HotelRoomFields({ rooms, onChange }: HotelRoomFieldsProps) {
                 rows={4}
               />
 
-              <DescriptionEditor
-                label="Rules description"
-                value={room.rules}
-                onChange={(value) => updateRoom(index, { rules: value })}
-                rows={3}
-              />
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Amenities</label>

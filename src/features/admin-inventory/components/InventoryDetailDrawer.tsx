@@ -240,6 +240,11 @@ function OverviewTab({
               <div>
                 <dt className="text-muted-foreground">Total Rooms</dt>
                 <dd>{(item.details as any).rooms ? `${(item.details as any).rooms} Rooms` : "Not configured"}</dd>
+                {(item.details as any).roomTypes && Array.isArray((item.details as any).roomTypes) && (
+                  <p className="text-xs text-blue-600 mt-1 font-medium">
+                    {(item.details as any).roomTypes.length} Room type(s) configured (check Availability tab)
+                  </p>
+                )}
               </div>
             )}
           </dl>
@@ -548,13 +553,18 @@ function AvailabilityTab({ item, itemId }: { item: InventoryItem, itemId: string
                     </div>
                   </div>
 
-                  <div className="flex gap-4 pt-2 text-xs text-slate-600">
+                  <div className="flex flex-wrap gap-4 pt-2 text-xs text-slate-600">
                     <span className="flex items-center gap-1">
                       <strong className="text-slate-800">Extra Adult:</strong> ₹{r.extraAdultRate || 0}
                     </span>
                     <span className="flex items-center gap-1">
-                      <strong className="text-slate-800">Extra Child:</strong> ₹{r.extraChildRate || 0}
+                      <strong className="text-slate-800">Extra Child (5-11):</strong> ₹{r.extraChildRate || r.childPrice || 0}
                     </span>
+                    {r.infantRate !== undefined && (
+                      <span className="flex items-center gap-1">
+                        <strong className="text-slate-800">Infant:</strong> ₹{r.infantRate || 0}
+                      </span>
+                    )}
                     <span className="flex items-center gap-1">
                       <strong className="text-slate-800">Valid Days:</strong> {Array.isArray(r.validityDays) && r.validityDays.length > 0 ? r.validityDays.join(", ") : "All"}
                     </span>

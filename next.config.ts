@@ -8,6 +8,16 @@ import type { NextConfig } from "next";
  * Do not set experimental.nodeMiddleware here — it was removed from the
  * ExperimentalConfig types once the feature stabilized and fails `next build`.
  */
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "cms.thevacationvoice.com" },
+      { protocol: "https", hostname: "**.thevacationvoice.com" },
+      { protocol: "https", hostname: "**.digitaloceanspaces.com" },
+      { protocol: "https", hostname: "res.cloudinary.com" },
+    ],
+  },
+};
 
 export default nextConfig;

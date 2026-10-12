@@ -79,6 +79,8 @@ export async function POST(req: Request) {
             exclusions,
             rules: rules || "",
             images: imageList,
+            validFrom: validFrom ? new Date(validFrom).toISOString() : null,
+            validTo: validTo ? new Date(validTo).toISOString() : null,
           } as any
         },
       });

@@ -73,6 +73,15 @@ export function PackageSingleForm() {
     enabled: !!editId,
   });
 
+  const { data: availabilityData } = useQuery({
+    queryKey: ["admin", "packages", editId, "availability"],
+    queryFn: async () => {
+      if (!editId) return null;
+      return adminApiClient.get<any[]>(`${adminEndpoints.packages}/${editId}/availability`);
+    },
+    enabled: !!editId,
+  });
+
   useEffect(() => {
     if (previewData) {
       const packageData = previewData.package;
@@ -86,6 +95,30 @@ export function PackageSingleForm() {
       setDurationNights(packageData.durationNights || 0);
       setIsStaffPick(Boolean(packageData.isStaffPick));
       setFlightsIncluded(Boolean(packageData.flightsIncluded));
+
+      const fromDate =
+        packageData.validFrom ||
+        packageData.content?.validFrom ||
+        (Array.isArray(availabilityData) && availabilityData[0]?.validFrom);
+      const toDate =
+        packageData.validTo ||
+        packageData.content?.validTo ||
+        (Array.isArray(availabilityData) && availabilityData[0]?.validTo);
+
+      if (fromDate) {
+        try {
+          setValidFrom(new Date(fromDate).toISOString().split("T")[0]);
+        } catch {
+          setValidFrom(String(fromDate).slice(0, 10));
+        }
+      }
+      if (toDate) {
+        try {
+          setValidTo(new Date(toDate).toISOString().split("T")[0]);
+        } catch {
+          setValidTo(String(toDate).slice(0, 10));
+        }
+      }
 
       if (packageData.content) {
         setShortDescription(packageData.content.shortDescription || "");
@@ -172,7 +205,7 @@ export function PackageSingleForm() {
     } else if (!editId) {
       setDays([]);
     }
-  }, [previewData, editId]);
+  }, [previewData, availabilityData, editId]);
 
   const addHotel = () => {
     setDays((prev) => [

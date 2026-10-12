@@ -78,6 +78,8 @@ export interface Package {
   createdAt: string;
   updatedAt: string;
   content?: any;
+  validFrom?: string | null;
+  validTo?: string | null;
 }
 
 export type PackageTemplate = Package;

@@ -73,6 +73,8 @@ export async function PUT(req: Request, context: any) {
             exclusions,
             rules: rules || "",
             images: imageList,
+            validFrom: validFrom ? new Date(validFrom).toISOString() : null,
+            validTo: validTo ? new Date(validTo).toISOString() : null,
           } as any
         },
       });

@@ -43,11 +43,14 @@ export function enrichPackageRows(
 ): PackageListRow[] {
   return packages.map((pkg) => {
     const price = pricesById.get(pkg.id);
+    const content = (pkg.content && typeof pkg.content === "object" ? pkg.content : {}) as Record<string, any>;
     return {
       ...pkg,
       destinationName: resolveDestinationName(pkg.destinationId, destinationsById),
       displayPrice: price?.total ?? null,
       currency: price?.currency ?? null,
+      validFrom: pkg.validFrom || content.validFrom || null,
+      validTo: pkg.validTo || content.validTo || null,
     };
   });
 }

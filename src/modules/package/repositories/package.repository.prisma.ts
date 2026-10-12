@@ -8,7 +8,10 @@ import type { PackageListFilter, PackageRepository } from "./package.repository"
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 
-function toDomain(row: PrismaPackageRow): Package {
+function toDomain(row: PrismaPackageRow, avail?: { validFrom: string; validTo: string }): Package {
+  const content = (row.content && typeof row.content === "object" ? row.content : {}) as Record<string, any>;
+  const validFrom = content.validFrom || avail?.validFrom || null;
+  const validTo = content.validTo || avail?.validTo || null;
   return {
     ...row,
     sourceType: row.sourceType as Package["sourceType"],
@@ -17,6 +20,8 @@ function toDomain(row: PrismaPackageRow): Package {
     seo: row.seo as unknown as Package["seo"],
     faqs: row.faqs as unknown as Package["faqs"],
     content: row.content as any,
+    validFrom,
+    validTo,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -40,18 +45,25 @@ function toWhere(filter: PackageListFilter): Prisma.PackageWhereInput {
 
 export class PrismaPackageRepository implements PackageRepository {
   async findById(id: string): Promise<Result<Package | null, AppError>> {
-    const row = await prisma.package.findUnique({ where: { id } });
-    return ok(row ? toDomain(row) : null);
+    const [row, avail] = await Promise.all([
+      prisma.package.findUnique({ where: { id } }),
+      prisma.packageAvailability.findFirst({ where: { packageId: id }, orderBy: { validFrom: "asc" } }),
+    ]);
+    return ok(row ? toDomain(row, avail ? { validFrom: avail.validFrom.toISOString(), validTo: avail.validTo.toISOString() } : undefined) : null);
   }
 
   async findByCode(code: string): Promise<Result<Package | null, AppError>> {
     const row = await prisma.package.findUnique({ where: { code } });
-    return ok(row ? toDomain(row) : null);
+    if (!row) return ok(null);
+    const avail = await prisma.packageAvailability.findFirst({ where: { packageId: row.id }, orderBy: { validFrom: "asc" } });
+    return ok(toDomain(row, avail ? { validFrom: avail.validFrom.toISOString(), validTo: avail.validTo.toISOString() } : undefined));
   }
 
   async findBySlug(slug: string): Promise<Result<Package | null, AppError>> {
     const row = await prisma.package.findUnique({ where: { slug } });
-    return ok(row ? toDomain(row) : null);
+    if (!row) return ok(null);
+    const avail = await prisma.packageAvailability.findFirst({ where: { packageId: row.id }, orderBy: { validFrom: "asc" } });
+    return ok(toDomain(row, avail ? { validFrom: avail.validFrom.toISOString(), validTo: avail.validTo.toISOString() } : undefined));
   }
 
   async findMany(params: PaginationParams = {}): Promise<Result<PaginatedResult<Package>, AppError>> {
@@ -66,7 +78,32 @@ export class PrismaPackageRepository implements PackageRepository {
       prisma.package.findMany({ where, skip: (page - 1) * pageSize, take: pageSize, orderBy: { createdAt: "desc" } }),
       prisma.package.count({ where }),
     ]);
-    return ok({ items: rows.map(toDomain), page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) });
+
+    const packageIds = rows.map((r) => r.id);
+    const availabilities = packageIds.length > 0
+      ? await prisma.packageAvailability.findMany({
+          where: { packageId: { in: packageIds } },
+          orderBy: { validFrom: "asc" },
+        })
+      : [];
+
+    const availMap = new Map<string, { validFrom: string; validTo: string }>();
+    for (const a of availabilities) {
+      if (!availMap.has(a.packageId)) {
+        availMap.set(a.packageId, {
+          validFrom: a.validFrom.toISOString(),
+          validTo: a.validTo.toISOString(),
+        });
+      }
+    }
+
+    return ok({
+      items: rows.map((r) => toDomain(r, availMap.get(r.id))),
+      page,
+      pageSize,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    });
   }
 
   async create(data: Omit<Package, "id">): Promise<Result<Package, AppError>> {

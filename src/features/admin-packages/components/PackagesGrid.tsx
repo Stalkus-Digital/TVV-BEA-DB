@@ -106,11 +106,11 @@ export function PackagesGrid({
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="font-semibold text-slate-900">Package Start Date:</span>
-                    <span>{row.validFrom ? new Date(row.validFrom).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : "August 21st, 2025"}</span>
+                    <span>{row.validFrom || (row as any).content?.validFrom ? new Date(row.validFrom || (row as any).content?.validFrom).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : "Not set"}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="font-semibold text-slate-900">Package End Date:</span>
-                    <span>{row.validTo ? new Date(row.validTo).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : "September 30th, 2026"}</span>
+                    <span>{row.validTo || (row as any).content?.validTo ? new Date(row.validTo || (row as any).content?.validTo).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : "Not set"}</span>
                   </div>
                 </div>
 
